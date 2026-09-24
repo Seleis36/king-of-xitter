@@ -2,7 +2,7 @@
 
 A single-player Android game that plays by the **King of Tokyo** rules (original base game, 66 cards). You play against 3 bots. The theme is the parody design in [`design/`](design/). All 6 leaders can be played.
 
-- **Team:** 4 developers, one track each (A–D). Each track owns its own modules, so people rarely wait on each other.
+- **Team:** 4 developers, one track each: A Engine @Samylay, B Power-ups @AzerX2, C In-game UI @Seleis36, D Bots & voice @khvatovat. Personal guides are in [`docs/team/`](docs/team/). Each track owns its own modules, so people rarely wait on each other.
 - **Stack:** Kotlin, Jetpack Compose, multi-module Gradle, min SDK 26, target SDK 35. It runs fully offline. There's no backend and no LLM; tweets come from templates.
 - **Estimates** are in points. 1 pt ≈ half a day of focused work. Each track totals about 40 pts, so roughly 5–6 weeks at part-time pace.
 
@@ -39,7 +39,7 @@ The rules stay exactly the same as King of Tokyo. Only the names change.
 
 **First player:** roll-off. Most tweets goes first. This is shown on the Versus intro screen.
 
-### Open design decisions (owner: Dev A, decide in M0)
+### Open design decisions (owner: @Samylay, decide in M0)
 
 1. **Char cap of 280.** The design banks at most 280 chars, but King of Tokyo has no energy cap. *Recommendation:* keep the cap as a toggle. Default it to off to match the "exactly like King of Tokyo" goal, and show the ring as full above 280.
 2. **Bot Farm cost.** The design shows 50, but Even Bigger costs 4 (→ 40). *Recommendation:* use 40 and update the design.
@@ -49,7 +49,7 @@ The rules stay exactly the same as King of Tokyo. Only the names change.
 
 ## 2. Power-up catalogue (all 66 base cards)
 
-The effects are the King of Tokyo originals. Energy costs are ×10 and damage/health are in millions. The names are proposals from Dev B, and anything marked ★ comes from the design. **K** = Policy (keep), **D** = Executive Order (discard). The *Cx* column is the task that implements the card (see §5).
+The effects are the King of Tokyo originals. Energy costs are ×10 and damage/health are in millions. The names are proposals (@AzerX2 owns them), and anything marked ★ comes from the design. **K** = Policy (keep), **D** = Executive Order (discard). The *Cx* column is the task that implements the card (see §5).
 
 | # | King of Tokyo card | Xitter name | Cost | Type | Effect | Cx |
 |---|---|---|---|---|---|---|
@@ -123,11 +123,11 @@ The effects are the King of Tokyo originals. Energy costs are ×10 and damage/he
 ## 3. Architecture (the key to parallel work)
 
 ```
-:engine   pure Kotlin/JVM. GameState, Action, Event, Decision, rules reducer, seeded RNG, CardHooks API   ← Dev A
-:cards    pure Kotlin. CardCatalog + one CardEffect per card, deck/shop logic                             ← Dev B
-:bots     pure Kotlin. BotBrain implementations (Intern / Reply Guy / Troll Farm)                         ← Dev D
-:content  pure Kotlin. Leader roster, TweetWriter (6 voices × event types), zingers, trending tags        ← Dev D
-:app      Android. Compose design system, screens, navigation, GameViewModel, persistence, audio         ← Dev C (+ A, B, D for their own screens)
+:engine   pure Kotlin/JVM. GameState, Action, Event, Decision, rules reducer, seeded RNG, CardHooks API   ← @Samylay
+:cards    pure Kotlin. CardCatalog + one CardEffect per card, deck/shop logic                             ← @AzerX2
+:bots     pure Kotlin. BotBrain implementations (Intern / Reply Guy / Troll Farm)                         ← @khvatovat
+:content  pure Kotlin. Leader roster, TweetWriter (6 voices × event types), zingers, trending tags        ← @khvatovat
+:app      Android. Compose design system, screens, navigation, GameViewModel, persistence, audio         ← @Seleis36 (+ A, B, D for their own screens)
 ```
 
 `:app` depends on everything. `:cards`, `:bots` and `:content` depend only on `:engine` (the API) and never on each other.
@@ -165,7 +165,7 @@ The effects are the King of Tokyo originals. Energy costs are ×10 and damage/he
 | **M3 Content & polish** | Week 5 | All 66 power-ups, all tweet voices, Troll Farm, leader personalities, motion, audio/haptics, save/resume. 10k simulated games with no crash |
 | **M4 Release** | Week 6 | QA pass, Play internal testing track, signed AAB |
 
-| Week | Dev A: Engine | Dev B: Power-ups | Dev C: In-game UI | Dev D: Bots + voice |
+| Week | @Samylay: Engine | @AzerX2: Power-ups | @Seleis36: In-game UI | @khvatovat: Bots + voice |
 |---|---|---|---|---|
 | 1 | M0 → E1, E4 | M0 → C1, C2 | M0 → U1, U2 | M0 → B1, V1 |
 | 2 | E2, E3, E5, E7 | C3, C4 | U3, U4, U5 | V1, V5, B2 |
@@ -191,7 +191,7 @@ Dependencies marked `M0` mean only the frozen contracts. Nothing outside M0 bloc
 | S5 | `BotBrain` + `TweetWriter` interfaces; `Leader` roster (6 leaders: id, names, handle, colour, portrait); portraits converted to VectorDrawables | D | 2 |
 | S6 | `GameFixtures` (one state per design screen) + `FakeGameController` | A + C | 1+1 |
 
-### Track A: Engine and game flow (Dev A) ≈ 40 pts
+### Track A: Engine and game flow (@Samylay) ≈ 40 pts
 
 | ID | Task | Depends on | Pts |
 |---|---|---|---|
@@ -208,7 +208,7 @@ Dependencies marked `M0` mean only the frozen contracts. Nothing outside M0 bloc
 | E11 | Screens: Victory, Defeat (account suspended), Standings | U1–U3 (fakes until then) | 5 |
 | E12 | Rules engine test suite: golden games from recorded seeds, and every rule in §1 covered by a test | E1–E6 | 3 |
 
-### Track B: Power-ups (Dev B) ≈ 40 pts
+### Track B: Power-ups (@AzerX2) ≈ 40 pts
 
 | ID | Task | Depends on | Pts |
 |---|---|---|---|
@@ -222,7 +222,7 @@ Dependencies marked `M0` mean only the frozen contracts. Nothing outside M0 bloc
 | C8 | Card UI component (sticker card: cost bubble, POLICY/ORDER tag, text) + Power-up shop screen + policy tray on the board | U1–U3 (fakes until then) | 4 |
 | C9 | Card-ability prompts: "use Spin Doctor?", pick a die or face, pick a target leader | U1, C5 | 1 |
 
-### Track C: In-game UI (Dev C) ≈ 40 pts
+### Track C: In-game UI (@Seleis36) ≈ 40 pts
 
 | ID | Task | Depends on | Pts |
 |---|---|---|---|
@@ -237,7 +237,7 @@ Dependencies marked `M0` mean only the frozen contracts. Nothing outside M0 bloc
 | U9 | Audio and haptics: dice, tweet, hit, win/lose; settings toggles | U8 | 3 |
 | U10 | Wire the real `GameController` into the board; animate from `Event`s; accessibility (content descriptions, font scaling), small-phone layout | E7 | 5 |
 
-### Track D: Bots, voices and the front door (Dev D) ≈ 40 pts
+### Track D: Bots, voices and the front door (@khvatovat) ≈ 40 pts
 
 | ID | Task | Depends on | Pts |
 |---|---|---|---|
@@ -271,8 +271,8 @@ flowchart LR
   U1 -. fakes .-> E11 & C8 & V3 & V4
 ```
 
-- **E6 (hook dispatch) is the main blocker.** Dev A lands it at the start of week 3, right before C5–C7, B3 and B4 need it. Until then, Dev B writes C1–C4 against `TestGame` (the hooks are pure functions) and Dev D writes B2 against fixtures. If E6 slips, Dev B moves C8 earlier.
-- **B1 (Intern bot)** is 1 pt and unblocks E7. Dev D does it on day 4.
+- **E6 (hook dispatch) is the main blocker.** @Samylay lands it at the start of week 3, right before C5–C7, B3 and B4 need it. Until then, @AzerX2 writes C1–C4 against `TestGame` (the hooks are pure functions) and @khvatovat writes B2 against fixtures. If E6 slips, @AzerX2 moves C8 earlier.
+- **B1 (Intern bot)** is 1 pt and unblocks E7. @khvatovat does it on day 4.
 - **U1–U3** unblock the screens owned by A, B and D. Until they land, those developers use raw Material components and swap them later.
 
 ---

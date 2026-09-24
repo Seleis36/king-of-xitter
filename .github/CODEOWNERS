@@ -1,13 +1,13 @@
-# Replace @dev-a … @dev-d with GitHub usernames once the team is set.
-/engine/            @dev-a
-/cards/             @dev-b
-/bots/              @dev-d
-/content/           @dev-d
-/app/src/main/java/**/ui/theme/       @dev-c
-/app/src/main/java/**/ui/components/  @dev-c
-/app/src/main/java/**/ui/board/       @dev-c
-/app/src/main/java/**/ui/shop/        @dev-b
-/app/src/main/java/**/ui/endgame/     @dev-a
-/app/src/main/java/**/ui/front/       @dev-d
-/app/src/main/java/**/ui/timeline/    @dev-d
-/ROADMAP.md         @dev-a @dev-b @dev-c @dev-d
+# Tracks: A Engine, B Power-ups, C In-game UI, D Bots & voice
+/engine/            @Samylay
+/cards/             @AzerX2
+/bots/              @khvatovat
+/content/           @khvatovat
+/app/src/main/java/**/ui/theme/       @Seleis36
+/app/src/main/java/**/ui/components/  @Seleis36
+/app/src/main/java/**/ui/board/       @Seleis36
+/app/src/main/java/**/ui/shop/        @AzerX2
+/app/src/main/java/**/ui/endgame/     @Samylay
+/app/src/main/java/**/ui/front/       @khvatovat
+/app/src/main/java/**/ui/timeline/    @khvatovat
+/ROADMAP.md         @Samylay @AzerX2 @Seleis36 @khvatovat

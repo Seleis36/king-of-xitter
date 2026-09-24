@@ -2,12 +2,14 @@
 
 ## Tracks
 
-| Track | Owns | Label |
-|---|---|---|
-| A: Engine and game flow | `engine/`, end-of-match screens | `track:engine` |
-| B: Power-ups | `cards/`, shop UI | `track:cards` |
-| C: In-game UI | `app/.../ui/` design system, board, dice, motion | `track:ui` |
-| D: Bots, voices, front door | `bots/`, `content/`, title/pick/versus/timeline/settings screens | `track:bots-voice` |
+| Track | Owner | Owns | Label |
+|---|---|---|---|
+| A: Engine and game flow | @Samylay | `engine/`, end-of-match screens | `track:engine` |
+| B: Power-ups | @AzerX2 | `cards/`, shop UI | `track:cards` |
+| C: In-game UI | @Seleis36 | `app/.../ui/` design system, board, dice, motion | `track:ui` |
+| D: Bots, voices, front door | @khvatovat | `bots/`, `content/`, title/pick/versus/timeline/settings screens | `track:bots-voice` |
+
+Your personal guide (tasks in order, hand-offs, first steps) is `docs/team/<your-username>.md`.
 
 ## Rules
 
