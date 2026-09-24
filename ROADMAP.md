@@ -160,18 +160,18 @@ The effects are the King of Tokyo originals. Energy costs are ×10 and damage/he
 | Milestone | Target | Exit criteria |
 |---|---|---|
 | **M0 Contracts** | Days 1–3 | Project builds in CI. All contracts from §3 are merged with KDoc. Fixtures render in previews. Design assets are imported |
-| **M1 Walking skeleton** | Week 2 | A full match from title to victory/defeat on a phone, using base rules only (no power-ups) against 3 Intern bots |
-| **M2 Full rules** | Week 4 | The shop and all 66 power-ups work. The Reply Guy bot works. Every screen from the design exists. All 6 leaders can be picked |
-| **M3 Content & polish** | Week 5 | All tweet voices are in, plus Troll Farm, animations, audio/haptics, save/resume, and a balance sim of 10k games without a crash |
+| **M1 Walking skeleton** | Week 2 | A base-rules match (no power-ups) plays end to end in a JVM test with 4 Intern bots. The shop deck deals and Executive Orders work. Shared components, stats and dice render every fixture |
+| **M2 Full rules, on device** | Week 4 | A full match on a phone from title to victory/defeat. Every screen from the design exists. All 6 leaders can be picked. All power-ups work except the 8 complex ones (C7). The Reply Guy bot works. The simulator runs |
+| **M3 Content & polish** | Week 5 | All 66 power-ups, all tweet voices, Troll Farm, leader personalities, motion, audio/haptics, save/resume. 10k simulated games with no crash |
 | **M4 Release** | Week 6 | QA pass, Play internal testing track, signed AAB |
 
 | Week | Dev A: Engine | Dev B: Power-ups | Dev C: In-game UI | Dev D: Bots + voice |
 |---|---|---|---|---|
 | 1 | M0 → E1, E4 | M0 → C1, C2 | M0 → U1, U2 | M0 → B1, V1 |
-| 2 | E6, E2, E3, E5 | C3, C4 | U3, U4, U5 | V1, B2, V5 |
-| 3 | E7, E8, E12 | C4, C5, C8 | U5, U6, U7 | B2, V2, V4 |
-| 4 | E9, E10, E11 | C6, C7, C9 | U8, U10 | V4, B4, V3 |
-| 5 | E11, bugfix from sim | C7, balance | U9, U10 | B3, V6 |
+| 2 | E2, E3, E5, E7 | C3, C4 | U3, U4, U5 | V1, V5, B2 |
+| 3 | **E6**, E8, E12 | C4, C8, C5 | U5, U6, U7 | B2, V2, V4 |
+| 4 | E10, E11 | C5, C6, C9 | U10 | V4, B4, V3 |
+| 5 | E9, fixes found by the sim | C7, balance | U8, U9 | B3, V6 |
 | 6 | QA + release | QA | QA | QA |
 
 ---
@@ -271,7 +271,7 @@ flowchart LR
   U1 -. fakes .-> E11 & C8 & V3 & V4
 ```
 
-- **E6 (hook dispatch) is the main blocker.** Dev A should do E1 → E4 → E6 first, ahead of E2/E3 if needed, and aim to finish by the end of week 2. Until then, Dev B writes C1–C4 against `TestGame` and Dev D writes B2 against fixtures.
+- **E6 (hook dispatch) is the main blocker.** Dev A lands it at the start of week 3, right before C5–C7, B3 and B4 need it. Until then, Dev B writes C1–C4 against `TestGame` (the hooks are pure functions) and Dev D writes B2 against fixtures. If E6 slips, Dev B moves C8 earlier.
 - **B1 (Intern bot)** is 1 pt and unblocks E7. Dev D does it on day 4.
 - **U1–U3** unblock the screens owned by A, B and D. Until they land, those developers use raw Material components and swap them later.
 
