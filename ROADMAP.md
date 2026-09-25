@@ -197,8 +197,9 @@ and legal `Action` options. Only the engine applies intents or accepts decisions
 | `onResolve` | Once after the final roll, before base dice resolution | Collect intents against the same roll snapshot; apply in engine rule-phase order |
 | `modifyOutgoingDamage` | For each outgoing damage packet, after base targets are selected | Sum additive damage; expand targets from all intents |
 | `modifyIncomingDamage` | After outgoing modifiers, before follower totals change | Combine all prevention conditions, then apply remaining damage once |
-| `onBuy` | After payment; before an Executive Order is discarded | Run the purchased card's hook and notify the buyer's active policies |
-| `activatedAbilities` | At each ability window before the next automatic rule step | Return legal offers; the engine exposes them as `PendingDecision` options |
+| `onBuy` | After payment; before an Executive Order is discarded | The shop calls `dispatchOnBuy`; run the purchased card's hook and notify the buyer's active policies |
+| `activatedAbilities` | After a roll and after roll resolution, before the next automatic rule step | Return legal offers; the engine exposes them as `PendingDecision` options |
+| `activate` | After the player selects an offered ability option | Validate the offered action and apply the effect intents |
 | `onEliminated` | After followers reach zero, before Xitter transfer and victory checks | Collect intents before final elimination is committed, allowing effects such as Burner Account |
 | `onTurnEnd` | After shop and decisions, before selecting the next player | Collect intents before the turn advances |
 
