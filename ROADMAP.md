@@ -41,9 +41,9 @@ The rules stay exactly the same as King of Tokyo. Only the names change.
 
 ### Open design decisions (owner: @Samylay, decide in M0)
 
-1. **Char cap of 280.** The design banks at most 280 chars, but King of Tokyo has no energy cap. *Recommendation:* keep the cap as a toggle. Default it to off to match the "exactly like King of Tokyo" goal, and show the ring as full above 280.
-2. **Bot Farm cost.** The design shows 50, but Even Bigger costs 4 (→ 40). *Recommendation:* use 40 and update the design.
-3. **Leader abilities.** Base King of Tokyo monsters have no abilities, so leaders differ only in portrait, colour, tweet voice and bot personality. Abilities (for example the King of Tokyo *Power Up!* evolutions) would be a post-v1 add-on.
+1. **Char cap of 280: decided.** Keep the cap configurable and default it off to match the base game's uncapped energy. The UI ring can appear full above 280. The Settings screen owns the toggle.
+2. **Bot Farm cost: decided.** Use 40 characters, matching Even Bigger's cost of 4 energy. The card catalogue and design should use 40.
+3. **Leader abilities: decided.** No gameplay abilities in v1. Leaders differ by portrait, colour, tweet voice, and bot personality. Gameplay abilities can be considered after v1.
 
 ---
 
