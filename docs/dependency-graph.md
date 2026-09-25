@@ -148,10 +148,11 @@ flowchart LR
 
 ## Current hand-offs
 
-- The E6 engine hook protocol and reducer dispatch are implemented and compile;
-  E6 remains yellow until its required rules tests pass. Connect S3's card
-  registry and effect implementations as AzerX2's work lands. E6 unlocks C5–C7,
-  B3, and B4 after verification and integration.
+- E6's hook protocol and reducer dispatch are implemented, and the engine suite
+  now covers the hook windows and base rules with three seeded four-player games.
+  The games skip purchases because the shop is not implemented yet. E6 remains
+  yellow pending peer review and CI. AzerX2 and khvatovat can build against the
+  pushed engine API; connect S3's card registry and effects as that work lands.
 - E7 needs B1. Until then, use the always-first-option bot described in the
   Samylay guide.
 - U1–U3 support end-game, shop, and front-door screens. Teams can use Material
