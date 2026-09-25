@@ -272,7 +272,7 @@ Dependencies marked `M0` mean only the frozen contracts. Nothing outside M0 bloc
 | E4 | Turn state machine: phases, `PendingDecision` queue, end of turn, skipping suspended players | E1 | 4 |
 | E5 | Elimination, simultaneous elimination, win at 20 / last standing / nobody wins | E3 | 2 |
 | E6 | Engine hook protocol and dispatch at every card hook point (card-order independent), extra turns, counters on `PlayerState` | E4, M0 card-hook contract | 5 |
-| E7 | Real `GameController` / `GameViewModel`: coroutine loop, bot turns with pacing delays, human decisions from the UI | E4 · uses D's Intern bot (fake: always-first-option bot) | 4 |
+| E7 | Real `GameController` / `GameViewModel`: coroutine loop, bot turns with pacing delays, human decisions from the UI | E4 · B1 (fake: always-first-option bot) · C2 shop completion action | 4 |
 | E8 | Match setup: pick leader, draw 3 random bots from the other 5, roll-off for first player | E7 | 2 |
 | E9 | Save/resume: serialize `GameState` (kotlinx.serialization) and restore after process death | E7 | 3 |
 | E10 | Match stats (tweets sent, unfollows dealt, turns as Main Character) for the end screens | E5 | 1 |
@@ -334,6 +334,7 @@ flowchart LR
   M0[M0 contracts] --> E1 --> E4 --> E6
   E1 --> E2 --> E3 --> E5
   E4 --> E7 --> E8 --> V4
+  C2 --> E7
   E6 --> C5 & C6 & C7 & B3 & B4
   B1 --> E7
   E7 --> U10
@@ -342,8 +343,10 @@ flowchart LR
   U1 -. fakes .-> E11 & C8 & V3 & V4
 ```
 
-- **E6 (hook dispatch) is the main hand-off.** The hook contract is decided, so @Samylay can implement against it now and integrate @AzerX2's S3 as it lands. E6 must be complete at the start of week 3 for C5–C7, B3 and B4. Until E6 lands, @AzerX2 writes C1–C4 against `TestGame` and @khvatovat writes B2 against fixtures. If E6 slips, @AzerX2 moves C8 earlier.
-- **B1 (Intern bot)** is 1 pt and unblocks E7. @khvatovat does it on day 4.
+- **E6 (hook dispatch) is implemented and tested on `codex/engine-base-rules`.** After review and merge, it unblocks C5–C7, B3 and B4. Integrate @AzerX2's S3 registry and card effects as they land. Until then, @AzerX2 can build against the engine hook protocol, while @khvatovat uses fixtures for B2. If E6 slips, @AzerX2 moves C8 earlier.
+- **B1 (Intern bot)** is 1 pt and unblocks bot decisions for E7. Use the
+  always-first-option stand-in until it lands. E7 also needs C2's shop completion
+  action so the controller can advance from `SHOP` to the next turn.
 - **U1–U3** unblock the screens owned by A, B and D. Until they land, those developers use raw Material components and swap them later.
 
 ---

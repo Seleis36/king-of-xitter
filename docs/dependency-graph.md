@@ -87,6 +87,7 @@ flowchart LR
   S3 -. card integration .-> E6
   E4 --> E7
   B1 --> E7
+  C2 --> E7
   E7 --> E8
   E7 --> E9
   E5 --> E10
@@ -148,13 +149,14 @@ flowchart LR
 
 ## Current hand-offs
 
-- E6's hook protocol and reducer dispatch are implemented, and the engine suite
-  now covers the hook windows and base rules with three seeded four-player games.
+- E6's hook protocol and reducer dispatch are implemented and pushed on
+  `codex/engine-base-rules`. The engine suite covers hook windows and base rules
+  with three seeded four-player games.
   The games skip purchases because the shop is not implemented yet. E6 remains
   yellow pending peer review and CI. AzerX2 and khvatovat can build against the
   pushed engine API; connect S3's card registry and effects as that work lands.
-- E7 needs B1. Until then, use the always-first-option bot described in the
-  Samylay guide.
+- E7 can use the always-first-option bot until B1 lands. It also needs C2's
+  shop completion action to advance from `SHOP` into end-of-turn processing.
 - U1–U3 support end-game, shop, and front-door screens. Teams can use Material
   stand-ins until those components land.
 - S6 is shared: Samylay supplies fixture states and Seleis36 checks them against

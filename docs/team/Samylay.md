@@ -16,8 +16,8 @@ You build the rules engine: the heart of the game. Everyone else codes against y
 | 2 | E2 Dice resolution | #8 | 3 | |
 | 2 | E3 Xitter rules | #9 | 5 | |
 | 2 | E5 Elimination and win | #11 | 2 | M1 exit: a base-rules match plays end to end in a JVM test with 4 Intern bots |
-| 2 | E7 Real GameController | #13 | 4 | Needs B1 (Intern bot) from @khvatovat on day 4 |
-| 3 | **E6 Card hook dispatch** | #12 | 5 | Hook contract is decided. Start against ROADMAP §3 now and land dispatch by the start of week 3 |
+| 2 | E7 Real GameController | #13 | 4 | Use the always-first-option bot until B1 lands; needs C2's shop completion action to leave `SHOP` |
+| 3 | **E6 Card hook dispatch** | #12 | 5 | Implemented and tested on `codex/engine-base-rules`; needs review, merge, and S3 card integration |
 | 3 | E8 Match setup + roll-off | #14 | 2 | |
 | 3 | E12 Golden-game tests | #18 | 3 | |
 | 4 | E10 Match stats | #16 | 1 | |
@@ -35,6 +35,7 @@ You build the rules engine: the heart of the game. Everyone else codes against y
 ## What you wait on
 
 - **B1 Intern bot** (@khvatovat, day 4). Meanwhile use a bot that always picks the first option.
+- **C2 shop flow** (@AzerX2). E7 needs an action that finishes shopping and advances the reducer from `SHOP` to end-of-turn processing.
 - **S3 card definitions and effects** (@AzerX2) follow the contract in ROADMAP §3. The hook contract is decided, so E6 can proceed now; integrate S3 as it lands.
 - **U1–U3 components** (@Seleis36) for E11. Meanwhile use plain Material components.
 
