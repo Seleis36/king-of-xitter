@@ -21,6 +21,10 @@ data class GameState(
     val discardPileCardIds: List<CardId> = emptyList(),
     val result: MatchResult? = null,
     val randomState: Long = 0L,
+    /** Phase to resume after the final queued decision is resolved. */
+    val phaseAfterDecisions: TurnPhase? = null,
+    /** Per-player counters displayed on end-game screens. */
+    val matchStats: Map<PlayerId, MatchStats> = emptyMap(),
 )
 
 /** Current game-flow phase, shared by the reducer, bots, and screens. */
@@ -43,6 +47,10 @@ data class PlayerState(
     val maxFollowers: Int = 10,
     val mandates: Int = 0,
     val characters: Int = 0,
+    /** Additional dice granted by active effects. */
+    val extraDice: Int = 0,
+    /** Additional rerolls granted by active effects. */
+    val extraRerolls: Int = 0,
     val policyIds: List<CardId> = emptyList(),
     val counters: Map<CounterId, Int> = emptyMap(),
 ) {
@@ -56,6 +64,13 @@ data class Die(
     val id: DieId,
     val face: DiceFace,
     val isKept: Boolean = false,
+)
+
+/** Match totals used by Victory, Defeat, and Standings screens. */
+data class MatchStats(
+    val tweetsSent: Int = 0,
+    val unfollowsDealt: Int = 0,
+    val turnsAsMainCharacter: Int = 0,
 )
 
 /** The six faces used by the game's standard dice. */
