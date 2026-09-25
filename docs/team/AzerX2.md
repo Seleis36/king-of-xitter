@@ -8,7 +8,7 @@ You own all 66 power-ups (cards), the deck, the shop and the shop screen. Most o
 
 | Week | Task | Issue | Pts | Notes |
 |---|---|---|---|---|
-| 1 | S3 CardDef + CardEffect hooks + TestGame | #3 | 2 | Agree on the hook list with @Samylay by day 2. `TestGame` is your main tool until E6 lands |
+| 1 | S3 CardDef + card-effect implementations + TestGame | #3 | 2 | Hook protocol is decided in ROADMAP §3. Implement against the engine-owned protocol; @Samylay reviews its engine boundary. `TestGame` is your main tool until E6 lands |
 | 1 | C1 Catalogue of all 66 cards | #19 | 3 | Names, costs and effects are in ROADMAP §2. Change the parody names if you have better ones |
 | 1 | C2 Deck and shop logic | #20 | 4 | |
 | 2 | C3 Executive Orders | #21 | 4 | Needed for M1 |
@@ -22,16 +22,16 @@ You own all 66 power-ups (cards), the deck, the shop and the shop screen. Most o
 
 ## Who waits on you
 
-- **@Samylay** needs S3 to finish the engine API (S2), and to know where to call hooks (E6).
+- **@Samylay** owns the engine-side hook protocol and E6 dispatch. The contract is recorded in ROADMAP §3; S3 can implement against it.
 - **@khvatovat's** Reply Guy bot (B2) values cards, so it reads your `CardCatalog` (C1).
 
 ## What you wait on
 
-- **E6 hook dispatch** (@Samylay, start of week 3) for C5–C7. Until then, do C1–C4 against `TestGame`. If E6 slips, bring C8 forward.
+- **E6 hook dispatch** (@Samylay, start of week 3) for C5–C7. The contract is settled in ROADMAP §3. Until E6 lands, do C1–C4 against `TestGame`. If E6 slips, bring C8 forward.
 - **U1–U3 components** (@Seleis36, end of week 1/2) for C8. Meanwhile use plain Material components.
 
 ## Day one
 
 1. Read ROADMAP §2 and §3.
 2. Open `design/screens/power-up-shop.html` and `ui-kit.html`.
-3. Draft the `CardEffect` interface and review it with @Samylay.
+3. Implement S3 against the decided hook contract in ROADMAP §3 and review the engine boundary with @Samylay.

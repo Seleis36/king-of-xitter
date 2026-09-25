@@ -16,6 +16,7 @@ flowchart LR
     S5["S5 Bot and voice contracts"]
     S6["S6 Fixtures and fake controller"]
     M0D["M0 Design decisions"]
+    HDEC["Card-hook contract decided"]
   end
 
   subgraph A["A · Samylay · Engine"]
@@ -81,7 +82,9 @@ flowchart LR
   E1 --> E2 --> E3 --> E5
   E1 --> E4
   E4 --> E6
-  S3 -. hook contract alignment .-> E6
+  HDEC --> S3
+  HDEC --> E6
+  S3 -. card integration .-> E6
   E4 --> E7
   B1 --> E7
   E7 --> E8
@@ -139,15 +142,15 @@ flowchart LR
   classDef done fill:#b7efc5,stroke:#218838,color:#102a17,stroke-width:2px
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class S1,S2 done
-  class M0D done
-  class S6,E1,E2,E3,E4,E5,E10 active
+  class M0D,HDEC done
+  class S6,E1,E2,E3,E4,E5,E6,E10 active
 ```
 
 ## Current hand-offs
 
-- E6 needs S3's `CardEffect` hook contract. It unlocks C5–C7, B3, and B4.
-- Align AzerX2's S3 hook list with the already-committed S2 engine API before
-  E6 is implemented.
+- The hook contract decision is complete, so E6 can start. Integrate S3's card
+  registry and effect implementations as AzerX2's work lands. E6 unlocks C5–C7,
+  B3, and B4.
 - E7 needs B1. Until then, use the always-first-option bot described in the
   Samylay guide.
 - U1–U3 support end-game, shop, and front-door screens. Teams can use Material
