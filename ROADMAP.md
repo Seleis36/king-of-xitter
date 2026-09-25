@@ -175,16 +175,19 @@ interface CardEffect {
     fun onTurnEnd(context: CardHookContext): List<CardEffectIntent> = emptyList()
     fun onEliminated(context: CardHookContext): List<CardEffectIntent> = emptyList()
     fun activatedAbilities(context: CardHookContext): List<AbilityOffer> = emptyList()
+    fun activate(context: CardHookContext, action: Action.ActivateAbility): List<CardEffectIntent> = emptyList()
 }
 ```
 
 `CardHookContext` carries the state snapshot, hook owner, source card, trigger
-details, and deterministic random source. `CardEffectIntent` is a sealed set of
-engine-owned state changes, including resource deltas, die changes, damage,
-Xitter transfer, counters, extra turns, and queued decisions. `DamageAdjustment`
-contains additive damage, target expansion, and prevention conditions.
-`AbilityOffer` contains a stable ability ID, prompt data, and legal `Action`
-options. Only the engine applies intents or accepts decisions.
+details, and deterministic random source. The engine asks for ability offers at
+`AFTER_DICE_ROLL` and `AFTER_RESOLVE`, and calls `activate` only after the player
+chooses one of the offered actions. `CardEffectIntent` is a sealed set of
+engine-owned state changes, including resource deltas, die changes, counters,
+extra dice and rerolls, extra turns, Main Character transfer, and queued
+decisions. `DamageAdjustment` contains additive damage, target expansion, and
+prevention conditions. `AbilityOffer` contains a stable ability ID, prompt data,
+and legal `Action` options. Only the engine applies intents or accepts decisions.
 
 | Hook | Invocation window | Combination rule |
 |---|---|---|

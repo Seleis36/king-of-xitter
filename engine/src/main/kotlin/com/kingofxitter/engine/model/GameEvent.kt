@@ -21,6 +21,12 @@ sealed interface GameEvent {
         val dice: List<Die>,
     ) : GameEvent
 
+    /** Existing dice changed after a power-up effect. */
+    data class DiceChanged(
+        val playerId: PlayerId,
+        val dice: List<Die>,
+    ) : GameEvent
+
     /** One of a player's tracked resources changed; [amount] is a signed delta. */
     data class ResourceChanged(
         val playerId: PlayerId,
@@ -56,6 +62,21 @@ sealed interface GameEvent {
     data class PowerUpBought(
         val playerId: PlayerId,
         val cardId: CardId,
+    ) : GameEvent
+
+    /** A power-up counter changed. */
+    data class CounterChanged(
+        val playerId: PlayerId,
+        val counterId: CounterId,
+        val amount: Int,
+        val totalAfter: Int,
+    ) : GameEvent
+
+    /** A player gained one or more extra turns. */
+    data class ExtraTurnsChanged(
+        val playerId: PlayerId,
+        val amount: Int,
+        val totalAfter: Int,
     ) : GameEvent
 
     /** The visible shop row changed. */

@@ -52,6 +52,7 @@ sealed interface Action {
     /** Activate an owned power-up ability. */
     data class ActivateAbility(
         override val playerId: PlayerId,
+        val cardId: CardId,
         val abilityId: String,
         val targetPlayerId: PlayerId? = null,
         val dieIds: Set<DieId> = emptySet(),

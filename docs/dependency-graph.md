@@ -148,9 +148,10 @@ flowchart LR
 
 ## Current hand-offs
 
-- The hook contract decision is complete, so E6 can start. Integrate S3's card
+- The E6 engine hook protocol and reducer dispatch are implemented and compile;
+  E6 remains yellow until its required rules tests pass. Connect S3's card
   registry and effect implementations as AzerX2's work lands. E6 unlocks C5–C7,
-  B3, and B4.
+  B3, and B4 after verification and integration.
 - E7 needs B1. Until then, use the always-first-option bot described in the
   Samylay guide.
 - U1–U3 support end-game, shop, and front-door screens. Teams can use Material

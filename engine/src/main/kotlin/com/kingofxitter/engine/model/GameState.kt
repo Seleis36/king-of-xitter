@@ -25,6 +25,14 @@ data class GameState(
     val phaseAfterDecisions: TurnPhase? = null,
     /** Per-player counters displayed on end-game screens. */
     val matchStats: Map<PlayerId, MatchStats> = emptyMap(),
+    /** Prevents start-of-turn hooks from running twice across a pending decision. */
+    val turnStartHooksApplied: Boolean = false,
+    /** Prevents resolve hooks from running twice across a pending decision. */
+    val resolveHooksAppliedForRoll: Boolean = false,
+    /** Dice total frozen for the current turn after its first-roll hooks. */
+    val turnDiceCount: Int? = null,
+    /** Roll limit frozen for the current turn after its first-roll hooks. */
+    val turnRollLimit: Int? = null,
 )
 
 /** Current game-flow phase, shared by the reducer, bots, and screens. */
@@ -51,6 +59,8 @@ data class PlayerState(
     val extraDice: Int = 0,
     /** Additional rerolls granted by active effects. */
     val extraRerolls: Int = 0,
+    /** Extra turns queued for this player. */
+    val extraTurns: Int = 0,
     val policyIds: List<CardId> = emptyList(),
     val counters: Map<CounterId, Int> = emptyMap(),
 ) {
