@@ -3,7 +3,7 @@
 A single-player Android game that plays by the **King of Tokyo** rules (original base game, 66 cards). You play against 3 bots. The theme is the parody design in [`design/`](design/). All 6 leaders can be played.
 
 - **Team:** 4 developers, one track each: A Engine @Samylay, B Power-ups @AzerX2, C In-game UI @Seleis36, D Bots & voice @khvatovat. Personal guides are in [`docs/team/`](docs/team/). Each track owns its own modules, so people rarely wait on each other.
-- **Stack:** Kotlin, Jetpack Compose, multi-module Gradle, min SDK 26, target SDK 35. It runs fully offline. There's no backend and no LLM; tweets come from templates.
+- **Stack:** Kotlin, Jetpack Compose, multi-module Gradle, min SDK 27, compile/target SDK 36. It runs fully offline. There's no backend and no LLM; tweets come from templates.
 - **Estimates** are in points. 1 pt ≈ half a day of focused work. Each track totals about 40 pts, so roughly 5–6 weeks at part-time pace.
 
 ---
@@ -272,7 +272,7 @@ Dependencies marked `M0` mean only the frozen contracts. Nothing outside M0 bloc
 | E4 | Turn state machine: phases, `PendingDecision` queue, end of turn, skipping suspended players | E1 | 4 |
 | E5 | Elimination, simultaneous elimination, win at 20 / last standing / nobody wins | E3 | 2 |
 | E6 | Engine hook protocol and dispatch at every card hook point (card-order independent), extra turns, counters on `PlayerState` | E4, M0 card-hook contract | 5 |
-| E7 | Real `GameController` / `GameViewModel`: coroutine loop, bot turns with pacing delays, human decisions from the UI | E4 · B1 (fake: always-first-option bot) · C2 shop completion action | 4 |
+| E7 | Real `GameController` / `GameViewModel`: coroutine loop, bot turns with pacing delays, human decisions from the UI | E4 · B1 (stand-in: first option); C2 integrates later, EndTurn already exits SHOP | 4 |
 | E8 | Match setup: pick leader, draw 3 random bots from the other 5, roll-off for first player | E7 | 2 |
 | E9 | Save/resume: serialize `GameState` (kotlinx.serialization) and restore after process death | E7 | 3 |
 | E10 | Match stats (tweets sent, unfollows dealt, turns as Main Character) for the end screens | E5 | 1 |
@@ -334,9 +334,9 @@ flowchart LR
   M0[M0 contracts] --> E1 --> E4 --> E6
   E1 --> E2 --> E3 --> E5
   E4 --> E7 --> E8 --> V4
-  C2 --> E7
+  C2 -. shop integration .-> E7
   E6 --> C5 & C6 & C7 & B3 & B4
-  B1 --> E7
+  B1 -. replace stand-in .-> E7
   E7 --> U10
   M0 --> C1 & C2 & C3 & C4 & U1 & U2 & B2 & V1
   U1 --> U3 --> U5 --> U6 & U7 & U8
@@ -345,8 +345,8 @@ flowchart LR
 
 - **E6 (hook dispatch) is implemented and tested on `codex/engine-base-rules`.** After review and merge, it unblocks C5–C7, B3 and B4. Integrate @AzerX2's S3 registry and card effects as they land. Until then, @AzerX2 can build against the engine hook protocol, while @khvatovat uses fixtures for B2. If E6 slips, @AzerX2 moves C8 earlier.
 - **B1 (Intern bot)** is 1 pt and unblocks bot decisions for E7. Use the
-  always-first-option stand-in until it lands. E7 also needs C2's shop completion
-  action so the controller can advance from `SHOP` to the next turn.
+  always-first-option stand-in until it lands. E7 already advances from `SHOP`
+  using `Action.EndTurn`; C2 adds purchases without blocking base matches.
 - **U1–U3** unblock the screens owned by A, B and D. Until they land, those developers use raw Material components and swap them later.
 
 ---
@@ -357,3 +357,14 @@ flowchart LR
 - Compose screens have a `@Preview` for each relevant fixture and are checked against the matching design screen.
 - There are no strings in code. The theme's text goes in `strings.xml` so a French or Spanish translation can come later.
 - The PR is reviewed by one other track, and CI is green.
+
+## 8. Track A implementation status (2026-09-26)
+
+S1/S2, Samylay's S6 fixtures, and E1–E12 are implemented on
+`codex/engine-base-rules` and locally verified against stand-ins where needed.
+See [the handoff](docs/track-a-handoff.md) for precise coverage, checks, API usage,
+and remaining owners. The application shell remains a placeholder until the
+UI/front-door tracks connect it. This is not the M2 full-app milestone.
+
+Task status is tracked in [the dependency graph](docs/dependency-graph.md).
+Cross-track review and approval of contract changes remain required by §7.

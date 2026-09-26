@@ -37,3 +37,8 @@ You make the opponents: the 3 bot difficulties, each leader's tweet voice, and t
 1. Read the cast page and `pick-your-leader.html`, `title-screen.html` and `versus-intro.html` in `design/screens/`.
 2. Read ROADMAP §3 (`BotBrain` and `TweetWriter` are your contracts).
 3. Draft S5 and share it by day 2.
+
+## Track A handoff (2026-09-26)
+
+E7 already runs with a stand-in. E8 returns selected leaders and roll-off history for V4. Supply the six content leader IDs and adapt B1 through the injected bot action provider.
+See [API usage and verification](../track-a-handoff.md).

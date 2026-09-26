@@ -35,3 +35,8 @@ You own all 66 power-ups (cards), the deck, the shop and the shop screen. Most o
 1. Read ROADMAP §2 and §3.
 2. Open `design/screens/power-up-shop.html` and `ui-kit.html`.
 3. Implement S3 against the decided hook contract in ROADMAP §3 and review the engine boundary with @Samylay.
+
+## Track A handoff (2026-09-26)
+
+E6 is implemented and verified. Register effects through `CardEffectRegistry`; route shop completion through existing `Action.EndTurn`. Review the engine contract additions before merging.
+See [API usage and verification](../track-a-handoff.md).

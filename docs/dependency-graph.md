@@ -4,7 +4,9 @@ This graph combines the task dependencies and cross-team hand-offs from
 [`ROADMAP.md`](../ROADMAP.md) and [`docs/team/`](team/). Green means the task's
 implementation is verified, committed, and pushed, including applicable
 requirements in ROADMAP §7. Yellow means implementation or verification is in
-progress. Green does not imply that a PR has been reviewed or merged.
+progress or awaiting external review/integration. A task needs green CI and
+a reviewer from another track before it becomes green; agent review alone does
+not satisfy that requirement. Decision nodes record agreed decisions.
 
 ```mermaid
 flowchart LR
@@ -86,13 +88,13 @@ flowchart LR
   HDEC --> E6
   S3 -. card integration .-> E6
   E4 --> E7
-  B1 --> E7
-  C2 --> E7
+  B1 -. replace stand-in .-> E7
+  C2 -. shop integration .-> E7
   E7 --> E8
   E7 --> E9
   E5 --> E10
-  U1 --> E11
-  U3 --> E11
+  U1 -. shared components .-> E11
+  U3 -. shared widgets .-> E11
   E1 --> E12
   E2 --> E12
   E3 --> E12
@@ -142,31 +144,32 @@ flowchart LR
 
   classDef done fill:#b7efc5,stroke:#218838,color:#102a17,stroke-width:2px
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
-  class S1,S2 done
   class M0D,HDEC done
-  class S6,E1,E2,E3,E4,E5,E6,E10,E11,E12 active
+  class S1,S2,S6,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
 ```
 
 ## Current hand-offs
 
-- E6's hook protocol and reducer dispatch are implemented on
-  `codex/engine-base-rules`. Review fixes now dispatch elimination hooks after
-  follower loss from any hook and check victory after purchase/decision effects.
-  Local verification covers hook windows, all base rules, and three seeded
-  four-player games. The games skip purchases because the shop is not implemented
-  yet. E6 stays yellow pending a cross-track review and remote CI. AzerX2 and
-  khvatovat can build against the engine API; connect S3's registry and effects
-  as that work lands.
-- E12's rule tests and seeded golden games are in the same engine suite. It stays
-  yellow until the branch meets ROADMAP §7 review and CI requirements.
-- E11 now has Compose Victory, Defeat, and Standings surfaces using Material
-  stand-ins. Each has a fixture preview; visual simulator review and U1–U3
-  component integration remain.
-- E7 can use the always-first-option bot until B1 lands. It also needs C2's
-  shop completion action to advance from `SHOP` into end-of-turn processing.
-- U1–U3 support end-game, shop, and front-door screens. Teams can use Material
-  stand-ins until those components land.
-- S6 is shared: Samylay supplies fixture states and Seleis36 checks them against
-  the design screens.
-- M0 design decisions are settled in ROADMAP §1. AzerX2 owns updating the
-  Bot Farm catalogue/design to the agreed 40-character cost.
+Implementation and verification details: [Track A review and handoff](track-a-handoff.md).
+
+- S1/S2, Samylay's S6 fixtures, and E1–E12 have implementations on
+  `codex/engine-base-rules`. All independently executable Track A work is
+  locally verified. Yellow records the remaining cross-track approvals and
+  integrations, not missing controller/setup/save implementations.
+- E7 uses `RealGameController` and the always-first-option stand-in. Public
+  `Action.EndTurn` exits `SHOP`, so C2 never needs to block base matches.
+  E8 supplies seeded leader selection and roll-off history. E9 stores state,
+  RNG, queued choices, and human ownership atomically.
+- E6 is ready for S3's registry/effects; B/C/D must review the additions to the
+  engine contract. Actual card effects, shop purchases, and bot strategies
+  remain owned by B/D.
+- E11 uses Material stand-ins and was checked on an API 27 emulator, including
+  small-screen/large-text layouts. S4/U1–U3 supply the final theme/components;
+  S5/V1 supply portraits and generated match text; S4/U10 wire navigation.
+- S6 is shared: Samylay supplies states; Seleis36 checks them against the design.
+- S1/S2 were previously green without evidence of the required cross-track
+  approval. They are yellow until ROADMAP §7 is satisfied. Keep all task nodes
+  yellow until implementation, tests, device checks where relevant, remote CI,
+  review, commit and push are verified.
+- M0 decisions remain settled in ROADMAP §1. AzerX2 owns updating the Bot Farm
+  catalogue/design to the agreed 40-character cost.
