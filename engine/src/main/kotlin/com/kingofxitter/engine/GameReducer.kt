@@ -17,7 +17,6 @@ import com.kingofxitter.engine.model.Die
 import com.kingofxitter.engine.model.DieId
 import com.kingofxitter.engine.model.GameEvent
 import com.kingofxitter.engine.model.GameState
-import com.kingofxitter.engine.model.HookRandom
 import com.kingofxitter.engine.model.MatchResult
 import com.kingofxitter.engine.model.MatchStats
 import com.kingofxitter.engine.model.PendingDecision
@@ -66,8 +65,8 @@ class DefaultGameReducer(
             is Action.RollDice -> rollDice(state, action)
             is Action.ResolveRoll -> resolveRoll(state, action)
             is Action.ChooseDecisionOption -> chooseDecisionOption(state, action)
-            is Action.StayInXitter -> stayInXitter(state, action)
-            is Action.LogOffXitter -> logOffXitter(state, action)
+            is Action.StayInXitter -> chooseOfferedAction(state, action)
+            is Action.LogOffXitter -> chooseOfferedAction(state, action)
             is Action.EndTurn -> endTurn(state, action)
             is Action.ActivateAbility -> activateAbility(state, action)
             else -> reject(state, action.playerId, ActionRejectionReason.WRONG_PHASE)
@@ -93,7 +92,7 @@ class DefaultGameReducer(
             }
         val applied = applyCardIntents(state, intents, random, buyerId)
         val finished = finishIfNeeded(applied.first.copy(randomState = random.state))
-        return GameTransition(finished.first, applied.second + finished.second)
+        return GameTransition(awaitDecisions(finished.first), applied.second + finished.second)
     }
 
     private fun rollDice(
@@ -134,6 +133,10 @@ class DefaultGameReducer(
                             ),
                     )
             }
+            if (workingState.players.any { it.id == action.playerId && it.mandates >= MANDATES_TO_WIN }) {
+                val finished = finishIfNeeded(workingState)
+                return GameTransition(finished.first, startEvents + finished.second)
+            }
             val onStart =
                 invokeOwnerHooks(
                     workingState,
@@ -144,13 +147,15 @@ class DefaultGameReducer(
             val appliedStart = applyCardIntents(workingState, onStart, random, action.playerId)
             workingState = appliedStart.first
             startEvents += appliedStart.second
-            if (appliedStart.second.any { it is GameEvent.PlayerSuspended }) {
-                val finished = finishIfNeeded(workingState)
-                workingState = finished.first
-                startEvents += finished.second
-                if (workingState.result != null) {
-                    return GameTransition(workingState.copy(randomState = random.state), startEvents)
-                }
+            val finished = finishIfNeeded(workingState)
+            workingState = finished.first
+            startEvents += finished.second
+            if (workingState.result != null) {
+                return GameTransition(workingState.copy(randomState = random.state), startEvents)
+            }
+            if (workingState.players.any { it.id == action.playerId && it.isSuspended }) {
+                val next = completeEndTurn(workingState.copy(randomState = random.state), action.playerId)
+                return GameTransition(next.state, startEvents + next.events)
             }
             workingState = workingState.copy(turnStartHooksApplied = true)
             if (workingState.pendingDecisions.isNotEmpty()) {
@@ -289,6 +294,14 @@ class DefaultGameReducer(
             hookedState = applied.first.copy(resolveHooksAppliedForRoll = true)
             hookEvents += applied.second
         }
+        val finished = finishIfNeeded(hookedState)
+        if (finished.first.result != null) {
+            return GameTransition(finished.first.copy(randomState = random.state), hookEvents + finished.second)
+        }
+        if (hookedState.players.any { it.id == action.playerId && it.isSuspended }) {
+            val next = completeEndTurn(hookedState.copy(randomState = random.state), action.playerId)
+            return GameTransition(next.state, hookEvents + next.events)
+        }
         if (hookedState.pendingDecisions.isNotEmpty()) {
             return GameTransition(
                 hookedState.copy(
@@ -313,6 +326,7 @@ class DefaultGameReducer(
         val actor =
             nextState.players.firstOrNull { it.id == playerId }
                 ?: return reject(state, playerId, ActionRejectionReason.INVALID_SELECTION)
+        if (actor.isSuspended) return completeEndTurn(nextState, playerId)
         for (face in listOf(DiceFace.ONE, DiceFace.TWO, DiceFace.THREE)) {
             val count = nextState.dice.count { it.face == face }
             if (count >= 3) {
@@ -328,6 +342,11 @@ class DefaultGameReducer(
                 nextState = changed.first
                 events += changed.second
             }
+        }
+
+        if (nextState.players.any { it.id == playerId && it.mandates >= MANDATES_TO_WIN }) {
+            val finished = finishIfNeeded(nextState)
+            return GameTransition(finished.first, events + finished.second)
         }
 
         val likes = nextState.dice.count { it.face == DiceFace.LIKE }
@@ -365,6 +384,11 @@ class DefaultGameReducer(
         val tweetTransition = resolveTweets(nextState, playerId, tweetCount, random)
         nextState = tweetTransition.state
         events += tweetTransition.events
+
+        if (nextState.players.any { it.id == playerId && it.isSuspended }) {
+            val completed = completeEndTurn(nextState, playerId)
+            return GameTransition(completed.state, events + completed.events)
+        }
 
         if (nextState.xitterPlayerId == null && nextState.players.any { it.id == playerId && !it.isSuspended }) {
             val changed =
@@ -409,7 +433,7 @@ class DefaultGameReducer(
         tweetCount: Int,
         random: SplitMix64,
     ): GameTransition {
-        if (tweetCount <= 0 || state.result != null) return GameTransition(state, emptyList())
+        if (state.result != null) return GameTransition(state, emptyList())
         val mainCharacter = state.xitterPlayerId
         val baseTargets =
             when {
@@ -547,6 +571,11 @@ class DefaultGameReducer(
                 nextState = nextState.copy(pendingDecisions = nextState.pendingDecisions + decision)
                 events += GameEvent.DecisionQueued(decision)
             }
+        }
+        val suspendedOwner = nextState.xitterPlayerId?.takeIf { id -> nextState.players.any { it.id == id && it.isSuspended } }
+        if (suspendedOwner != null) {
+            nextState = nextState.copy(xitterPlayerId = null)
+            events += GameEvent.MainCharacterChanged(suspendedOwner, null)
         }
         return GameTransition(nextState.copy(randomState = random.state), events)
     }
@@ -689,7 +718,7 @@ class DefaultGameReducer(
                             ),
                         playerId = ownerId,
                         kind = DecisionKind.ACTIVATE_ABILITY,
-                        options = validOptions,
+                        options = validOptions + DecisionOption(DecisionOptionId("decline"), Action.DeclineAbility(ownerId)),
                         promptKey = offer.promptKey,
                     )
                 if (decisions.none { it.id == decision.id }) decisions += decision
@@ -751,7 +780,62 @@ class DefaultGameReducer(
             state = state.copy(xitterPlayerId = newOwner)
             events += GameEvent.MainCharacterChanged(previousOwner, newOwner)
         }
+        state =
+            state.copy(
+                pendingDecisions =
+                    state.pendingDecisions.filter { decision ->
+                        state.players.any {
+                            it.id == decision.playerId &&
+                                !it.isSuspended
+                        }
+                    },
+            )
         return state to events
+    }
+
+    private fun combineIntents(intents: List<CardEffectIntent>): List<CardEffectIntent> {
+        fun sum(values: List<Int>): Int = values.sumOf { it.toLong() }.coerceIn(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
+        val resources =
+            intents
+                .filterIsInstance<CardEffectIntent.ChangeResource>()
+                .groupBy { it.playerId to it.resource }
+                .values
+                .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
+                .sortedBy { it.resource.ordinal }
+        val limits =
+            intents
+                .filterIsInstance<CardEffectIntent.ChangeFollowerLimit>()
+                .groupBy { it.playerId }
+                .values
+                .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
+        val counters =
+            intents
+                .filterIsInstance<CardEffectIntent.ChangeCounter>()
+                .groupBy { it.playerId to it.counterId }
+                .values
+                .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
+        val dice =
+            intents
+                .filterIsInstance<CardEffectIntent.ChangeDiceCount>()
+                .groupBy { it.playerId }
+                .values
+                .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
+        val rerolls =
+            intents
+                .filterIsInstance<CardEffectIntent.ChangeRerollCount>()
+                .groupBy { it.playerId }
+                .values
+                .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
+        val turns =
+            intents
+                .filterIsInstance<CardEffectIntent.ChangeExtraTurns>()
+                .groupBy { it.playerId }
+                .values
+                .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
+        return limits + resources + counters + dice + rerolls + turns +
+            intents.filter {
+                it is CardEffectIntent.ChangeDie || it is CardEffectIntent.ChangeMainCharacter || it is CardEffectIntent.QueueDecision
+            }
     }
 
     private fun applyIntents(
@@ -760,7 +844,7 @@ class DefaultGameReducer(
     ): Pair<GameState, List<GameEvent>> {
         var state = initialState
         val events = mutableListOf<GameEvent>()
-        for (intent in intents) {
+        for (intent in combineIntents(intents)) {
             when (intent) {
                 is CardEffectIntent.ChangeResource -> {
                     if (state.players.any { it.id == intent.playerId }) {
@@ -852,7 +936,16 @@ class DefaultGameReducer(
                                     0L,
                                 ).coerceAtMost(Int.MAX_VALUE.toLong())
                                 .toInt()
-                        state = state.copy(players = state.players.toMutableList().also { it[index] = player.copy(extraRerolls = value) })
+                        state =
+                            state.copy(
+                                players = state.players.toMutableList().also { it[index] = player.copy(extraRerolls = value) },
+                                turnRollLimit =
+                                    if (intent.playerId == state.currentPlayerId) {
+                                        state.turnRollLimit?.let { (it + value - player.extraRerolls).coerceAtLeast(state.rollNumber) }
+                                    } else {
+                                        state.turnRollLimit
+                                    },
+                            )
                     }
                 }
 
@@ -883,7 +976,10 @@ class DefaultGameReducer(
                 }
 
                 is CardEffectIntent.QueueDecision -> {
-                    if (state.players.any { it.id == intent.decision.playerId } && intent.decision.options.isNotEmpty()) {
+                    if (state.players.any { it.id == intent.decision.playerId } &&
+                        intent.decision.options.isNotEmpty() &&
+                        state.pendingDecisions.none { it.id == intent.decision.id }
+                    ) {
                         state = state.copy(pendingDecisions = state.pendingDecisions + intent.decision)
                         events += GameEvent.DecisionQueued(intent.decision)
                     }
@@ -922,9 +1018,39 @@ class DefaultGameReducer(
                 targetPlayerId = action.targetPlayerId,
             )
         val intents = effect.activate(context, action)
+        val unaffordable =
+            intents
+                .filterIsInstance<CardEffectIntent.ChangeResource>()
+                .filter { it.resource == PlayerResource.CHARACTERS }
+                .groupBy { it.playerId }
+                .any { (id, changes) ->
+                    val balance = state.players.firstOrNull { it.id == id }?.characters ?: 0
+                    balance.toLong() + changes.sumOf { it.amount.toLong() } < 0
+                }
+        if (unaffordable) return reject(state, action.playerId, ActionRejectionReason.OPTION_NOT_AVAILABLE)
         val applied = applyCardIntents(state, intents, random, action.playerId)
         return GameTransition(applied.first.copy(randomState = random.state), applied.second)
     }
+
+    private fun chooseOfferedAction(
+        state: GameState,
+        action: Action,
+    ): GameTransition {
+        val decision =
+            state.pendingDecisions.firstOrNull()
+                ?: return reject(state, action.playerId, ActionRejectionReason.OPTION_NOT_AVAILABLE)
+        val option =
+            decision.options.firstOrNull { it.action == action }
+                ?: return reject(state, action.playerId, ActionRejectionReason.OPTION_NOT_AVAILABLE)
+        return chooseDecisionOption(state, Action.ChooseDecisionOption(action.playerId, decision.id, option.id))
+    }
+
+    private fun awaitDecisions(state: GameState): GameState =
+        if (state.result == null && state.pendingDecisions.isNotEmpty() && state.phase != TurnPhase.DECISION) {
+            state.copy(phase = TurnPhase.DECISION, phaseAfterDecisions = state.phase)
+        } else {
+            state
+        }
 
     private fun stayInXitter(
         state: GameState,
@@ -987,10 +1113,20 @@ class DefaultGameReducer(
                 phaseAfterDecisions = if (remainingDecisions.isEmpty()) null else state.phaseAfterDecisions,
             )
         val applied =
-            if (option.action is Action.ActivateAbility) {
-                activateAbility(preparedState, option.action, offeredByDecision = true)
-            } else {
-                reduce(preparedState, option.action)
+            when (val selected = option.action) {
+                is Action.ActivateAbility -> activateAbility(preparedState, selected, offeredByDecision = true)
+                is Action.DeclineAbility -> GameTransition(preparedState, emptyList())
+                is Action.EndTurn ->
+                    if (resumePhase ==
+                        TurnPhase.END_TURN
+                    ) {
+                        GameTransition(preparedState, emptyList())
+                    } else {
+                        endTurn(preparedState, selected)
+                    }
+                is Action.StayInXitter -> stayInXitter(preparedState, selected)
+                is Action.LogOffXitter -> logOffXitter(preparedState, selected)
+                else -> reduce(preparedState, selected)
             }
         if (applied.events.any { it is GameEvent.ActionRejected }) {
             return GameTransition(
@@ -1000,20 +1136,23 @@ class DefaultGameReducer(
         }
         val finished = finishIfNeeded(applied.state)
         val events = listOf(GameEvent.DecisionResolved(action.decisionId, action.optionId)) + applied.events + finished.second
-        if (remainingDecisions.isNotEmpty() || finished.first.result != null) {
-            return GameTransition(finished.first, events)
+        if (finished.first.pendingDecisions.isNotEmpty() || finished.first.result != null) {
+            return GameTransition(awaitDecisions(finished.first), events)
         }
-        return when (resumePhase) {
+        if (finished.first.phase != resumePhase) return GameTransition(finished.first, events)
+        val continuation = if (resumePhase == TurnPhase.DECISION) state.phaseAfterDecisions ?: TurnPhase.END_TURN else resumePhase
+        val resumed = finished.first.copy(phase = continuation, phaseAfterDecisions = null)
+        return when (continuation) {
             TurnPhase.RESOLVING -> {
                 val random = SplitMix64(finished.first.randomState)
-                val completed = completeRollResolution(finished.first, state.currentPlayerId, random)
+                val completed = completeRollResolution(resumed, state.currentPlayerId, random)
                 GameTransition(completed.state, events + completed.events)
             }
             TurnPhase.END_TURN -> {
-                val completed = completeEndTurn(finished.first, state.currentPlayerId)
+                val completed = completeEndTurn(resumed, state.currentPlayerId)
                 GameTransition(completed.state, events + completed.events)
             }
-            else -> GameTransition(finished.first, events)
+            else -> GameTransition(resumed, events)
         }
     }
 
@@ -1027,7 +1166,7 @@ class DefaultGameReducer(
         if (state.currentPlayerId != action.playerId) {
             return reject(state, action.playerId, ActionRejectionReason.WRONG_PLAYER)
         }
-        if (state.phase != TurnPhase.END_TURN || state.pendingDecisions.isNotEmpty()) {
+        if (state.phase !in setOf(TurnPhase.SHOP, TurnPhase.END_TURN) || state.pendingDecisions.isNotEmpty()) {
             return reject(state, action.playerId, ActionRejectionReason.WRONG_PHASE)
         }
         if (state.players.none { it.id == action.playerId }) {
@@ -1036,7 +1175,7 @@ class DefaultGameReducer(
         val random = SplitMix64(state.randomState)
         val intents =
             invokeOwnerHooks(
-                state,
+                state.copy(phase = TurnPhase.END_TURN),
                 action.playerId,
                 CardHookWindow.TURN_END,
                 random,
@@ -1044,12 +1183,6 @@ class DefaultGameReducer(
         val applied = applyCardIntents(state, intents, random, action.playerId)
         val endState = applied.first.copy(randomState = random.state)
         val events = applied.second
-        if (endState.pendingDecisions.isNotEmpty()) {
-            return GameTransition(
-                endState.copy(phase = TurnPhase.DECISION, phaseAfterDecisions = TurnPhase.END_TURN),
-                events,
-            )
-        }
         val completed = completeEndTurn(endState, action.playerId)
         return GameTransition(completed.state, events + completed.events)
     }
@@ -1064,6 +1197,16 @@ class DefaultGameReducer(
             return GameTransition(finished.first, listOf(turnEnded) + finished.second)
         }
 
+        val livingDecisions =
+            state.pendingDecisions.filter { decision ->
+                state.players.any { it.id == decision.playerId && !it.isSuspended }
+            }
+        if (livingDecisions.isNotEmpty()) {
+            return GameTransition(
+                state.copy(phase = TurnPhase.DECISION, phaseAfterDecisions = TurnPhase.END_TURN, pendingDecisions = livingDecisions),
+                emptyList(),
+            )
+        }
         val endingPlayer =
             state.players.firstOrNull { it.id == endingPlayerId }
                 ?: return reject(state, endingPlayerId, ActionRejectionReason.INVALID_SELECTION)
@@ -1101,6 +1244,7 @@ class DefaultGameReducer(
                 dice = emptyList(),
                 rollNumber = 0,
                 phaseAfterDecisions = null,
+                pendingDecisions = emptyList(),
                 turnStartHooksApplied = false,
                 resolveHooksAppliedForRoll = false,
                 turnDiceCount = null,
@@ -1128,7 +1272,12 @@ class DefaultGameReducer(
                 PlayerResource.MANDATES -> player.mandates
                 PlayerResource.CHARACTERS -> player.characters
             }
-        val maximum = if (resource == PlayerResource.FOLLOWERS) player.maxFollowers else Int.MAX_VALUE
+        val maximum =
+            when (resource) {
+                PlayerResource.FOLLOWERS -> player.maxFollowers
+                PlayerResource.CHARACTERS -> state.characterCap ?: Int.MAX_VALUE
+                PlayerResource.MANDATES -> Int.MAX_VALUE
+            }
         val updated = (previous.toLong() + requestedAmount).coerceIn(0L, maximum.toLong()).toInt()
         val updatedPlayer =
             when (resource) {
@@ -1152,7 +1301,8 @@ class DefaultGameReducer(
                 living.size == 1 -> MatchResult.Victory(living.single().id, VictoryReason.LAST_ACCOUNT_STANDING)
                 else -> null
             } ?: return state to emptyList()
-        return state.copy(phase = TurnPhase.FINISHED, result = result) to listOf(GameEvent.MatchEnded(result))
+        return state.copy(phase = TurnPhase.FINISHED, result = result, pendingDecisions = emptyList(), phaseAfterDecisions = null) to
+            listOf(GameEvent.MatchEnded(result))
     }
 
     private fun reject(
@@ -1169,31 +1319,5 @@ class DefaultGameReducer(
         const val CHARACTERS_PER_FACE = 10
         const val MANDATES_TO_WIN = 20
         const val MAX_ROLLS = 3
-    }
-}
-
-/** Small deterministic generator whose complete state is stored in [GameState]. */
-private class SplitMix64(
-    var state: Long,
-) : HookRandom {
-    override fun nextInt(bound: Int): Int {
-        require(bound > 0)
-        var bits: Long
-        var value: Long
-        do {
-            state += GOLDEN_GAMMA
-            var mixed = state
-            mixed = (mixed xor (mixed ushr 30)) * MIX_1
-            mixed = (mixed xor (mixed ushr 27)) * MIX_2
-            bits = (mixed xor (mixed ushr 31)) ushr 1
-            value = bits % bound
-        } while (bits - value + (bound - 1) < 0L)
-        return value.toInt()
-    }
-
-    private companion object {
-        const val GOLDEN_GAMMA = -7046029254386353131L
-        const val MIX_1 = -4658895280553007687L
-        const val MIX_2 = -7723592293110705685L
     }
 }

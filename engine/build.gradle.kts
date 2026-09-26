@@ -1,8 +1,11 @@
 plugins {
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.jvm)
 }
 
 dependencies {
+    implementation(libs.kotlinx.serialization.json)
+    testImplementation(libs.kotlinx.coroutines.test)
     api(libs.kotlinx.coroutines.core)
     testImplementation(libs.kotlin.test)
 }

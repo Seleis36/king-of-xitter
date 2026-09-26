@@ -357,13 +357,14 @@ class GameRulesTest {
         val thirdRun = playGame(seed = 20260928L)
 
         assertEquals(firstRun, repeatRun)
+        // Winning score stops before the final tweet; no damage or stats accrue after victory.
         assertGoldenGame(
             firstRun,
             MatchResult.Victory(second, VictoryReason.TWENTY_MANDATES),
             31,
             mapOf(
                 first to MatchStats(tweetsSent = 4, unfollowsDealt = 12, turnsAsMainCharacter = 3),
-                second to MatchStats(tweetsSent = 12, unfollowsDealt = 17, turnsAsMainCharacter = 6),
+                second to MatchStats(tweetsSent = 11, unfollowsDealt = 15, turnsAsMainCharacter = 6),
                 third to MatchStats(tweetsSent = 11, unfollowsDealt = 11),
                 PlayerId("fourth") to MatchStats(tweetsSent = 1, unfollowsDealt = 1),
             ),
@@ -422,7 +423,7 @@ class GameRulesTest {
                             Action.ChooseDecisionOption(decision.playerId, decision.id, option.id),
                         )
                     }
-                    TurnPhase.SHOP -> GameTransition(state.copy(phase = TurnPhase.END_TURN), emptyList())
+                    TurnPhase.SHOP -> reducer.reduce(state, Action.EndTurn(state.currentPlayerId))
                     TurnPhase.END_TURN -> reducer.reduce(state, Action.EndTurn(state.currentPlayerId))
                     TurnPhase.RESOLVING,
                     TurnPhase.SETUP,

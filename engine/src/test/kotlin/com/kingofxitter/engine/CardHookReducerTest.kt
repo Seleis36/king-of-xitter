@@ -124,7 +124,7 @@ class CardHookReducerTest {
                 .first()
                 .characters,
         )
-        assertEquals(listOf(10, 20), transition.events.map { (it as GameEvent.ResourceChanged).amount })
+        assertEquals(listOf(30), transition.events.map { (it as GameEvent.ResourceChanged).amount })
     }
 
     @Test
@@ -212,6 +212,7 @@ class CardHookReducerTest {
         val reducer = reducer(effect)
         val rolling =
             state(TurnPhase.ROLLING).copy(
+                xitterPlayerId = target,
                 dice = listOf(Die(DieId(0), DiceFace.CHARACTERS)),
                 rollNumber = 1,
             )
@@ -314,7 +315,7 @@ class CardHookReducerTest {
         val chosen =
             reducer.reduce(
                 rolled.state,
-                Action.ChooseDecisionOption(player, decision.id, decision.options.single().id),
+                Action.ChooseDecisionOption(player, decision.id, decision.options.first { it.action is Action.ActivateAbility }.id),
             )
 
         assertEquals(TurnPhase.ROLLING, chosen.state.phase)
@@ -476,7 +477,11 @@ class CardHookReducerTest {
 
     private fun state(phase: TurnPhase) =
         GameState(
-            players = listOf(PlayerState(player, LeaderId("leader"), policyIds = listOf(policyId))),
+            players =
+                listOf(
+                    PlayerState(player, LeaderId("leader"), policyIds = listOf(policyId)),
+                    PlayerState(target, LeaderId("target")),
+                ),
             currentPlayerId = player,
             phase = phase,
             randomState = 42L,

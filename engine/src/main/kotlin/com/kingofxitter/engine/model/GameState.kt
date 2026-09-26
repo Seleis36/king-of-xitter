@@ -1,5 +1,7 @@
 package com.kingofxitter.engine.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Complete immutable snapshot of a match at one point in the rules flow.
  * Replace collections when changing state so observers receive new snapshots.
@@ -7,6 +9,7 @@ package com.kingofxitter.engine.model
  * Decision order is queue order, with the first entry resolved next.
  * Card piles hold opaque [CardId] references so the engine does not depend on the cards module.
  */
+@Serializable
 data class GameState(
     val players: List<PlayerState>,
     val currentPlayerId: PlayerId,
@@ -21,6 +24,8 @@ data class GameState(
     val discardPileCardIds: List<CardId> = emptyList(),
     val result: MatchResult? = null,
     val randomState: Long = 0L,
+    /** Optional character cap. Null preserves the uncapped base rules. */
+    val characterCap: Int? = null,
     /** Phase to resume after the final queued decision is resolved. */
     val phaseAfterDecisions: TurnPhase? = null,
     /** Per-player counters displayed on end-game screens. */
@@ -36,6 +41,7 @@ data class GameState(
 )
 
 /** Current game-flow phase, shared by the reducer, bots, and screens. */
+@Serializable
 enum class TurnPhase {
     SETUP,
     TURN_START,
@@ -48,6 +54,7 @@ enum class TurnPhase {
 }
 
 /** Immutable state for a player-controlled leader. Resource values are never negative. */
+@Serializable
 data class PlayerState(
     val id: PlayerId,
     val leaderId: LeaderId,
@@ -70,6 +77,7 @@ data class PlayerState(
 }
 
 /** One die's current face and whether it is being kept for a later roll. */
+@Serializable
 data class Die(
     val id: DieId,
     val face: DiceFace,
@@ -77,6 +85,7 @@ data class Die(
 )
 
 /** Match totals used by Victory, Defeat, and Standings screens. */
+@Serializable
 data class MatchStats(
     val tweetsSent: Int = 0,
     val unfollowsDealt: Int = 0,
@@ -84,6 +93,7 @@ data class MatchStats(
 )
 
 /** The six faces used by the game's standard dice. */
+@Serializable
 enum class DiceFace {
     ONE,
     TWO,
@@ -94,19 +104,23 @@ enum class DiceFace {
 }
 
 /** Why a match ended. */
+@Serializable
 enum class VictoryReason {
     TWENTY_MANDATES,
     LAST_ACCOUNT_STANDING,
 }
 
 /** Final match outcome; [NoWinner] represents a simultaneous elimination. */
+@Serializable
 sealed interface MatchResult {
     /** A player won through score or survival. */
+    @Serializable
     data class Victory(
         val playerId: PlayerId,
         val reason: VictoryReason,
     ) : MatchResult
 
     /** Every remaining player was eliminated at the same time. */
+    @Serializable
     data object NoWinner : MatchResult
 }
