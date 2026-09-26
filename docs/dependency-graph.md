@@ -144,7 +144,7 @@ flowchart LR
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class S1,S2 done
   class M0D,HDEC done
-  class S6,E1,E2,E3,E4,E5,E6,E10,E12 active
+  class S6,E1,E2,E3,E4,E5,E6,E10,E11,E12 active
 ```
 
 ## Current hand-offs
@@ -159,6 +159,9 @@ flowchart LR
   as that work lands.
 - E12's rule tests and seeded golden games are in the same engine suite. It stays
   yellow until the branch meets ROADMAP §7 review and CI requirements.
+- E11 now has Compose Victory, Defeat, and Standings surfaces using Material
+  stand-ins. Each has a fixture preview; visual simulator review and U1–U3
+  component integration remain.
 - E7 can use the always-first-option bot until B1 lands. It also needs C2's
   shop completion action to advance from `SHOP` into end-of-turn processing.
 - U1–U3 support end-game, shop, and front-door screens. Teams can use Material

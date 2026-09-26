@@ -21,7 +21,7 @@ You build the rules engine: the heart of the game. Everyone else codes against y
 | 3 | E8 Match setup + roll-off | #14 | 2 | |
 | 3 | E12 Golden-game tests | #18 | 3 | |
 | 4 | E10 Match stats | #16 | 1 | |
-| 4 | E11 Victory, Defeat, Standings screens | #17 | 5 | Use @Seleis36's components (U1–U3) |
+| 4 | E11 Victory, Defeat, Standings screens | #17 | 5 | Compose screens started with Material stand-ins and fixture previews; integrate @Seleis36's components (U1–U3) as they land |
 | 5 | E9 Save/resume | #15 | 3 | |
 | 5 | Fix bugs found by the simulator | | | |
 

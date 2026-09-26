@@ -1,4 +1,27 @@
 <resources>
     <string name="app_name">King of Xitter</string>
     <string name="app_placeholder">King of Xitter</string>
+    <string name="endgame_victory_title">20 MANDATES</string>
+    <string name="endgame_victory_subtitle">Gold check. Forever.</string>
+    <string name="endgame_defeat_title">ACCOUNT SUSPENDED</string>
+    <string name="endgame_defeat_subtitle">Your ratio finally caught up.</string>
+    <string name="endgame_your_account">Your account</string>
+    <string name="endgame_winner">Winner</string>
+    <string name="endgame_no_winner">Everyone got suspended. Nobody wins.</string>
+    <string name="endgame_match_stats">MATCH STATS</string>
+    <string name="endgame_tweets_sent">%1$d tweets sent</string>
+    <string name="endgame_unfollows_dealt">%1$dM unfollows dealt</string>
+    <string name="endgame_turns_as_main_character">%1$d turns as Main Character</string>
+    <string name="endgame_tweet_count_short">%1$d tweets</string>
+    <string name="endgame_mandates_total">%1$d mandates</string>
+    <string name="endgame_mandates_short">%1$d mandates</string>
+    <string name="endgame_standings_title">THE FINAL RATIO</string>
+    <string name="endgame_standings_subtitle">The receipts are permanent.</string>
+    <string name="endgame_empty_standings">No standings to show yet.</string>
+    <string name="endgame_rank">#%1$d</string>
+    <string name="endgame_suspended">SUSPENDED</string>
+    <string name="endgame_winner_badge">WINNER</string>
+    <string name="endgame_play_again">PLAY AGAIN</string>
+    <string name="endgame_view_standings">VIEW STANDINGS</string>
+    <string name="endgame_back_to_game">BACK TO GAME</string>
 </resources>
