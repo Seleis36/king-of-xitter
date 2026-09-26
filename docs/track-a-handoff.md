@@ -20,7 +20,9 @@ Date: 2026-09-26. Owner: Samylay. Branch: `codex/engine-base-rules`.
 No independently implementable A item remains identified by the review.
 The release app still opens the placeholder MainActivity. These APIs and screens
 are ready for the owning tracks to connect; a full title-to-match app is not claimed.
-The branch remains unmerged. Cross-track review and contract approval are required.
+Samylay explicitly authorized merging this delivery on 2026-09-26.
+No cross-track approval is recorded; the normal review requirement was not
+completed before this user-directed merge. Integration boundaries above remain.
 
 ## Review and fixes
 
@@ -150,5 +152,5 @@ setup and save interfaces with their consuming tracks. The cumulative branch als
 contains earlier S1/S2 work and exceeds the small-PR guideline. Preserve the existing
 foundation branches (`codex/s1-android-skeleton`, `codex/s2-engine-api`) for staged
 review; do not force-rewrite published history to make the diff look smaller.
-The dependency graph stays yellow until cross-track review and CI requirements
-are satisfied. No teammate approval or merge has been performed by this session.
+The dependency graph stays yellow until its recorded review and integration
+requirements are satisfied. Merge authorization does not represent teammate approval.
