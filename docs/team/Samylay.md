@@ -16,12 +16,12 @@ You build the rules engine: the heart of the game. Everyone else codes against y
 | 2 | E2 Dice resolution | #8 | 3 | |
 | 2 | E3 Xitter rules | #9 | 5 | |
 | 2 | E5 Elimination and win | #11 | 2 | M1 exit: a base-rules match plays end to end in a JVM test with 4 Intern bots |
-| 2 | E7 Real GameController | #13 | 4 | Needs B1 (Intern bot) from @khvatovat on day 4 |
-| 3 | **E6 Card hook dispatch** | #12 | 5 | **Blocker.** Land it at the very start of week 3 |
+| 2 | E7 Real GameController | #13 | 4 | Implemented with the first-option stand-in; `Action.EndTurn` already exits `SHOP` |
+| 3 | **E6 Card hook dispatch** | #12 | 5 | Implemented and tested on `codex/engine-base-rules`; needs review, merge, and S3 card integration |
 | 3 | E8 Match setup + roll-off | #14 | 2 | |
 | 3 | E12 Golden-game tests | #18 | 3 | |
 | 4 | E10 Match stats | #16 | 1 | |
-| 4 | E11 Victory, Defeat, Standings screens | #17 | 5 | Use @Seleis36's components (U1–U3) |
+| 4 | E11 Victory, Defeat, Standings screens | #17 | 5 | Implemented and checked on API 27 with Material stand-ins; integrate U1–U3 as they land |
 | 5 | E9 Save/resume | #15 | 3 | |
 | 5 | Fix bugs found by the simulator | | | |
 
@@ -35,15 +35,28 @@ You build the rules engine: the heart of the game. Everyone else codes against y
 ## What you wait on
 
 - **B1 Intern bot** (@khvatovat, day 4). Meanwhile use a bot that always picks the first option.
-- **S3 CardEffect interface** (@AzerX2) is an input to S2. Agree on the hook list together on day 1–2.
+- **C2 shop flow** (@AzerX2) for purchases. Base matches already leave `SHOP` through `Action.EndTurn`.
+- **S3 card definitions and effects** (@AzerX2) follow the contract in ROADMAP §3. The hook contract is decided, so E6 can proceed now; integrate S3 as it lands.
 - **U1–U3 components** (@Seleis36) for E11. Meanwhile use plain Material components.
 
-## Also yours
+## M0 decisions
 
-The three open decisions in ROADMAP §1 (char cap, Bot Farm cost, leader abilities). Settle them in M0.
+Char cap, Bot Farm cost, and leader abilities are decided in ROADMAP §1.
 
 ## Day one
 
 1. Read ROADMAP §1 and §3.
 2. Open `design/screens/how-to-play.html` and `game-board-your-roll.html` in a browser.
 3. Push S1 so the others can open their M0 PRs.
+
+## Current handoff (2026-09-26)
+
+All independent A implementation is complete on `codex/engine-base-rules`:
+S1/S2, your half of S6, and E1–E12. E7/E8/E9 now include paced bot execution,
+human pauses, deterministic setup/roll-offs, lifecycle ownership, and atomic
+save/resume with failure recovery. The rule and end-screen review defects are fixed.
+
+See [Track A review and handoff](../track-a-handoff.md) for the evidence and APIs.
+The remaining work needs B's cards/shop, C's components/navigation/fixture review,
+D's bots/roster/voices, and cross-track approval. These are integration boundaries,
+not reasons to delay the implemented base-game controller.

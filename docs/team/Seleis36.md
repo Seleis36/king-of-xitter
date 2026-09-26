@@ -36,3 +36,8 @@ You own the look and feel: the design system, the game board, the dice and all t
 1. Open every screen in `design/screens/` in a browser. They are 412×915 phone frames.
 2. Read ROADMAP §3.
 3. Start S4 as soon as @Samylay pushes S1.
+
+## Track A handoff (2026-09-26)
+
+E7/E9 provide `GameViewModel`, saved human ownership and failure/retry; E11 surfaces have API 27 evidence. Connect them in S4/U10, replace Material stand-ins with U1–U3, and review S6 fixtures.
+See [API usage and verification](../track-a-handoff.md).

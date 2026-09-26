@@ -3,7 +3,7 @@
 A single-player Android game that plays by the **King of Tokyo** rules (original base game, 66 cards). You play against 3 bots. The theme is the parody design in [`design/`](design/). All 6 leaders can be played.
 
 - **Team:** 4 developers, one track each: A Engine @Samylay, B Power-ups @AzerX2, C In-game UI @Seleis36, D Bots & voice @khvatovat. Personal guides are in [`docs/team/`](docs/team/). Each track owns its own modules, so people rarely wait on each other.
-- **Stack:** Kotlin, Jetpack Compose, multi-module Gradle, min SDK 26, target SDK 35. It runs fully offline. There's no backend and no LLM; tweets come from templates.
+- **Stack:** Kotlin, Jetpack Compose, multi-module Gradle, min SDK 27, compile/target SDK 36. It runs fully offline. There's no backend and no LLM; tweets come from templates.
 - **Estimates** are in points. 1 pt ≈ half a day of focused work. Each track totals about 40 pts, so roughly 5–6 weeks at part-time pace.
 
 ---
@@ -41,9 +41,9 @@ The rules stay exactly the same as King of Tokyo. Only the names change.
 
 ### Open design decisions (owner: @Samylay, decide in M0)
 
-1. **Char cap of 280.** The design banks at most 280 chars, but King of Tokyo has no energy cap. *Recommendation:* keep the cap as a toggle. Default it to off to match the "exactly like King of Tokyo" goal, and show the ring as full above 280.
-2. **Bot Farm cost.** The design shows 50, but Even Bigger costs 4 (→ 40). *Recommendation:* use 40 and update the design.
-3. **Leader abilities.** Base King of Tokyo monsters have no abilities, so leaders differ only in portrait, colour, tweet voice and bot personality. Abilities (for example the King of Tokyo *Power Up!* evolutions) would be a post-v1 add-on.
+1. **Char cap of 280: decided.** Keep the cap configurable and default it off to match the base game's uncapped energy. The UI ring can appear full above 280. The Settings screen owns the toggle.
+2. **Bot Farm cost: decided.** Use 40 characters, matching Even Bigger's cost of 4 energy. The card catalogue and design should use 40.
+3. **Leader abilities: decided.** No gameplay abilities in v1. Leaders differ by portrait, colour, tweet voice, and bot personality. Gameplay abilities can be considered after v1.
 
 ---
 
@@ -139,12 +139,83 @@ The effects are the King of Tokyo originals. Energy costs are ×10 and damage/he
 | Contract | Owner | Consumers |
 |---|---|---|
 | `GameState`, `PlayerState`, `DiceFace`, `Action`, `Event`, `PendingDecision` | A | B, C, D |
-| `CardEffect` hooks (`onBuy`, `diceCount`, `rerollCount`, `onResolve`, `modifyOutgoingDamage`, `modifyIncomingDamage`, `onTurnStart/End`, `onEliminated`, `activatedAbilities`) + `CardDef` | B (A reviews) | A |
+| `CardEffect` hook protocol in `:engine` + `CardDef` and effect implementations in `:cards` | A owns the engine boundary; B implements cards; each reviews the other's side | A |
 | `GameController` (`state: StateFlow`, `events: Flow`, `submit(Action)`) + `FakeGameController` | A | C, D |
 | `BotBrain.decide(state, decision, rng): Action` | D | A, C |
 | `TweetWriter.write(event, leaderId, rng): Tweet` + `Leader` roster | D | C |
 | Design tokens (`XColors`, `XType`, `Modifier.sticker()`), shared components | C | A, B, D |
 | `GameFixtures`: one `GameState` per design screen | A + C | everyone (previews and tests) |
+
+### Card-hook contract (decided)
+
+The engine owns the hook protocol and invokes card effects; the cards module owns
+card definitions and effect implementations. The `CardEffect` interface and
+hook contexts/results are declared in `:engine`, so the engine can invoke them
+without depending on `:cards`. `CardDef` and the 66 effect implementations live
+in `:cards`.
+
+Each hook receives an immutable snapshot for its trigger window, the owning
+player, the source `CardId`, and an engine-provided deterministic random source
+when the rule needs randomness. Hooks return declarative effect intents. They
+do not mutate `GameState`, emit events, or perform I/O. The reducer applies the
+intents and records any consumed random state.
+
+The engine-side protocol uses these signatures; all methods have empty or zero
+defaults so a card implements only the hooks it needs:
+
+```kotlin
+interface CardEffect {
+    fun diceCount(context: CardHookContext): Int = 0
+    fun rerollCount(context: CardHookContext): Int = 0
+    fun onBuy(context: CardHookContext): List<CardEffectIntent> = emptyList()
+    fun onResolve(context: CardHookContext): List<CardEffectIntent> = emptyList()
+    fun modifyOutgoingDamage(context: CardHookContext): DamageAdjustment = DamageAdjustment()
+    fun modifyIncomingDamage(context: CardHookContext): DamageAdjustment = DamageAdjustment()
+    fun onTurnStart(context: CardHookContext): List<CardEffectIntent> = emptyList()
+    fun onTurnEnd(context: CardHookContext): List<CardEffectIntent> = emptyList()
+    fun onEliminated(context: CardHookContext): List<CardEffectIntent> = emptyList()
+    fun activatedAbilities(context: CardHookContext): List<AbilityOffer> = emptyList()
+    fun activate(context: CardHookContext, action: Action.ActivateAbility): List<CardEffectIntent> = emptyList()
+}
+```
+
+`CardHookContext` carries the state snapshot, hook owner, source card, trigger
+details, and deterministic random source. The engine asks for ability offers at
+`AFTER_DICE_ROLL` and `AFTER_RESOLVE`, and calls `activate` only after the player
+chooses one of the offered actions. `CardEffectIntent` is a sealed set of
+engine-owned state changes, including resource deltas, die changes, counters,
+extra dice and rerolls, extra turns, Main Character transfer, and queued
+decisions. `DamageAdjustment` contains additive damage, target expansion, and
+prevention conditions. `AbilityOffer` contains a stable ability ID, prompt data,
+and legal `Action` options. Only the engine applies intents or accepts decisions.
+
+| Hook | Invocation window | Combination rule |
+|---|---|---|
+| `diceCount` | Before the first roll of the owner's turn | Sum nonnegative bonuses onto the base six dice |
+| `rerollCount` | Before the first roll of the owner's turn | Sum nonnegative bonuses onto the base two rerolls |
+| `onTurnStart` | After start-of-turn Xitter mandates, before rolling | Collect intents from every owned policy |
+| `onResolve` | Once after the final roll, before base dice resolution | Collect intents against the same roll snapshot; apply in engine rule-phase order |
+| `modifyOutgoingDamage` | For each outgoing damage packet, after base targets are selected | Sum additive damage; expand targets from all intents |
+| `modifyIncomingDamage` | After outgoing modifiers, before follower totals change | Combine all prevention conditions, then apply remaining damage once |
+| `onBuy` | After payment; before an Executive Order is discarded | The shop calls `dispatchOnBuy`; run the purchased card's hook and notify the buyer's active policies |
+| `activatedAbilities` | After a roll and after roll resolution, before the next automatic rule step | Return legal offers; the engine exposes them as `PendingDecision` options |
+| `activate` | After the player selects an offered ability option | Validate the offered action and apply the effect intents |
+| `onEliminated` | After followers reach zero, before Xitter transfer and victory checks | Collect intents before final elimination is committed, allowing effects such as Burner Account |
+| `onTurnEnd` | After shop and decisions, before selecting the next player | Collect intents before the turn advances |
+
+The order of `PlayerState.policyIds` must not affect outcomes. The engine
+canonicalizes hooks by `CardId.value`, gives all hooks in a window the same
+pre-window snapshot, and applies output by rule phase. Additive values are
+summed. Conflicting replacement or prevention intents use their documented
+priority, then `CardId.value` as a stable tie-breaker. Random draws are consumed
+in this canonical order. Damage for all targets is computed from the same
+pre-damage snapshot and applied together before elimination and win checks.
+Player choices always pass through `PendingDecision` and `Action`.
+
+S3 implements `CardDef`, `TestGame`, and card effects against this protocol.
+Samylay owns the engine-side protocol and E6 dispatch. The contract decision
+clears E6 to proceed now; card registration and effect implementations
+integrate as S3 lands.
 
 **Rules that keep people unblocked:**
 1. **Code against fakes.** UI screens are built on `FakeGameController` and `GameFixtures` in Compose previews, so they never wait for the engine. Cards are unit-tested with a `TestGame` state builder. Bots start with the random Intern bot, which needs only the `Decision` API.
@@ -186,7 +257,7 @@ Dependencies marked `M0` mean only the frozen contracts. Nothing outside M0 bloc
 |---|---|---|---|
 | S1 | Gradle multi-module skeleton, version catalog, CI (build, test, ktlint), CODEOWNERS, PR template | A | 2 |
 | S2 | `:engine` API: state/action/event/decision models and the `GameController` interface, with KDoc | A | 2 |
-| S3 | `CardDef` + `CardEffect` hook interface; `TestGame` state builder | B | 2 |
+| S3 | `CardDef` + card-effect implementations against the engine hook protocol; `TestGame` state builder | B | 2 |
 | S4 | Compose theme: colours, 3 fonts (Luckiest Guy, Anton, Rubik; TTF from Google Fonts, OFL), `Modifier.sticker()`, app shell and nav graph with placeholder routes | C | 2 |
 | S5 | `BotBrain` + `TweetWriter` interfaces; `Leader` roster (6 leaders: id, names, handle, colour, portrait); portraits converted to VectorDrawables | D | 2 |
 | S6 | `GameFixtures` (one state per design screen) + `FakeGameController` | A + C | 1+1 |
@@ -200,8 +271,8 @@ Dependencies marked `M0` mean only the frozen contracts. Nothing outside M0 bloc
 | E3 | Xitter: enter when empty (+1), start-of-turn +2, damage routing (in vs. out), stay/log-off decision, attacker takes the spot | E2 | 5 |
 | E4 | Turn state machine: phases, `PendingDecision` queue, end of turn, skipping suspended players | E1 | 4 |
 | E5 | Elimination, simultaneous elimination, win at 20 / last standing / nobody wins | E3 | 2 |
-| E6 | Hook dispatch at every hook point in `CardEffect` (card-order independent), extra turns, counters on `PlayerState` | E4, S3 | 5 |
-| E7 | Real `GameController` / `GameViewModel`: coroutine loop, bot turns with pacing delays, human decisions from the UI | E4 · uses D's Intern bot (fake: always-first-option bot) | 4 |
+| E6 | Engine hook protocol and dispatch at every card hook point (card-order independent), extra turns, counters on `PlayerState` | E4, M0 card-hook contract | 5 |
+| E7 | Real `GameController` / `GameViewModel`: coroutine loop, bot turns with pacing delays, human decisions from the UI | E4 · B1 (stand-in: first option); C2 integrates later, EndTurn already exits SHOP | 4 |
 | E8 | Match setup: pick leader, draw 3 random bots from the other 5, roll-off for first player | E7 | 2 |
 | E9 | Save/resume: serialize `GameState` (kotlinx.serialization) and restore after process death | E7 | 3 |
 | E10 | Match stats (tweets sent, unfollows dealt, turns as Main Character) for the end screens | E5 | 1 |
@@ -263,16 +334,19 @@ flowchart LR
   M0[M0 contracts] --> E1 --> E4 --> E6
   E1 --> E2 --> E3 --> E5
   E4 --> E7 --> E8 --> V4
+  C2 -. shop integration .-> E7
   E6 --> C5 & C6 & C7 & B3 & B4
-  B1 --> E7
+  B1 -. replace stand-in .-> E7
   E7 --> U10
   M0 --> C1 & C2 & C3 & C4 & U1 & U2 & B2 & V1
   U1 --> U3 --> U5 --> U6 & U7 & U8
   U1 -. fakes .-> E11 & C8 & V3 & V4
 ```
 
-- **E6 (hook dispatch) is the main blocker.** @Samylay lands it at the start of week 3, right before C5–C7, B3 and B4 need it. Until then, @AzerX2 writes C1–C4 against `TestGame` (the hooks are pure functions) and @khvatovat writes B2 against fixtures. If E6 slips, @AzerX2 moves C8 earlier.
-- **B1 (Intern bot)** is 1 pt and unblocks E7. @khvatovat does it on day 4.
+- **E6 (hook dispatch) is implemented and tested on `codex/engine-base-rules`.** After review and merge, it unblocks C5–C7, B3 and B4. Integrate @AzerX2's S3 registry and card effects as they land. Until then, @AzerX2 can build against the engine hook protocol, while @khvatovat uses fixtures for B2. If E6 slips, @AzerX2 moves C8 earlier.
+- **B1 (Intern bot)** is 1 pt and unblocks bot decisions for E7. Use the
+  always-first-option stand-in until it lands. E7 already advances from `SHOP`
+  using `Action.EndTurn`; C2 adds purchases without blocking base matches.
 - **U1–U3** unblock the screens owned by A, B and D. Until they land, those developers use raw Material components and swap them later.
 
 ---
@@ -283,3 +357,14 @@ flowchart LR
 - Compose screens have a `@Preview` for each relevant fixture and are checked against the matching design screen.
 - There are no strings in code. The theme's text goes in `strings.xml` so a French or Spanish translation can come later.
 - The PR is reviewed by one other track, and CI is green.
+
+## 8. Track A implementation status (2026-09-26)
+
+S1/S2, Samylay's S6 fixtures, and E1–E12 are implemented on
+`codex/engine-base-rules` and locally verified against stand-ins where needed.
+See [the handoff](docs/track-a-handoff.md) for precise coverage, checks, API usage,
+and remaining owners. The application shell remains a placeholder until the
+UI/front-door tracks connect it. This is not the M2 full-app milestone.
+
+Task status is tracked in [the dependency graph](docs/dependency-graph.md).
+Cross-track review and approval of contract changes remain required by §7.

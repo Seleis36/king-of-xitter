@@ -6,6 +6,22 @@
 - **[design/](design/)** holds the original design bundle (`king-of-xitter-bundle.html`, which opens in a browser) and the unpacked screens (`design/screens/*.html`, one per screen, 412×915).
 - **[assets/](assets/)** holds the leader portraits (SVG) and the Latin subsets of the fonts. For Android, use the TTFs from Google Fonts (Luckiest Guy, Anton and Rubik, all under the OFL).
 
+## Build
+
+Install JDK 21 and Android SDK Platform 36 with Build Tools 36.0.0. The app supports Android 8.1 (API 27) and newer, compiles against API 36, and targets API 36.
+
+Run the project checks with:
+
+```sh
+./gradlew build test ktlintCheck
+```
+
+Build a debug APK with:
+
+```sh
+./gradlew :app:assembleDebug
+```
+
 ## Leaders
 
 | Leader | Handle | Colour | Portrait |
