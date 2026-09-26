@@ -9,6 +9,7 @@ import com.kingofxitter.engine.model.CardHookContext
 import com.kingofxitter.engine.model.CardId
 import com.kingofxitter.engine.model.CounterId
 import com.kingofxitter.engine.model.DamageAdjustment
+import com.kingofxitter.engine.model.DecisionKind
 import com.kingofxitter.engine.model.DecisionOption
 import com.kingofxitter.engine.model.DecisionOptionId
 import com.kingofxitter.engine.model.DiceFace
@@ -17,11 +18,14 @@ import com.kingofxitter.engine.model.DieId
 import com.kingofxitter.engine.model.GameEvent
 import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.LeaderId
+import com.kingofxitter.engine.model.MatchResult
+import com.kingofxitter.engine.model.PendingDecision
 import com.kingofxitter.engine.model.PlayerId
 import com.kingofxitter.engine.model.PlayerResource
 import com.kingofxitter.engine.model.PlayerState
 import com.kingofxitter.engine.model.ResourceChangeReason
 import com.kingofxitter.engine.model.TurnPhase
+import com.kingofxitter.engine.model.VictoryReason
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -105,7 +109,11 @@ class CardHookReducerTest {
         val reducer = DefaultGameReducer(CardEffectRegistry(listOf(order, active)))
         val initial =
             state(TurnPhase.SHOP).copy(
-                players = listOf(PlayerState(player, LeaderId("leader"), policyIds = listOf(active.cardId))),
+                players =
+                    listOf(
+                        PlayerState(player, LeaderId("leader"), policyIds = listOf(active.cardId)),
+                        PlayerState(target, LeaderId("target")),
+                    ),
             )
 
         val transition = reducer.dispatchOnBuy(initial, player, purchasedId)
@@ -117,6 +125,76 @@ class CardHookReducerTest {
                 .characters,
         )
         assertEquals(listOf(10, 20), transition.events.map { (it as GameEvent.ResourceChanged).amount })
+    }
+
+    @Test
+    fun `purchase effect that reaches twenty mandates ends the match`() {
+        val order =
+            object : CardEffect {
+                override val cardId = purchasedId
+
+                override fun onBuy(context: CardHookContext) = listOf(CardEffectIntent.ChangeResource(player, PlayerResource.MANDATES, 1))
+            }
+        val reducer = reducer(order)
+        val initial =
+            state(TurnPhase.SHOP).copy(
+                players =
+                    listOf(
+                        PlayerState(player, LeaderId("leader"), mandates = 19),
+                        PlayerState(target, LeaderId("target")),
+                    ),
+            )
+
+        val transition = reducer.dispatchOnBuy(initial, player, purchasedId)
+
+        assertEquals(MatchResult.Victory(player, VictoryReason.TWENTY_MANDATES), transition.state.result)
+        assertTrue(transition.events.any { it is GameEvent.MatchEnded })
+    }
+
+    @Test
+    fun `turn start queued decision resumes rolling after its option is chosen`() {
+        val decisionId =
+            com.kingofxitter.engine.model
+                .DecisionId("start-choice")
+        val optionId = DecisionOptionId("continue")
+        val effect =
+            object : CardEffect {
+                override val cardId = policyId
+
+                override fun onTurnStart(context: CardHookContext) =
+                    listOf(
+                        CardEffectIntent.QueueDecision(
+                            PendingDecision(
+                                decisionId,
+                                player,
+                                DecisionKind.ACTIVATE_ABILITY,
+                                listOf(DecisionOption(optionId, Action.RollDice(player))),
+                            ),
+                        ),
+                    )
+            }
+        val reducer = reducer(effect)
+        val waiting =
+            reducer.reduce(
+                state(TurnPhase.TURN_START).copy(
+                    players =
+                        listOf(
+                            PlayerState(player, LeaderId("leader"), policyIds = listOf(policyId)),
+                            PlayerState(target, LeaderId("target")),
+                        ),
+                ),
+                Action.RollDice(player),
+            )
+
+        val resumed =
+            reducer.reduce(
+                waiting.state,
+                Action.ChooseDecisionOption(player, decisionId, optionId),
+            )
+
+        assertEquals(TurnPhase.ROLLING, resumed.state.phase)
+        assertEquals(1, resumed.state.rollNumber)
+        assertTrue(resumed.events.any { it is GameEvent.DecisionResolved })
     }
 
     @Test
@@ -220,7 +298,17 @@ class CardHookReducerTest {
                 ) = listOf(CardEffectIntent.ChangeCounter(player, CounterId("uses"), 1))
             }
         val reducer = reducer(effect)
-        val rolled = reducer.reduce(state(TurnPhase.TURN_START), Action.RollDice(player))
+        val rolled =
+            reducer.reduce(
+                state(TurnPhase.TURN_START).copy(
+                    players =
+                        listOf(
+                            PlayerState(player, LeaderId("leader"), policyIds = listOf(policyId)),
+                            PlayerState(target, LeaderId("target")),
+                        ),
+                ),
+                Action.RollDice(player),
+            )
         val decision = rolled.state.pendingDecisions.single()
 
         val chosen =
@@ -237,6 +325,50 @@ class CardHookReducerTest {
                 .counters[CounterId("uses")],
         )
         assertTrue(chosen.events.any { it is GameEvent.DecisionResolved })
+    }
+
+    @Test
+    fun `after resolve ability is offered before shopping`() {
+        val action = Action.ActivateAbility(player, policyId, "after-resolve")
+        val effect =
+            object : CardEffect {
+                override val cardId = policyId
+
+                override fun activatedAbilities(context: CardHookContext) =
+                    if (context.window.name == "AFTER_RESOLVE") {
+                        listOf(
+                            AbilityOffer(
+                                "after-resolve",
+                                "ability.after-resolve.prompt",
+                                listOf(DecisionOption(DecisionOptionId("use"), action)),
+                            ),
+                        )
+                    } else {
+                        emptyList()
+                    }
+            }
+        val reducer = reducer(effect)
+        val rolling =
+            state(TurnPhase.ROLLING).copy(
+                players =
+                    listOf(
+                        PlayerState(player, LeaderId("leader"), policyIds = listOf(policyId)),
+                        PlayerState(target, LeaderId("target")),
+                    ),
+                dice = listOf(Die(DieId(0), DiceFace.CHARACTERS)),
+                rollNumber = 1,
+            )
+
+        val waiting = reducer.reduce(rolling, Action.ResolveRoll(player))
+
+        assertEquals(TurnPhase.DECISION, waiting.state.phase)
+        assertEquals(
+            "ability.after-resolve.prompt",
+            waiting.state.pendingDecisions
+                .single()
+                .promptKey,
+        )
+        assertEquals(TurnPhase.SHOP, waiting.state.phaseAfterDecisions)
     }
 
     @Test
@@ -270,6 +402,49 @@ class CardHookReducerTest {
                 .first { it.id == target }
                 .followers,
         )
+        assertTrue(transition.events.none { it == GameEvent.PlayerSuspended(target) })
+    }
+
+    @Test
+    fun `follower loss from another hook still dispatches elimination effects`() {
+        val damageCard = CardId("damage")
+        val damageEffect =
+            object : CardEffect {
+                override val cardId = damageCard
+
+                override fun onResolve(context: CardHookContext) =
+                    listOf(CardEffectIntent.ChangeResource(target, PlayerResource.FOLLOWERS, -1))
+            }
+        val rescueEffect =
+            object : CardEffect {
+                override val cardId = policyId
+
+                override fun onEliminated(context: CardHookContext) =
+                    listOf(CardEffectIntent.ChangeResource(target, PlayerResource.FOLLOWERS, 1))
+            }
+        val initial =
+            GameState(
+                players =
+                    listOf(
+                        PlayerState(player, LeaderId("leader"), policyIds = listOf(damageCard)),
+                        PlayerState(target, LeaderId("target"), followers = 1, policyIds = listOf(policyId)),
+                    ),
+                currentPlayerId = player,
+                phase = TurnPhase.ROLLING,
+                xitterPlayerId = target,
+                dice = listOf(Die(DieId(0), DiceFace.CHARACTERS)),
+                rollNumber = 1,
+            )
+
+        val transition = reducer(damageEffect, rescueEffect).reduce(initial, Action.ResolveRoll(player))
+
+        assertEquals(
+            1,
+            transition.state.players
+                .first { it.id == target }
+                .followers,
+        )
+        assertEquals(target, transition.state.xitterPlayerId)
         assertTrue(transition.events.none { it == GameEvent.PlayerSuspended(target) })
     }
 

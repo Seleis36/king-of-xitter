@@ -91,8 +91,9 @@ class DefaultGameReducer(
             effects.flatMap { effect ->
                 effect.onBuy(hookContext(state, buyerId, effect, CardHookWindow.ON_BUY, random, purchasedCardId = purchasedCardId))
             }
-        val applied = applyIntents(state, intents)
-        return GameTransition(applied.first.copy(randomState = random.state), applied.second)
+        val applied = applyCardIntents(state, intents, random, buyerId)
+        val finished = finishIfNeeded(applied.first.copy(randomState = random.state))
+        return GameTransition(finished.first, applied.second + finished.second)
     }
 
     private fun rollDice(
@@ -140,9 +141,17 @@ class DefaultGameReducer(
                     CardHookWindow.TURN_START,
                     random,
                 ) { effect, hookContext -> effect.onTurnStart(hookContext) }
-            val appliedStart = applyIntents(workingState, onStart)
+            val appliedStart = applyCardIntents(workingState, onStart, random, action.playerId)
             workingState = appliedStart.first
             startEvents += appliedStart.second
+            if (appliedStart.second.any { it is GameEvent.PlayerSuspended }) {
+                val finished = finishIfNeeded(workingState)
+                workingState = finished.first
+                startEvents += finished.second
+                if (workingState.result != null) {
+                    return GameTransition(workingState.copy(randomState = random.state), startEvents)
+                }
+            }
             workingState = workingState.copy(turnStartHooksApplied = true)
             if (workingState.pendingDecisions.isNotEmpty()) {
                 val waiting =
@@ -276,7 +285,7 @@ class DefaultGameReducer(
                     CardHookWindow.ON_RESOLVE,
                     random,
                 ) { effect, hookContext -> effect.onResolve(hookContext) }
-            val applied = applyIntents(state, intents)
+            val applied = applyCardIntents(state, intents, random, action.playerId)
             hookedState = applied.first.copy(resolveHooksAppliedForRoll = true)
             hookEvents += applied.second
         }
@@ -477,7 +486,15 @@ class DefaultGameReducer(
                     CardHookWindow.ELIMINATED,
                     random,
                 ) { effect, hookContext -> effect.onEliminated(hookContext) }
-            val applied = applyIntents(nextState, intents)
+            val applied =
+                applyCardIntents(
+                    nextState,
+                    intents,
+                    random,
+                    attackerId,
+                    previouslyEliminated = newlySuspended.toSet(),
+                    transferMainCharacter = false,
+                )
             nextState = applied.first
             events += applied.second
             newlySuspended
@@ -681,6 +698,62 @@ class DefaultGameReducer(
         return decisions
     }
 
+    private fun applyCardIntents(
+        initialState: GameState,
+        intents: List<CardEffectIntent>,
+        random: SplitMix64,
+        actingPlayerId: PlayerId,
+        previouslyEliminated: Set<PlayerId> = emptySet(),
+        transferMainCharacter: Boolean = true,
+    ): Pair<GameState, List<GameEvent>> {
+        val applied = applyIntents(initialState, intents)
+        var state = applied.first
+        val events = applied.second.toMutableList()
+        val handled = previouslyEliminated.toMutableSet()
+
+        fun unhandledEliminations(newEvents: List<GameEvent>): Set<PlayerId> =
+            newEvents
+                .filterIsInstance<GameEvent.ResourceChanged>()
+                .filter {
+                    it.resource == PlayerResource.FOLLOWERS && it.amount < 0 && it.totalAfter == 0
+                }.map { it.playerId }
+                .filterNot(handled::contains)
+                .toSet()
+
+        var eliminated = unhandledEliminations(applied.second)
+        val newlyHandled = mutableSetOf<PlayerId>()
+        while (eliminated.isNotEmpty()) {
+            handled += eliminated
+            newlyHandled += eliminated
+            val eliminationIntents =
+                invokeOwnerSetHooks(
+                    state,
+                    eliminated,
+                    CardHookWindow.ELIMINATED,
+                    random,
+                ) { effect, hookContext -> effect.onEliminated(hookContext) }
+            val eliminationChanges = applyIntents(state, eliminationIntents)
+            state = eliminationChanges.first
+            events += eliminationChanges.second
+            eliminated = unhandledEliminations(eliminationChanges.second)
+        }
+
+        val stillSuspended =
+            handled.filterTo(mutableSetOf()) { playerId ->
+                state.players.any { it.id == playerId && it.isSuspended }
+            }
+        stillSuspended
+            .filter { it in newlyHandled }
+            .forEach { events += GameEvent.PlayerSuspended(it) }
+        if (transferMainCharacter && state.xitterPlayerId in stillSuspended) {
+            val newOwner = actingPlayerId.takeIf { id -> state.players.any { it.id == id && !it.isSuspended } }
+            val previousOwner = state.xitterPlayerId
+            state = state.copy(xitterPlayerId = newOwner)
+            events += GameEvent.MainCharacterChanged(previousOwner, newOwner)
+        }
+        return state to events
+    }
+
     private fun applyIntents(
         initialState: GameState,
         intents: List<CardEffectIntent>,
@@ -849,7 +922,7 @@ class DefaultGameReducer(
                 targetPlayerId = action.targetPlayerId,
             )
         val intents = effect.activate(context, action)
-        val applied = applyIntents(state, intents)
+        val applied = applyCardIntents(state, intents, random, action.playerId)
         return GameTransition(applied.first.copy(randomState = random.state), applied.second)
     }
 
@@ -925,21 +998,22 @@ class DefaultGameReducer(
                 events = applied.events,
             )
         }
-        val events = listOf(GameEvent.DecisionResolved(action.decisionId, action.optionId)) + applied.events
-        if (remainingDecisions.isNotEmpty() || applied.state.result != null) {
-            return GameTransition(applied.state, events)
+        val finished = finishIfNeeded(applied.state)
+        val events = listOf(GameEvent.DecisionResolved(action.decisionId, action.optionId)) + applied.events + finished.second
+        if (remainingDecisions.isNotEmpty() || finished.first.result != null) {
+            return GameTransition(finished.first, events)
         }
         return when (resumePhase) {
             TurnPhase.RESOLVING -> {
-                val random = SplitMix64(applied.state.randomState)
-                val completed = completeRollResolution(applied.state, state.currentPlayerId, random)
+                val random = SplitMix64(finished.first.randomState)
+                val completed = completeRollResolution(finished.first, state.currentPlayerId, random)
                 GameTransition(completed.state, events + completed.events)
             }
             TurnPhase.END_TURN -> {
-                val completed = completeEndTurn(applied.state, state.currentPlayerId)
+                val completed = completeEndTurn(finished.first, state.currentPlayerId)
                 GameTransition(completed.state, events + completed.events)
             }
-            else -> GameTransition(applied.state, events)
+            else -> GameTransition(finished.first, events)
         }
     }
 
@@ -967,7 +1041,7 @@ class DefaultGameReducer(
                 CardHookWindow.TURN_END,
                 random,
             ) { effect, hookContext -> effect.onTurnEnd(hookContext) }
-        val applied = applyIntents(state, intents)
+        val applied = applyCardIntents(state, intents, random, action.playerId)
         val endState = applied.first.copy(randomState = random.state)
         val events = applied.second
         if (endState.pendingDecisions.isNotEmpty()) {

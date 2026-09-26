@@ -339,7 +339,7 @@ class GameRulesTest {
                 firstFollowers = 1,
                 secondFollowers = 1,
                 thirdFollowers = 0,
-                dice = listOf(DiceFace.TWEET, DiceFace.ONE, DiceFace.ONE, DiceFace.ONE, DiceFace.LIKE, DiceFace.LIKE),
+                dice = List(6) { DiceFace.CHARACTERS },
                 policies = listOf(cardId),
             )
 

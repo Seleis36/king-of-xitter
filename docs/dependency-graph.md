@@ -144,17 +144,21 @@ flowchart LR
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class S1,S2 done
   class M0D,HDEC done
-  class S6,E1,E2,E3,E4,E5,E6,E10 active
+  class S6,E1,E2,E3,E4,E5,E6,E10,E12 active
 ```
 
 ## Current hand-offs
 
-- E6's hook protocol and reducer dispatch are implemented and pushed on
-  `codex/engine-base-rules`. The engine suite covers hook windows and base rules
-  with three seeded four-player games.
-  The games skip purchases because the shop is not implemented yet. E6 remains
-  yellow pending peer review and CI. AzerX2 and khvatovat can build against the
-  pushed engine API; connect S3's card registry and effects as that work lands.
+- E6's hook protocol and reducer dispatch are implemented on
+  `codex/engine-base-rules`. Review fixes now dispatch elimination hooks after
+  follower loss from any hook and check victory after purchase/decision effects.
+  Local verification covers hook windows, all base rules, and three seeded
+  four-player games. The games skip purchases because the shop is not implemented
+  yet. E6 stays yellow pending a cross-track review and remote CI. AzerX2 and
+  khvatovat can build against the engine API; connect S3's registry and effects
+  as that work lands.
+- E12's rule tests and seeded golden games are in the same engine suite. It stays
+  yellow until the branch meets ROADMAP §7 review and CI requirements.
 - E7 can use the always-first-option bot until B1 lands. It also needs C2's
   shop completion action to advance from `SHOP` into end-of-turn processing.
 - U1–U3 support end-game, shop, and front-door screens. Teams can use Material
