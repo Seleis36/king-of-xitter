@@ -2,23 +2,21 @@
 
 package com.kingofxitter.app.ui.endgame
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,364 +26,343 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
 import com.kingofxitter.engine.GameFixtures
+import com.kingofxitter.engine.model.GameState
+import com.kingofxitter.engine.model.MatchResult
 import com.kingofxitter.engine.model.MatchStats
+import com.kingofxitter.engine.model.PlayerId
 import com.kingofxitter.engine.model.PlayerState
+import com.kingofxitter.engine.model.VictoryReason
 
 private val Ink = Color(0xFF1B1426)
 private val Paper = Color(0xFFFFF7E6)
 private val Gold = Color(0xFFFFD23F)
-private val Pink = Color(0xFFFF3D6E)
-private val Muted = Color(0xFFBDB4D4)
+private val Pink = Color(0xFFFF7192)
+private val Panel = Color(0xFF302743)
 
-/** End-game victory view, fed by the reducer's final standings and match statistics. */
+/** Victory route. The caller replaces the finished match when replaying or returning to the menu. */
 @Composable
 fun VictoryScreen(
-    winner: PlayerState,
-    players: List<PlayerState>,
-    stats: MatchStats,
+    state: GameState,
     onPlayAgain: () -> Unit,
-    onViewStandings: () -> Unit,
+    onShare: () -> Unit,
+    onMainMenu: () -> Unit,
     modifier: Modifier = Modifier,
-    displayName: (PlayerState) -> String = PlayerState::endGameName,
+    displayName: @Composable (PlayerState) -> String = { leaderName(it) },
 ) {
+    val result = state.result as? MatchResult.Victory ?: return
+    val winner = state.players.first { it.id == result.playerId }
     EndGameScaffold(modifier) {
+        Heading(
+            stringResource(
+                if (result.reason ==
+                    VictoryReason.TWENTY_MANDATES
+                ) {
+                    R.string.endgame_victory_title
+                } else {
+                    R.string.endgame_survivor_title
+                },
+            ),
+        )
         Text(
-            text = stringResource(R.string.endgame_victory_title),
-            color = Gold,
-            fontSize = 38.sp,
-            lineHeight = 42.sp,
-            fontWeight = FontWeight.Black,
+            stringResource(
+                if (winner.mandates >=
+                    15
+                ) {
+                    R.string.endgame_victory_subtitle
+                } else {
+                    R.string.endgame_survivor_subtitle
+                },
+            ),
             textAlign = TextAlign.Center,
         )
-        Text(
-            text = stringResource(R.string.endgame_victory_subtitle),
-            color = Paper,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.height(4.dp))
-        WinnerPanel(winner = winner, name = displayName(winner))
-        MatchStatsPanel(stats)
-        StandingsPanel(players, winner.id, displayName)
-        Spacer(Modifier.weight(1f))
-        Button(
-            onClick = onPlayAgain,
-            modifier = Modifier.fillMaxWidth().height(58.dp),
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
-        ) {
-            Text(stringResource(R.string.endgame_play_again), fontWeight = FontWeight.Black)
+        Surface(shape = RoundedCornerShape(20.dp), color = Paper, contentColor = Ink) {
+            Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(displayName(winner), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.endgame_mandates_total, winner.mandates))
+            }
         }
-        TextButton(onClick = onViewStandings) {
-            Text(stringResource(R.string.endgame_view_standings), color = Paper)
-        }
+        CompactStandings(state, displayName)
+        MatchStatsPanel(state.matchStats[winner.id] ?: MatchStats())
+        PrimaryAction(stringResource(R.string.endgame_play_again), onPlayAgain)
+        TextButton(onClick = onShare) { Text(stringResource(R.string.endgame_share), color = Gold) }
+        TextButton(onClick = onMainMenu) { Text(stringResource(R.string.endgame_main_menu), color = Paper) }
     }
 }
 
-/** Defeat view for a suspended player, with the winner and personal match stats. */
+/** Covers suspension, a rival reaching 20 first, and simultaneous elimination without a winner. */
 @Composable
 fun DefeatScreen(
-    suspendedPlayer: PlayerState,
-    winner: PlayerState?,
-    stats: MatchStats,
-    onBackToGame: () -> Unit,
+    state: GameState,
+    playerId: PlayerId,
+    onPlayAgain: () -> Unit,
+    onMainMenu: () -> Unit,
     modifier: Modifier = Modifier,
-    displayName: (PlayerState) -> String = PlayerState::endGameName,
+    finalTweet: String? = null,
+    displayName: @Composable (PlayerState) -> String = { leaderName(it) },
 ) {
+    val player = state.players.first { it.id == playerId }
+    val winnerId = (state.result as? MatchResult.Victory)?.playerId
     EndGameScaffold(modifier) {
-        Text(
-            text = stringResource(R.string.endgame_defeat_title),
-            color = Pink,
-            fontSize = 36.sp,
-            lineHeight = 40.sp,
-            fontWeight = FontWeight.Black,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = stringResource(R.string.endgame_defeat_subtitle),
-            color = Paper,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.height(4.dp))
-        PlayerPanel(
-            label = stringResource(R.string.endgame_your_account),
-            player = suspendedPlayer,
-            name = displayName(suspendedPlayer),
-            accent = Pink,
-        )
+        Heading(stringResource(if (player.isSuspended) R.string.endgame_defeat_title else R.string.endgame_score_defeat_title), Pink)
+        Text(displayName(player), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.endgame_defeat_subtitle), textAlign = TextAlign.Center)
+        Text(stringResource(R.string.endgame_turn_number, state.turnNumber))
+        val winner = state.players.firstOrNull { it.id == winnerId }
         if (winner != null) {
-            PlayerPanel(
-                label = stringResource(R.string.endgame_winner),
-                player = winner,
-                name = displayName(winner),
-                accent = Gold,
-            )
+            Text(stringResource(R.string.endgame_winner), color = Gold)
+            Text(displayName(winner), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.endgame_mandates_total, winner.mandates))
+        } else if (state.result == MatchResult.NoWinner) {
+            Text(stringResource(R.string.endgame_no_winner), textAlign = TextAlign.Center)
         } else {
-            Text(
-                text = stringResource(R.string.endgame_no_winner),
-                color = Paper,
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Text(stringResource(R.string.endgame_match_continues), textAlign = TextAlign.Center)
         }
-        MatchStatsPanel(stats)
-        Spacer(Modifier.weight(1f))
-        Button(
-            onClick = onBackToGame,
-            modifier = Modifier.fillMaxWidth().height(58.dp),
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
-        ) {
-            Text(stringResource(R.string.endgame_back_to_game), fontWeight = FontWeight.Black)
+        if (finalTweet != null) {
+            Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = Paper, contentColor = Ink) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.endgame_last_tweet), fontWeight = FontWeight.Bold)
+                    Text(finalTweet)
+                }
+            }
         }
+        MatchStatsPanel(state.matchStats[playerId] ?: MatchStats())
+        PrimaryAction(stringResource(R.string.endgame_appeal), onPlayAgain)
+        TextButton(onClick = onMainMenu) { Text(stringResource(R.string.endgame_main_menu), color = Paper) }
     }
 }
 
-/** Final ranked roster for the standings route. Ties retain their shared rank. */
+/** Standings support both a running match and its final result. */
 @Composable
 fun StandingsScreen(
-    players: List<PlayerState>,
-    statsByPlayer: Map<com.kingofxitter.engine.model.PlayerId, MatchStats>,
-    onBackToGame: () -> Unit,
+    state: GameState,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    displayName: (PlayerState) -> String = PlayerState::endGameName,
+    displayName: @Composable (PlayerState) -> String = { leaderName(it) },
 ) {
-    val rankedPlayers = players.sortedWith(compareByDescending<PlayerState> { it.mandates }.thenBy { it.id.value })
     EndGameScaffold(modifier) {
-        Text(
-            text = stringResource(R.string.endgame_standings_title),
-            color = Gold,
-            fontSize = 34.sp,
-            lineHeight = 38.sp,
-            fontWeight = FontWeight.Black,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = stringResource(R.string.endgame_standings_subtitle),
-            color = Paper,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        if (rankedPlayers.isEmpty()) {
-            Text(stringResource(R.string.endgame_empty_standings), color = Paper)
-        } else {
-            StandingsPanel(rankedPlayers, winnerId = null, displayName = displayName, statsByPlayer = statsByPlayer)
-        }
-        Spacer(Modifier.weight(1f))
-        Button(
-            onClick = onBackToGame,
-            modifier = Modifier.fillMaxWidth().height(58.dp),
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
-        ) {
-            Text(stringResource(R.string.endgame_back_to_game), fontWeight = FontWeight.Black)
-        }
+        Heading(stringResource(R.string.endgame_standings_title))
+        Text(stringResource(R.string.endgame_badge_thresholds), textAlign = TextAlign.Center)
+        if (state.players.isEmpty()) Text(stringResource(R.string.endgame_empty_standings))
+        RankedPlayers(state, displayName)
+        PrimaryAction(stringResource(if (state.result == null) R.string.endgame_back_to_game else R.string.endgame_main_menu), onBack)
     }
 }
 
 @Composable
 private fun EndGameScaffold(
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Surface(modifier = modifier.fillMaxSize(), color = Ink, contentColor = Paper) {
+    Surface(modifier.fillMaxSize(), color = Ink, contentColor = Paper) {
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 24.dp),
+            Modifier
+                .safeDrawingPadding()
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             content = content,
         )
     }
 }
 
 @Composable
-private fun WinnerPanel(
-    winner: PlayerState,
-    name: String,
+private fun Heading(
+    text: String,
+    color: Color = Gold,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        color = Paper,
-        contentColor = Ink,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
-            Text(
-                text = stringResource(R.string.endgame_mandates_total, winner.mandates),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
+    Text(
+        text,
+        Modifier.semantics {
+            heading()
+        },
+        color = color,
+        style = MaterialTheme.typography.headlineLarge,
+        fontWeight = FontWeight.Black,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable
-private fun PlayerPanel(
+private fun PrimaryAction(
     label: String,
-    player: PlayerState,
-    name: String,
-    accent: Color,
+    onClick: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = Paper,
-        contentColor = Ink,
+    Button(
+        onClick,
+        Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
     ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Surface(modifier = Modifier.size(14.dp), shape = CircleShape, color = accent, content = {})
-            Column(modifier = Modifier.weight(1f)) {
-                Text(label, color = Color(0xFF5A5378), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-            }
-            Text(
-                text = stringResource(R.string.endgame_mandates_short, player.mandates),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
-            )
-        }
+        Text(label, fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
     }
 }
 
 @Composable
 private fun MatchStatsPanel(stats: MatchStats) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = Color(0xFF302743),
-        contentColor = Paper,
-    ) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.endgame_match_stats), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatChip(stringResource(R.string.endgame_tweets_sent, stats.tweetsSent), Modifier.weight(1f))
-                StatChip(stringResource(R.string.endgame_unfollows_dealt, stats.unfollowsDealt), Modifier.weight(1f))
-            }
-            StatChip(stringResource(R.string.endgame_turns_as_main_character, stats.turnsAsMainCharacter), Modifier.fillMaxWidth())
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = Panel, contentColor = Paper) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.endgame_match_stats), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.endgame_tweets_sent, stats.tweetsSent))
+            Text(stringResource(R.string.endgame_unfollows_dealt, stats.unfollowsDealt))
+            Text(stringResource(R.string.endgame_turns_as_main_character, stats.turnsAsMainCharacter))
         }
     }
 }
 
 @Composable
-private fun StatChip(
-    text: String,
-    modifier: Modifier = Modifier,
+private fun CompactStandings(
+    state: GameState,
+    displayName: @Composable (PlayerState) -> String,
 ) {
-    Surface(modifier = modifier, shape = RoundedCornerShape(12.dp), color = Ink, contentColor = Paper) {
-        Text(text, modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp), style = MaterialTheme.typography.labelMedium)
-    }
-}
-
-@Composable
-private fun StandingsPanel(
-    players: List<PlayerState>,
-    winnerId: com.kingofxitter.engine.model.PlayerId?,
-    displayName: (PlayerState) -> String,
-    statsByPlayer: Map<com.kingofxitter.engine.model.PlayerId, MatchStats> = emptyMap(),
-) {
-    var previousMandates: Int? = null
-    var rank = 0
-    val rankedPlayers =
-        players.mapIndexed { index, player ->
-            if (player.mandates != previousMandates) rank = index + 1
-            previousMandates = player.mandates
-            player to rank
-        }
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = Color(0xFF302743),
-        contentColor = Paper,
-    ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            rankedPlayers.forEach { (player, playerRank) ->
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .background(
-                                Ink,
-                                RoundedCornerShape(12.dp),
-                            ).padding(horizontal = 10.dp, vertical = 9.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(stringResource(R.string.endgame_rank, playerRank), color = Gold, fontWeight = FontWeight.Black)
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(displayName(player), color = Paper, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = Panel, contentColor = Paper) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            standings(state).forEach { (rank, player) ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.endgame_rank, rank), color = Gold, fontWeight = FontWeight.Bold)
+                    Column(Modifier.weight(1f)) {
+                        Text(displayName(player), fontWeight = FontWeight.Bold)
                         if (player.isSuspended) {
-                            Text(stringResource(R.string.endgame_suspended), color = Pink, style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(stringResource(R.string.endgame_mandates_short, player.mandates), color = Gold, fontWeight = FontWeight.Black)
-                        if (winnerId == player.id) {
-                            Text(stringResource(R.string.endgame_winner_badge), color = Gold, style = MaterialTheme.typography.labelSmall)
-                        }
-                        statsByPlayer[player.id]?.let { stats ->
                             Text(
-                                stringResource(R.string.endgame_tweet_count_short, stats.tweetsSent),
-                                color = Muted,
+                                stringResource(R.string.endgame_suspended),
+                                color = Pink,
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
                     }
+                    Text(stringResource(R.string.endgame_score_number, player.mandates), color = Gold)
                 }
             }
         }
     }
 }
 
-private fun PlayerState.endGameName(): String = leaderId.value.replace('-', ' ').replaceFirstChar { it.uppercase() }
-
-@Preview(showBackground = true, backgroundColor = 0xFF1B1426)
 @Composable
-private fun VictoryScreenPreview() {
-    val winner = GameFixtures.victory.players.first()
+private fun RankedPlayers(
+    state: GameState,
+    displayName: @Composable (PlayerState) -> String,
+) {
+    standings(state).forEach { (rank, player) ->
+        Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = Panel, contentColor = Paper) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.endgame_rank, rank), color = Gold, fontWeight = FontWeight.Black)
+                    Text(displayName(player), Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                }
+                Text(stringResource(R.string.endgame_mandates_total, player.mandates), color = Gold)
+                Text(stringResource(R.string.endgame_resources, player.followers, player.characters))
+                LinearProgressIndicator(progress = {
+                    (player.mandates / 20f).coerceIn(0f, 1f)
+                }, modifier = Modifier.fillMaxWidth(), color = Gold, trackColor = Ink)
+                Text(
+                    stringResource(
+                        when {
+                            player.mandates >= 15 -> R.string.endgame_gold_badge
+                            player.mandates >= 6 -> R.string.endgame_blue_badge
+                            else -> R.string.endgame_unverified
+                        },
+                    ),
+                )
+                if (player.isSuspended) Text(stringResource(R.string.endgame_suspended), color = Pink)
+                if (player.id == state.xitterPlayerId &&
+                    state.result == null
+                ) {
+                    Text(stringResource(R.string.endgame_on_xitter), color = Gold)
+                }
+            }
+        }
+    }
+}
+
+/** Temporary labels until the content roster supplies localized display names. */
+@Composable
+private fun leaderName(player: PlayerState): String =
+    stringResource(
+        when (player.leaderId.value) {
+            "macaron" -> R.string.leader_macaron
+            "kim" -> R.string.leader_kim
+            "poutine" -> R.string.leader_poutine
+            "mi-leon" -> R.string.leader_mileon
+            "xi" -> R.string.leader_xi
+            "trumpet" -> R.string.leader_trumpet
+            else -> R.string.endgame_unknown_leader
+        },
+    )
+
+@Preview(name = "Victory", widthDp = 412, heightDp = 915)
+@Composable
+private fun VictoryPreview() = MaterialTheme { VictoryScreen(GameFixtures.victory, {}, {}, {}) }
+
+@Preview(name = "Last survivor", widthDp = 320, heightDp = 640, fontScale = 1.5f)
+@Composable
+private fun SurvivorPreview() = MaterialTheme { VictoryScreen(GameFixtures.survivorVictory, {}, {}, {}) }
+
+@Preview(name = "Suspended", widthDp = 412, heightDp = 915)
+@Composable
+private fun DefeatPreview() =
     MaterialTheme {
-        VictoryScreen(
-            winner = winner,
-            players = GameFixtures.victory.players,
-            stats =
-                GameFixtures.victory.matchStats.values
-                    .firstOrNull()
-                    ?: MatchStats(tweetsSent = 19, unfollowsDealt = 23, turnsAsMainCharacter = 4),
-            onPlayAgain = {},
-            onViewStandings = {},
+        DefeatScreen(
+            GameFixtures.defeat,
+            GameFixtures.defeat.players
+                .first()
+                .id,
+            {},
+            {},
         )
     }
-}
 
-@Preview(showBackground = true, backgroundColor = 0xFF1B1426)
+@Preview(name = "No winner", widthDp = 320, heightDp = 640)
 @Composable
-private fun DefeatScreenPreview() {
-    val suspended = GameFixtures.defeat.players.first()
-    val winner = GameFixtures.defeat.players.firstOrNull { it.id != suspended.id }
+private fun NoWinnerPreview() =
     MaterialTheme {
-        DefeatScreen(suspended, winner, MatchStats(tweetsSent = 6, unfollowsDealt = 11), onBackToGame = {})
+        DefeatScreen(
+            GameFixtures.noWinner,
+            GameFixtures.noWinner.players
+                .first()
+                .id,
+            {},
+            {},
+        )
     }
-}
 
-@Preview(showBackground = true, backgroundColor = 0xFF1B1426)
+@Preview(name = "Live standings", widthDp = 412, heightDp = 915)
 @Composable
-private fun StandingsScreenPreview() {
+private fun StandingsPreview() = MaterialTheme { StandingsScreen(GameFixtures.liveStandings, {}) }
+
+@Preview(name = "Tied standings", widthDp = 320, heightDp = 640, fontScale = 1.5f)
+@Composable
+private fun TiedPreview() =
     MaterialTheme {
-        StandingsScreen(GameFixtures.standings.players, GameFixtures.standings.matchStats, onBackToGame = {})
+        StandingsScreen(GameFixtures.liveStandings.copy(players = GameFixtures.liveStandings.players.map { it.copy(mandates = 8) }), {})
     }
-}
+
+@Preview(name = "Empty standings")
+@Composable
+private fun EmptyPreview() = MaterialTheme { StandingsScreen(GameFixtures.liveStandings.copy(players = emptyList()), {}) }
+
+@Preview(name = "Lost to score", widthDp = 412, heightDp = 915)
+@Composable
+private fun ScoreDefeatPreview() =
+    MaterialTheme {
+        DefeatScreen(
+            GameFixtures.scoreDefeat,
+            GameFixtures.scoreDefeat.players
+                .first()
+                .id,
+            {},
+            {},
+        )
+    }
+
+@Preview(name = "Final standings", widthDp = 412, heightDp = 915)
+@Composable
+private fun FinalStandingsPreview() = MaterialTheme { StandingsScreen(GameFixtures.standings, {}) }

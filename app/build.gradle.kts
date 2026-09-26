@@ -32,6 +32,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.lifecycle.viewmodel.ktx)
     implementation(project(":engine"))
     implementation(project(":cards"))
     implementation(project(":bots"))
@@ -45,5 +46,5 @@ dependencies {
 
     debugImplementation(libs.compose.ui.tooling)
 
-    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlin.test.junit)
 }

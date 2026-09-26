@@ -12,6 +12,7 @@ import com.kingofxitter.engine.model.DieId
 import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.LeaderId
 import com.kingofxitter.engine.model.MatchResult
+import com.kingofxitter.engine.model.MatchStats
 import com.kingofxitter.engine.model.PendingDecision
 import com.kingofxitter.engine.model.PlayerId
 import com.kingofxitter.engine.model.PlayerState
@@ -132,6 +133,41 @@ object GameFixtures {
             phase = TurnPhase.FINISHED,
             result = MatchResult.Victory(kim, VictoryReason.TWENTY_MANDATES),
             players = roster.map { if (it.id == kim) it.copy(mandates = 20) else it },
+        )
+
+    /** Victory by survival can occur below twenty mandates. */
+    val survivorVictory =
+        victory.copy(
+            result = MatchResult.Victory(you, VictoryReason.LAST_ACCOUNT_STANDING),
+            players = roster.map { if (it.id == you) it.copy(mandates = 4) else it.copy(followers = 0) },
+        )
+
+    /** A living player can lose when an opponent reaches twenty mandates. */
+    val scoreDefeat = defeat.copy(players = defeat.players.map { if (it.id == you) it.copy(followers = 7) else it })
+
+    /** Simultaneous elimination leaves no winner. */
+    val noWinner =
+        defeat.copy(
+            result = MatchResult.NoWinner,
+            players = roster.map { it.copy(followers = 0) },
+        )
+
+    /** In-match standings follow the supplied design's score, resources and Xitter status. */
+    val liveStandings =
+        yourRoll.copy(
+            players =
+                roster.map { player ->
+                    player.copy(
+                        mandates =
+                            when (player.id) {
+                                kim -> 16
+                                you -> 12
+                                macaron -> 4
+                                else -> 13
+                            },
+                    )
+                },
+            matchStats = mapOf(you to MatchStats(19, 23, 4)),
         )
 
     /** In-progress snapshot used by the match timeline. */
