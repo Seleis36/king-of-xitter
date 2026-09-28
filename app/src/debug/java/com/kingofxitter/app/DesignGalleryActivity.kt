@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.kingofxitter.app.ui.components.IconSetSample
 import com.kingofxitter.app.ui.theme.ThemeKitSample
 import com.kingofxitter.app.ui.theme.XitterTheme
 import com.kingofxitter.app.ui.theme.nightBackground
@@ -36,6 +37,7 @@ class DesignGalleryActivity : ComponentActivity() {
         val samples: Map<String, @Composable (Modifier) -> Unit> =
             mapOf(
                 "theme" to { modifier -> ThemeKitSample(modifier) },
+                "icons" to { modifier -> IconSetSample(modifier) },
             )
     }
 }
