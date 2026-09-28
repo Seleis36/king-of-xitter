@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kingofxitter.app.ui.components.ComponentKitSample
 import com.kingofxitter.app.ui.components.IconSetSample
+import com.kingofxitter.app.ui.components.StatsKitSample
 import com.kingofxitter.app.ui.theme.ThemeKitSample
 import com.kingofxitter.app.ui.theme.XitterTheme
 import com.kingofxitter.app.ui.theme.nightBackground
@@ -40,6 +41,7 @@ class DesignGalleryActivity : ComponentActivity() {
                 "theme" to { modifier -> ThemeKitSample(modifier) },
                 "icons" to { modifier -> IconSetSample(modifier) },
                 "components" to { modifier -> ComponentKitSample(modifier) },
+                "stats" to { modifier -> StatsKitSample(modifier) },
             )
     }
 }
