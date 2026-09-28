@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -90,7 +91,13 @@ fun OutlinedText(
 ) {
     val strokePx = with(LocalDensity.current) { outline.toPx() }
     val outlined = style.copy(drawStyle = Stroke(width = strokePx, join = StrokeJoin.Round))
-    Box(modifier.clearAndSetSemantics { contentDescription = text }) {
+    val alignment =
+        when (textAlign) {
+            TextAlign.Center -> Alignment.Center
+            TextAlign.End, TextAlign.Right -> Alignment.CenterEnd
+            else -> Alignment.CenterStart
+        }
+    Box(modifier.clearAndSetSemantics { contentDescription = text }, contentAlignment = alignment) {
         if (dropShadow > 0.dp) {
             Text(text, style = outlined, color = XColors.Ink, textAlign = textAlign, modifier = Modifier.offset(y = dropShadow))
             Text(text, style = style, color = XColors.Ink, textAlign = textAlign, modifier = Modifier.offset(y = dropShadow))

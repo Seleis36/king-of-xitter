@@ -13,6 +13,7 @@ import com.kingofxitter.app.ui.board.BoardCallbacks
 import com.kingofxitter.app.ui.board.BoardRoute
 import com.kingofxitter.app.ui.board.BoardSamples
 import com.kingofxitter.app.ui.board.ComposeTweetRoute
+import com.kingofxitter.app.ui.board.IncomingTweetRoute
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.engine.FakeGameController
 
@@ -86,7 +87,14 @@ fun XitterNavHost(
                 modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
             )
         }
-        placeholder<XitterRoute.IncomingTweet>(XitterRoute.IncomingTweet, navigate)
+        composable<XitterRoute.IncomingTweet> {
+            IncomingTweetRoute(
+                controller = controller,
+                humanId = BoardSamples.you,
+                onDone = { navigate(XitterRoute.Board) },
+                modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
+            )
+        }
         placeholder<XitterRoute.Shop>(XitterRoute.Shop, navigate)
         placeholder<XitterRoute.Timeline>(XitterRoute.Timeline, navigate)
         placeholder<XitterRoute.Standings>(XitterRoute.Standings, navigate)

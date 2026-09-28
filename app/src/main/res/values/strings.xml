@@ -142,6 +142,24 @@
         <item>%1$s, your followers called. They are leaving. FAST.</item>
         <item>Respectfully, %1$s, this is my timeline now. #NewManagement</item>
     </string-array>
+    <string name="incoming_title">INCOMING!</string>
+    <string name="incoming_on_a_roll">%1$s is on a roll</string>
+    <string name="incoming_time">%1$d:%2$02d AM</string>
+    <string name="incoming_ratioed">RATIO\'D</string>
+    <string name="incoming_plus_power_ups">+ POWER-UPS</string>
+    <string name="incoming_your_followers">YOUR FOLLOWERS</string>
+    <string name="incoming_you_are_main_character">YOU\'RE THE MAIN CHARACTER</string>
+    <string name="incoming_choice">Stay on Xitter and bank +2 mandates next turn, or log off and hand the spotlight to %1$s.</string>
+    <string name="incoming_stay">STAY</string>
+    <string name="incoming_stay_subtitle">+2 mandates next turn</string>
+    <string name="incoming_log_off">LOG OFF</string>
+    <string name="incoming_log_off_subtitle">%1$s takes Xitter</string>
+    <string-array name="incoming_placeholder_tweets">
+        <item>Low Energy %1$s stole my spot on Xitter. Very unfair! Their followers are leaving FAST, many people are saying it. SAD!</item>
+        <item>Just unfollowed %1$s on behalf of millions of grateful citizens. It took 0.3 seconds. A new world record.</item>
+        <item>%1$s thinks they are the Main Character. The timeline disagrees. Ratio incoming.</item>
+        <item>Reminder that %1$s has not touched grass since the last election. Log off. Now.</item>
+    </string-array>
     <string name="route_title">Title</string>
     <string name="route_pick_leader">Pick your leader</string>
     <string name="route_versus">Versus</string>
@@ -223,5 +241,9 @@
     <plurals name="compose_target_everyone">
         <item quantity="one">%1$d leader · loses %2$dM followers</item>
         <item quantity="other">%1$d leaders · each loses %2$dM followers</item>
+    </plurals>
+    <plurals name="incoming_unfollows">
+        <item quantity="one">%1$d unfollow</item>
+        <item quantity="other">%1$d unfollows</item>
     </plurals>
 </resources>
