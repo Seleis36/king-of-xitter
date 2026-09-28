@@ -50,4 +50,5 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
 
     testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

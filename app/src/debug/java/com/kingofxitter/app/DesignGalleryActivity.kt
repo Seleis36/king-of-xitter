@@ -20,6 +20,7 @@ import com.kingofxitter.app.ui.components.ComponentKitSample
 import com.kingofxitter.app.ui.components.DiceKitSample
 import com.kingofxitter.app.ui.components.IconSetSample
 import com.kingofxitter.app.ui.components.StatsKitSample
+import com.kingofxitter.app.ui.motion.MotionKitSample
 import com.kingofxitter.app.ui.theme.ThemeKitSample
 import com.kingofxitter.app.ui.theme.XitterTheme
 import com.kingofxitter.app.ui.theme.nightBackground
@@ -52,6 +53,7 @@ class DesignGalleryActivity : ComponentActivity() {
                 put("components") { modifier -> ComponentKitSample(modifier) }
                 put("stats") { modifier -> StatsKitSample(modifier) }
                 put("dice") { modifier -> DiceKitSample(modifier) }
+                put("motion") { modifier -> MotionKitSample(modifier) }
                 BoardSamples.all.forEach { (name, state) ->
                     put("board-$name") { modifier -> BoardScreen(state, BoardSamples.you, onAction = {}, modifier = modifier) }
                 }

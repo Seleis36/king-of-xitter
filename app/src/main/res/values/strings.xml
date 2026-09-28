@@ -160,6 +160,17 @@
         <item>%1$s thinks they are the Main Character. The timeline disagrees. Ratio incoming.</item>
         <item>Reminder that %1$s has not touched grass since the last election. Log off. Now.</item>
     </string-array>
+    <string name="effect_followers">%1$sM</string>
+    <string name="motion_wobble">WOBBLE</string>
+    <string name="motion_bob">BOB</string>
+    <string name="motion_tumble">TUMBLE</string>
+    <string name="motion_slam">SLAM</string>
+    <string name="motion_shake">SHAKE</string>
+    <string name="motion_rise">RISE</string>
+    <string name="motion_pop">POP</string>
+    <string name="motion_stamp">STAMP</string>
+    <string name="motion_tweet">tweet</string>
+    <string name="motion_replay">REPLAY</string>
     <string name="route_title">Title</string>
     <string name="route_pick_leader">Pick your leader</string>
     <string name="route_versus">Versus</string>

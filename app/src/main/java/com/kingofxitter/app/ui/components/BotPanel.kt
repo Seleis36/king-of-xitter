@@ -32,13 +32,14 @@ enum class BotPanelHighlight { None, MainCharacter, Acting }
 /**
  * Compact opponent panel for the top of the board: avatar, short name with certification, "BOT",
  * and followers, characters and mandates. The Main Character gets the gold "on xitter" look;
- * a suspended bot is dimmed and stamped.
+ * a suspended bot is dimmed and stamped. [stampModifier] animates the stamp (U8).
  */
 @Composable
 fun BotPanel(
     player: PlayerState,
     modifier: Modifier = Modifier,
     highlight: BotPanelHighlight = BotPanelHighlight.None,
+    stampModifier: Modifier = Modifier,
 ) {
     val visual = leaderVisual(player.leaderId)
     val isMainCharacter = highlight == BotPanelHighlight.MainCharacter
@@ -111,7 +112,7 @@ fun BotPanel(
             player.isSuspended ->
                 XStamp(
                     stringResource(R.string.stat_suspended),
-                    Modifier.align(Alignment.Center),
+                    Modifier.align(Alignment.Center).then(stampModifier),
                     textStyle = XType.Stamp.copy(fontSize = 13.sp),
                     borderWidth = 3.dp,
                 )

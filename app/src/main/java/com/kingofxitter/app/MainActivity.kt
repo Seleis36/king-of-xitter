@@ -6,7 +6,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import com.kingofxitter.app.navigation.XitterNavHost
+import com.kingofxitter.app.ui.motion.LocalMotion
+import com.kingofxitter.app.ui.motion.rememberSystemMotion
 import com.kingofxitter.app.ui.theme.XitterTheme
 
 class MainActivity : ComponentActivity() {
@@ -17,7 +20,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             XitterTheme {
-                XitterNavHost()
+                CompositionLocalProvider(LocalMotion provides rememberSystemMotion()) {
+                    XitterNavHost()
+                }
             }
         }
     }

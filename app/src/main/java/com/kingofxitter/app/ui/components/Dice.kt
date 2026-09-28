@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
+import com.kingofxitter.app.ui.motion.LocalMotion
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
 import com.kingofxitter.app.ui.theme.sticker
@@ -109,11 +110,14 @@ fun Die(
     val tumble = remember { Animatable(0f) }
     // Only a change tumbles: showing the board again doesn't replay the last roll.
     var shownKey by remember { mutableStateOf(tumbleKey) }
+    val motion = LocalMotion.current
     LaunchedEffect(tumbleKey) {
         if (tumbleKey != null && tumbleKey != shownKey) {
             shownKey = tumbleKey
-            tumble.snapTo(0f)
-            tumble.animateTo(1f, tween(TUMBLE_MILLIS, easing = TumbleEasing))
+            if (motion.enabled) {
+                tumble.snapTo(0f)
+                tumble.animateTo(1f, tween(motion.duration(TUMBLE_MILLIS), easing = TumbleEasing))
+            }
         }
     }
     val faceName = stringResource(face.label())

@@ -19,7 +19,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
@@ -48,6 +47,8 @@ import com.kingofxitter.app.ui.components.XOptionCard
 import com.kingofxitter.app.ui.components.XTag
 import com.kingofxitter.app.ui.components.leaderVisual
 import com.kingofxitter.app.ui.components.tweetText
+import com.kingofxitter.app.ui.motion.pulse
+import com.kingofxitter.app.ui.motion.wobble
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
 import com.kingofxitter.app.ui.theme.sticker
@@ -159,7 +160,7 @@ fun ComposeTweetScreen(
         XButton(
             stringResource(R.string.compose_send),
             onClick = { onSend(zinger) },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).pulse(),
             style = XButtonStyle.Hot,
             icon = XIcon.Send,
             minHeight = 64.dp,
@@ -179,7 +180,7 @@ private fun TargetSticker(
         Modifier
             .padding(horizontal = 4.dp)
             .padding(top = 4.dp)
-            .rotate(-1.5f)
+            .wobble(degrees = 1.5f)
             .sticker(fill = XColors.Tweet, shape = RoundedCornerShape(16.dp), halo = 4.dp, shadowOffset = DpOffset(4.dp, 7.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
