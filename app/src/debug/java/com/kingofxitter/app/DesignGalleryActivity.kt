@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.kingofxitter.app.ui.board.BoardSamples
+import com.kingofxitter.app.ui.board.BoardScreen
 import com.kingofxitter.app.ui.components.ComponentKitSample
 import com.kingofxitter.app.ui.components.DiceKitSample
 import com.kingofxitter.app.ui.components.IconSetSample
@@ -17,6 +19,8 @@ import com.kingofxitter.app.ui.components.StatsKitSample
 import com.kingofxitter.app.ui.theme.ThemeKitSample
 import com.kingofxitter.app.ui.theme.XitterTheme
 import com.kingofxitter.app.ui.theme.nightBackground
+
+private typealias Sample = @Composable (Modifier) -> Unit
 
 /**
  * Debug-only host that renders one design sample on a device, for checking components against
@@ -37,13 +41,16 @@ class DesignGalleryActivity : ComponentActivity() {
 
     private companion object {
         /** Sample name to composable. Each UI task adds its samples here. */
-        val samples: Map<String, @Composable (Modifier) -> Unit> =
-            mapOf(
-                "theme" to { modifier -> ThemeKitSample(modifier) },
-                "icons" to { modifier -> IconSetSample(modifier) },
-                "components" to { modifier -> ComponentKitSample(modifier) },
-                "stats" to { modifier -> StatsKitSample(modifier) },
-                "dice" to { modifier -> DiceKitSample(modifier) },
-            )
+        val samples: Map<String, Sample> =
+            buildMap {
+                put("theme") { modifier -> ThemeKitSample(modifier) }
+                put("icons") { modifier -> IconSetSample(modifier) }
+                put("components") { modifier -> ComponentKitSample(modifier) }
+                put("stats") { modifier -> StatsKitSample(modifier) }
+                put("dice") { modifier -> DiceKitSample(modifier) }
+                BoardSamples.all.forEach { (name, state) ->
+                    put("board-$name") { modifier -> BoardScreen(state, BoardSamples.you, onAction = {}, modifier = modifier) }
+                }
+            }
     }
 }
