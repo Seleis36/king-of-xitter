@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kingofxitter.app.ui.board.BoardSamples
 import com.kingofxitter.app.ui.board.BoardScreen
+import com.kingofxitter.app.ui.board.ComposeSamples
+import com.kingofxitter.app.ui.board.ComposeTweetScreen
 import com.kingofxitter.app.ui.components.ComponentKitSample
 import com.kingofxitter.app.ui.components.DiceKitSample
 import com.kingofxitter.app.ui.components.IconSetSample
@@ -50,6 +52,11 @@ class DesignGalleryActivity : ComponentActivity() {
                 put("dice") { modifier -> DiceKitSample(modifier) }
                 BoardSamples.all.forEach { (name, state) ->
                     put("board-$name") { modifier -> BoardScreen(state, BoardSamples.you, onAction = {}, modifier = modifier) }
+                }
+                ComposeSamples.all.forEach { (name, state) ->
+                    put("compose-$name") { modifier ->
+                        ComposeTweetScreen(state, BoardSamples.you, onSend = {}, onCancel = {}, modifier = modifier)
+                    }
                 }
             }
     }

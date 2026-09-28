@@ -114,11 +114,34 @@
     <string name="board_end_turn">END TURN</string>
     <string name="board_incoming">INCOMING! RESPOND</string>
     <string name="board_watching">%1$s IS ON A ROLL…</string>
+    <string name="board_deciding">%1$s IS DECIDING…</string>
     <string name="board_see_results">SEE RESULTS</string>
     <string name="board_decision_prompt">A power-up wants a word</string>
     <string name="board_decision_use">USE IT</string>
     <string name="board_decision_skip">SKIP</string>
     <string name="board_decision_ok">OK</string>
+    <string name="compose_cancel">Cancel and go back to the board</string>
+    <string name="compose_title">TWEET IT</string>
+    <string name="compose_tweet_count">× %1$d</string>
+    <string name="compose_target">TARGET: %1$s</string>
+    <string name="compose_target_main_character">Main Character · loses %1$dM followers</string>
+    <string name="compose_replying_to">Replying to %1$s</string>
+    <string name="compose_to_everyone">To everyone on Xitter</string>
+    <string name="compose_everyone_handle" translatable="false">@everyone</string>
+    <string name="compose_rule_outside">From outside Xitter, you only hit the Main Character</string>
+    <string name="compose_rule_inside">As Main Character, your tweets hit everyone</string>
+    <string name="compose_damage">−%1$dM</string>
+    <string name="compose_pick_zinger">PICK YOUR ZINGER</string>
+    <string name="compose_new_takes">New takes</string>
+    <string name="compose_send">SEND IT</string>
+    <string-array name="compose_placeholder_zingers">
+        <item>Hey %1$s, you are finished. I will explain why in a 47-part thread. 1/47</item>
+        <item>%1$s, I read your tweet. I also read a book once. Only one of us should log off.</item>
+        <item>Ratio + L + %1$s has never touched grass #MainCharacterEnergy</item>
+        <item>Breaking: %1$s discovers the unfollow button. From the wrong side.</item>
+        <item>%1$s, your followers called. They are leaving. FAST.</item>
+        <item>Respectfully, %1$s, this is my timeline now. #NewManagement</item>
+    </string-array>
     <string name="route_title">Title</string>
     <string name="route_pick_leader">Pick your leader</string>
     <string name="route_versus">Versus</string>
@@ -196,5 +219,9 @@
     <plurals name="board_shelf_count">
         <item quantity="one">%1$d on the shelf</item>
         <item quantity="other">%1$d on the shelf</item>
+    </plurals>
+    <plurals name="compose_target_everyone">
+        <item quantity="one">%1$d leader · loses %2$dM followers</item>
+        <item quantity="other">%1$d leaders · each loses %2$dM followers</item>
     </plurals>
 </resources>

@@ -120,7 +120,7 @@ fun BoardScreen(
                         null
                     },
             )
-            if (preview != null && state.phase != TurnPhase.SHOP) {
+            if (preview != null && state.phase == TurnPhase.ROLLING) {
                 val label =
                     if (state.currentPlayerId == humanId) {
                         stringResource(R.string.board_if_you_stop_now)
@@ -330,8 +330,14 @@ private fun Controls(
         is BoardMode.Deciding -> DecisionControls(mode, onAction, modifier)
         is BoardMode.Watching -> {
             val actor = state.players.first { it.id == mode.actorId }
+            val name = stringResource(leaderVisual(actor.leaderId).shortName)
             XButton(
-                stringResource(R.string.board_watching, stringResource(leaderVisual(actor.leaderId).shortName)),
+                // A bot answering a decision on someone else's turn is deciding, not rolling.
+                if (mode.actorId == state.currentPlayerId) {
+                    stringResource(R.string.board_watching, name)
+                } else {
+                    stringResource(R.string.board_deciding, name)
+                },
                 onClick = {},
                 modifier = modifier.fillMaxWidth(),
                 enabled = false,
