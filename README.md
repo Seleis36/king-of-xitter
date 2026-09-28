@@ -4,7 +4,7 @@
 
 - **[ROADMAP.md](ROADMAP.md)** has the rules mapping, all 66 power-ups, the architecture, milestones and who does what.
 - **[design/](design/)** holds the original design bundle (`king-of-xitter-bundle.html`, which opens in a browser) and the unpacked screens (`design/screens/*.html`, one per screen, 412×915).
-- **[assets/](assets/)** holds the leader portraits (SVG) and the Latin subsets of the fonts. For Android, use the TTFs from Google Fonts (Luckiest Guy, Anton and Rubik, all under the OFL).
+- **[assets/](assets/)** holds the leader portraits (SVG) and the Latin subsets of the fonts. The app bundles the TTFs from Google Fonts in `app/src/main/res/font/`: Anton and Rubik are under the OFL, Luckiest Guy under Apache 2.0. The license texts are in `assets/fonts/`.
 
 ## Build
 

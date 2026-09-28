@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity android:name=".EndGamePreviewActivity" android:exported="true" />
+        <activity android:name=".DesignGalleryActivity" android:exported="true" />
     </application>
 </manifest>

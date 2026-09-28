@@ -1,6 +1,22 @@
 <resources>
+    <string name="placeholder_coming_soon">This screen is on its way. Meanwhile, here are the ways out.</string>
+    <string name="theme_preview_display">MAIN CHARACTER</string>
+    <string name="theme_preview_meme">INCOMING!</string>
+    <string name="theme_preview_tweet">Low Energy Macaron stole my spot. SAD!</string>
+    <string name="route_title">Title</string>
+    <string name="route_pick_leader">Pick your leader</string>
+    <string name="route_versus">Versus</string>
+    <string name="route_board">Game board</string>
+    <string name="route_compose_tweet">Compose tweet</string>
+    <string name="route_incoming_tweet">Incoming tweet</string>
+    <string name="route_shop">Power-up shop</string>
+    <string name="route_timeline">Timeline</string>
+    <string name="route_standings">Standings</string>
+    <string name="route_victory">Victory</string>
+    <string name="route_defeat">Defeat</string>
+    <string name="route_how_to_play">How to play</string>
+    <string name="route_settings">Settings</string>
     <string name="app_name">King of Xitter</string>
-    <string name="app_placeholder">King of Xitter</string>
     <string name="endgame_victory_title">20 MANDATES</string>
     <string name="endgame_victory_subtitle">Gold check. Forever.</string>
     <string name="endgame_defeat_title">ACCOUNT SUSPENDED</string>
