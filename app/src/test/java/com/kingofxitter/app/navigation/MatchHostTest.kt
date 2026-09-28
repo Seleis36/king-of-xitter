@@ -6,12 +6,17 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
 import com.kingofxitter.engine.MatchSaveFile
+import com.kingofxitter.engine.MatchSetup
+import com.kingofxitter.engine.model.LeaderId
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import java.io.File
@@ -104,6 +109,30 @@ class MatchHostTest {
         }
 
     @Test
+    fun `canceling an old startup cannot replace a newer match session`() =
+        matchTest {
+            val firstStartEntered = CompletableDeferred<Unit>()
+            var starts = 0
+            val host =
+                host { leader ->
+                    if (starts++ == 0) {
+                        firstStartEntered.complete(Unit)
+                        awaitCancellation()
+                    }
+                    val setup = MatchSetup.create(leader, LeaderRoster, 42)
+                    GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+                }
+            host.resumeOrStart()
+            runCurrent()
+            firstStartEntered.await()
+
+            host.startNew()
+            val game = host.awaitGame()
+
+            assertEquals(MatchSession.Ready(game), host.session.value)
+        }
+
+    @Test
     fun `a corrupt save fails and stays on disk until the player starts over`() =
         matchTest {
             saveFile.writeText("{not a match")
@@ -131,9 +160,14 @@ class MatchHostTest {
             }
         }
 
-    private fun host(): MatchHost {
+    private fun host(
+        gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
+            val setup = MatchSetup.create(leader, LeaderRoster, 42)
+            GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+        },
+    ): MatchHost {
         val store = ViewModelStore().also(stores::add)
-        return ViewModelProvider(store, viewModelFactory { initializer { MatchHost(saveFile) } })[MatchHost::class.java]
+        return ViewModelProvider(store, viewModelFactory { initializer { MatchHost(saveFile, gameFactory) } })[MatchHost::class.java]
     }
 
     /** Waits for a live match accepted by [accept]; fails if the match can't start. */

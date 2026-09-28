@@ -15,10 +15,14 @@ import com.kingofxitter.engine.model.LeaderId
 import com.kingofxitter.engine.model.PlayerId
 import com.kingofxitter.engine.model.PlayerResource
 import com.kingofxitter.engine.model.ResourceChangeReason
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.random.Random
@@ -53,6 +57,10 @@ sealed interface MatchSession {
  */
 class MatchHost(
     private val saveFile: File,
+    private val gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
+        val setup = MatchSetup.create(leader, LeaderRoster, Random.nextLong())
+        GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+    },
 ) : ViewModel() {
     private val store = ViewModelStore()
     private val mutableSession = MutableStateFlow<MatchSession?>(null)
@@ -89,16 +97,29 @@ class MatchHost(
         mutableSession.value = MatchSession.Loading
         starting =
             viewModelScope.launch {
-                runCatching {
+                val startupJob = currentCoroutineContext()[Job]
+                var unregisteredGame: GameViewModel? = null
+                try {
                     if (discardSave) saveFile.delete()
-                    val setup = MatchSetup.create(leader, LeaderRoster, Random.nextLong())
-                    GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
-                }.onSuccess { game ->
+                    val game = gameFactory(leader)
+                    unregisteredGame = game
+                    currentCoroutineContext().ensureActive()
+                    if (starting !== startupJob) {
+                        game.close()
+                        return@launch
+                    }
                     val registered = ViewModelProvider(store, SingleInstanceFactory(game))[GameViewModel::class.java]
+                    unregisteredGame = null
                     watchHits(registered)
                     mutableSession.value = MatchSession.Ready(registered)
-                }.onFailure { error ->
-                    mutableSession.value = MatchSession.Failed(error)
+                } catch (cancelled: CancellationException) {
+                    unregisteredGame?.close()
+                    throw cancelled
+                } catch (error: Exception) {
+                    unregisteredGame?.close()
+                    if (currentCoroutineContext().isActive && starting === startupJob) {
+                        mutableSession.value = MatchSession.Failed(error)
+                    }
                 }
             }
     }
