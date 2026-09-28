@@ -1,13 +1,21 @@
 package com.kingofxitter.app.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.kingofxitter.app.ui.board.BoardCallbacks
+import com.kingofxitter.app.ui.board.BoardRoute
+import com.kingofxitter.app.ui.board.BoardSamples
+import com.kingofxitter.app.ui.theme.nightBackground
+import com.kingofxitter.engine.FakeGameController
 
-/** Where each placeholder leads. A route disappears from here once its real screen lands. */
+/** Where each placeholder leads. The board keeps its entry so the reachability test still covers it. */
 internal val placeholderLinks: Map<XitterRoute, List<XitterRoute>> =
     mapOf(
         XitterRoute.Title to listOf(XitterRoute.PickLeader, XitterRoute.HowToPlay, XitterRoute.Settings),
@@ -47,11 +55,28 @@ fun XitterNavHost(
             launchSingleTop = true
         }
     }
+    // Until U10 connects the real controller, the board plays the design's situation on the fake.
+    val controller = remember { FakeGameController(BoardSamples.design) }
     NavHost(navController = navController, startDestination = XitterRoute.Title, modifier = modifier) {
         placeholder<XitterRoute.Title>(XitterRoute.Title, navigate)
         placeholder<XitterRoute.PickLeader>(XitterRoute.PickLeader, navigate)
         placeholder<XitterRoute.Versus>(XitterRoute.Versus, navigate)
-        placeholder<XitterRoute.Board>(XitterRoute.Board, navigate)
+        composable<XitterRoute.Board> {
+            BoardRoute(
+                controller = controller,
+                humanId = BoardSamples.you,
+                callbacks =
+                    BoardCallbacks(
+                        onOpenTimeline = { navigate(XitterRoute.Timeline) },
+                        onOpenStandings = { navigate(XitterRoute.Standings) },
+                        onOpenShop = { navigate(XitterRoute.Shop) },
+                        onCompose = { navigate(XitterRoute.ComposeTweet) },
+                        onIncomingTweet = { navigate(XitterRoute.IncomingTweet) },
+                        onMatchFinished = { navigate(XitterRoute.Standings) },
+                    ),
+                modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
+            )
+        }
         placeholder<XitterRoute.ComposeTweet>(XitterRoute.ComposeTweet, navigate)
         placeholder<XitterRoute.IncomingTweet>(XitterRoute.IncomingTweet, navigate)
         placeholder<XitterRoute.Shop>(XitterRoute.Shop, navigate)
