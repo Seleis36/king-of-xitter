@@ -3,6 +3,49 @@
     <string name="theme_preview_display">MAIN CHARACTER</string>
     <string name="theme_preview_meme">INCOMING!</string>
     <string name="theme_preview_tweet">Low Energy Macaron stole my spot. SAD!</string>
+    <string name="leader_short_trumpet">TRUMPET</string>
+    <string name="leader_short_poutine">POUTINE</string>
+    <string name="leader_short_kim">KIM</string>
+    <string name="leader_short_macaron">MACARON</string>
+    <string name="leader_short_xi">XI</string>
+    <string name="leader_short_mileon">MI-LEÓN</string>
+    <string name="leader_short_unknown">LEADER</string>
+    <string name="leader_full_trumpet">Donald J. Trumpet</string>
+    <string name="leader_full_poutine">Vladimir Poutine</string>
+    <string name="leader_full_kim">Supreme Leader Kim Jong-Fun</string>
+    <string name="leader_full_macaron">Emmanuel Macaron</string>
+    <string name="leader_full_xi">Chairman Xi Jinpong</string>
+    <string name="leader_full_mileon">Javier Mi-León</string>
+    <string name="leader_full_unknown">Unknown leader</string>
+    <string name="leader_handle_trumpet" translatable="false">@realDonaldTrumpet</string>
+    <string name="leader_handle_poutine" translatable="false">@VladPoutine</string>
+    <string name="leader_handle_kim" translatable="false">@SupremeFunLeader</string>
+    <string name="leader_handle_macaron" translatable="false">@EmmanuelMacaron</string>
+    <string name="leader_handle_xi" translatable="false">@XiJinpong</string>
+    <string name="leader_handle_mileon" translatable="false">@JavierMiLeon</string>
+    <string name="leader_handle_unknown" translatable="false">@leader</string>
+    <string name="kit_button_primary">PRIMARY</string>
+    <string name="kit_button_secondary">SECONDARY</string>
+    <string name="kit_button_hot">SEND IT</string>
+    <string name="kit_button_ghost">GHOST</string>
+    <string name="kit_button_disabled">DISABLED</string>
+    <string name="kit_button_stay">STAY</string>
+    <string name="kit_button_stay_subtitle">+2 mandates next turn</string>
+    <string name="kit_chip">Chip</string>
+    <string name="kit_tag">Tag</string>
+    <string name="kit_option_selected">Cher @realDonaldTrumpet, en même temps: you are finished. 1/47</string>
+    <string name="kit_option_other">Donald, I read your tweet. I also read Voltaire.</string>
+    <string name="kit_bubble">I AM THE MAIN CHARACTER. Always have been.</string>
+    <string name="kit_sticker_sad">SAD!</string>
+    <string name="kit_sticker_nyet">NYET.</string>
+    <string name="kit_sticker_afuera">¡AFUERA!</string>
+    <string name="kit_sticker_en_meme_temps">EN MÊME TEMPS</string>
+    <string name="kit_sticker_harmonized">HARMONIZED</string>
+    <string name="kit_sticker_covfefe">COVFEFE</string>
+    <string name="kit_stamp_ratioed">RATIO\'D</string>
+    <string name="kit_title">THE KIT</string>
+    <string name="action_timeline">Timeline</string>
+    <string name="action_standings">Standings</string>
     <string name="route_title">Title</string>
     <string name="route_pick_leader">Pick your leader</string>
     <string name="route_versus">Versus</string>
