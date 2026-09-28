@@ -57,7 +57,6 @@ class CuesTest {
     }
 }
 
-
 class SoundLoadQueueTest {
     @Test
     fun `requests play after their sound finishes loading`() {
