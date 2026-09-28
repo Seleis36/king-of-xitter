@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
@@ -157,25 +162,38 @@ fun BoardScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TopBar(
     state: GameState,
     humanId: PlayerId,
     callbacks: BoardCallbacks,
 ) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        // The turn tag wraps under the turn chip on narrow phones and at large font scales.
+        FlowRow(
+            Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
             XChip(stringResource(R.string.board_turn, state.turnNumber), textStyle = XType.DisplaySmall, minHeight = 34.dp)
             if (state.result == null) {
-                if (state.currentPlayerId == humanId) {
-                    XTag(stringResource(R.string.board_your_turn), fill = XColors.Characters, modifier = Modifier.pulse())
-                } else {
-                    val actor = state.players.first { it.id == state.currentPlayerId }
-                    XTag(
-                        stringResource(R.string.board_their_turn, stringResource(leaderVisual(actor.leaderId).shortName)),
-                        fill = XColors.Paper,
-                    )
-                }
+                val yours = state.currentPlayerId == humanId
+                val actor = state.players.first { it.id == state.currentPlayerId }
+                // One tag whose text changes, so TalkBack announces each new turn.
+                XTag(
+                    if (yours) {
+                        stringResource(R.string.board_your_turn)
+                    } else {
+                        stringResource(R.string.board_their_turn, stringResource(leaderVisual(actor.leaderId).shortName))
+                    },
+                    fill = if (yours) XColors.Characters else XColors.Paper,
+                    modifier =
+                        Modifier
+                            .semantics { liveRegion = LiveRegionMode.Polite }
+                            .then(if (yours) Modifier.pulse() else Modifier),
+                )
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -244,6 +262,7 @@ private fun DiceHeader(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PowerUpShelf(
     state: GameState,
@@ -258,18 +277,25 @@ private fun PowerUpShelf(
             .clickable(role = Role.Button, onClickLabel = stringResource(R.string.board_open_shop), onClick = onOpenShop),
     ) {
         Row(
-            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            // 10dp top and bottom keep the shelf a 48dp touch target.
+            Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             XIconImage(XIcon.Characters, contentDescription = null, size = 22.dp)
-            Text(
-                stringResource(R.string.board_power_ups),
-                style = XType.DisplaySmall.copy(fontSize = 15.sp),
-                color = XColors.Paper,
-                modifier = Modifier.padding(top = 2.dp),
-            )
-            Text("$shelf · $hint", style = XType.Caption, color = XColors.Muted, maxLines = 1)
+            // The hint moves under the title when the row is too narrow.
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(R.string.board_power_ups),
+                    style = XType.DisplaySmall.copy(fontSize = 15.sp),
+                    color = XColors.Paper,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+                Text("$shelf · $hint", style = XType.Caption, color = XColors.Muted)
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -34,7 +35,6 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
 import com.kingofxitter.app.ui.motion.LocalMotion
 import com.kingofxitter.app.ui.theme.XColors
@@ -42,7 +42,7 @@ import com.kingofxitter.app.ui.theme.XType
 import com.kingofxitter.app.ui.theme.sticker
 import com.kingofxitter.engine.model.DiceFace
 
-/** Die sizes from the kit: 54dp on the board, 36dp and 28dp in lists. */
+/** Die sizes from the kit: 54dp on the board, 36dp and 28dp in lists. [Compact] fits six on a 320dp phone. */
 enum class DieSize(
     internal val side: Dp,
     internal val corner: Dp,
@@ -52,6 +52,7 @@ enum class DieSize(
     internal val number: Float,
 ) {
     Default(54.dp, 15.dp, 3.dp, 5.dp, 34.dp, 34f),
+    Compact(44.dp, 12.dp, 3.dp, 4.dp, 28.dp, 28f),
     Small(36.dp, 10.dp, 2.5.dp, 3.dp, 22.dp, 22f),
     ExtraSmall(28.dp, 8.dp, 2.dp, 2.dp, 18.dp, 17f),
 }
@@ -90,11 +91,18 @@ fun DiceFace.label(): Int =
 private val TumbleEasing = CubicBezierEasing(0.3f, 1.4f, 0.5f, 1f)
 private const val TUMBLE_MILLIS = 700
 
+/** Size of the "KEPT" label under a kept die. */
+private val KEPT_LABEL = 10.dp
+
+/** Recommended touch target for a tappable die. */
+val MIN_TOUCH_TARGET = 48.dp
+
 /**
  * One die. A [kept] die turns yellow, lifts and tilts, with "KEPT" underneath. When [tumbleKey]
  * changes after the first composition, the die tumbles once (pass the roll number for dice that
  * were rerolled).
- * With [onToggleKept], the die is a toggle for keeping it.
+ * With [onToggleKept], the die is a toggle for keeping it, at least [touchTarget] square (pass less
+ * only when dice would otherwise overlap).
  */
 @Composable
 fun Die(
@@ -104,6 +112,7 @@ fun Die(
     kept: Boolean = false,
     tumbleKey: Any? = null,
     onToggleKept: ((Boolean) -> Unit)? = null,
+    touchTarget: Dp = MIN_TOUCH_TARGET,
 ) {
     val lift by animateDpAsState(if (kept) (-12).dp else 0.dp, tween(180), label = "lift")
     val tilt by animateFloatAsState(if (kept) -7f else 0f, tween(180), label = "tilt")
@@ -129,7 +138,10 @@ fun Die(
             modifier
                 .then(
                     if (onToggleKept != null) {
-                        Modifier.toggleable(value = kept, role = Role.Checkbox, onValueChange = onToggleKept)
+                        // Smaller dice still get a [touchTarget]-sized touch area; the die sits at its top.
+                        Modifier
+                            .sizeIn(minWidth = touchTarget, minHeight = touchTarget)
+                            .toggleable(value = kept, role = Role.Checkbox, onValueChange = onToggleKept)
                     } else {
                         Modifier
                     },
@@ -171,10 +183,12 @@ fun Die(
                 Text(face.number().toString(), style = numberStyle, color = XColors.Ink, modifier = Modifier.padding(top = size.border * 2))
             }
         }
-        if (kept && size == DieSize.Default) {
+        if (kept && (size == DieSize.Default || size == DieSize.Compact)) {
+            // Sized with the die rather than the font scale, so labels of neighbouring dice don't
+            // run together; the kept state is also spoken and shown by the die itself.
             Text(
                 stringResource(R.string.die_kept),
-                style = XType.Label.copy(fontSize = 10.sp),
+                style = XType.Label.copy(fontSize = with(LocalDensity.current) { KEPT_LABEL.toSp() }),
                 color = XColors.Mandates,
                 modifier =
                     Modifier

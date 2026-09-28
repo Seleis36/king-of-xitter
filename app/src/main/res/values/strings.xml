@@ -104,6 +104,9 @@
     <string name="board_preview_take_xitter">+1 take Xitter</string>
     <string name="board_preview_likes_blocked">No likes on Xitter</string>
     <string name="board_preview_nothing">Nothing yet</string>
+    <string name="board_preview_tweet_target_spoken">%1$s at %2$s</string>
+    <string name="board_preview_take_xitter_spoken">Take Xitter, plus 1 mandate</string>
+    <string name="board_preview_heal_spoken">Win back %1$dM followers</string>
     <string name="board_power_ups">POWER-UPS</string>
     <string name="board_shelf_after_resolve">after you resolve</string>
     <string name="board_shelf_open">open now</string>
@@ -148,6 +151,11 @@
     <string name="incoming_ratioed">RATIO\'D</string>
     <string name="incoming_plus_power_ups">+ POWER-UPS</string>
     <string name="incoming_your_followers">YOUR FOLLOWERS</string>
+    <string name="incoming_followers_change_spoken">Followers down from %1$dM to %2$dM</string>
+    <string name="incoming_replies">%1$s replies</string>
+    <string name="incoming_retweets">%1$s retweets</string>
+    <string name="incoming_likes">%1$s likes</string>
+    <string name="incoming_views">%1$s views</string>
     <string name="incoming_you_are_main_character">YOU\'RE THE MAIN CHARACTER</string>
     <string name="incoming_choice">Stay on Xitter and bank +2 mandates next turn, or log off and hand the spotlight to %1$s.</string>
     <string name="incoming_stay">STAY</string>
@@ -253,6 +261,14 @@
     <plurals name="board_preview_tweets">
         <item quantity="one">%1$d tweet</item>
         <item quantity="other">%1$d tweets</item>
+    </plurals>
+    <plurals name="board_preview_mandates_spoken">
+        <item quantity="one">Plus %1$d mandate</item>
+        <item quantity="other">Plus %1$d mandates</item>
+    </plurals>
+    <plurals name="board_preview_characters_spoken">
+        <item quantity="one">Plus %1$d character</item>
+        <item quantity="other">Plus %1$d characters</item>
     </plurals>
     <plurals name="board_shelf_count">
         <item quantity="one">%1$d on the shelf</item>

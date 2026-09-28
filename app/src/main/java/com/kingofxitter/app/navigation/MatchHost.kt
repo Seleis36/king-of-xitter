@@ -1,11 +1,12 @@
 package com.kingofxitter.app.navigation
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
@@ -47,13 +48,13 @@ sealed interface MatchSession {
 /**
  * Hosts the match for the navigation graph. [GameViewModel] lives in a match-scoped
  * [ViewModelStore], so it is cleared (and its bots stop) when the match is replaced or the
- * activity finishes for good, and survives configuration changes in between.
+ * activity finishes for good, and survives configuration changes in between. The match is saved
+ * to [saveFile]; the app uses [Factory], which keeps it in the app's private files.
  */
 class MatchHost(
-    application: Application,
-) : AndroidViewModel(application) {
+    private val saveFile: File,
+) : ViewModel() {
     private val store = ViewModelStore()
-    private val saveFile = File(application.filesDir, SAVE_NAME)
     private val mutableSession = MutableStateFlow<MatchSession?>(null)
     private val mutableLastHit = MutableStateFlow<Pair<PlayerId, Int>?>(null)
     private var starting: Job? = null
@@ -82,6 +83,9 @@ class MatchHost(
         discardSave: Boolean,
     ) {
         starting?.cancel()
+        hitWatcher?.cancel()
+        // Stop the old match first, so its bots can't write to the save while it's replaced.
+        store.clear()
         mutableSession.value = MatchSession.Loading
         starting =
             viewModelScope.launch {
@@ -90,7 +94,6 @@ class MatchHost(
                     val setup = MatchSetup.create(leader, LeaderRoster, Random.nextLong())
                     GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
                 }.onSuccess { game ->
-                    store.clear()
                     val registered = ViewModelProvider(store, SingleInstanceFactory(game))[GameViewModel::class.java]
                     watchHits(registered)
                     mutableSession.value = MatchSession.Ready(registered)
@@ -130,7 +133,13 @@ class MatchHost(
         override fun <T : ViewModel> create(modelClass: Class<T>): T = instance as T
     }
 
-    private companion object {
-        const val SAVE_NAME = "match.json"
+    companion object {
+        private const val SAVE_NAME = "match.json"
+
+        /** Saves the match as `match.json` in the app's private files. */
+        val Factory =
+            viewModelFactory {
+                initializer { MatchHost(File(checkNotNull(this[APPLICATION_KEY]).filesDir, SAVE_NAME)) }
+            }
     }
 }

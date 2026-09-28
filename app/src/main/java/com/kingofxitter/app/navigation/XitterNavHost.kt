@@ -73,7 +73,7 @@ internal val placeholderLinks: Map<XitterRoute, List<XitterRoute>> =
 fun XitterNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    host: MatchHost = viewModel(),
+    host: MatchHost = viewModel(factory = MatchHost.Factory),
 ) {
     val navigate: (XitterRoute) -> Unit = { route ->
         // Returning to a screen already in the back stack pops back to it instead of stacking a copy.
