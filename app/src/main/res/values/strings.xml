@@ -171,6 +171,8 @@
     <string name="motion_stamp">STAMP</string>
     <string name="motion_tweet">tweet</string>
     <string name="motion_replay">REPLAY</string>
+    <string name="feedback_sound">SOUND</string>
+    <string name="feedback_haptics">HAPTICS</string>
     <string name="route_title">Title</string>
     <string name="route_pick_leader">Pick your leader</string>
     <string name="route_versus">Versus</string>

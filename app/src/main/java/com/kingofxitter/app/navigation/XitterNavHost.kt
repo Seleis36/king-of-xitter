@@ -1,14 +1,23 @@
 package com.kingofxitter.app.navigation
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.kingofxitter.app.feedback.FeedbackPreferences
+import com.kingofxitter.app.feedback.FeedbackSettingsSection
+import com.kingofxitter.app.feedback.GameFeedback
 import com.kingofxitter.app.ui.board.BoardCallbacks
 import com.kingofxitter.app.ui.board.BoardRoute
 import com.kingofxitter.app.ui.board.BoardSamples
@@ -52,15 +61,19 @@ fun XitterNavHost(
     navController: NavHostController = rememberNavController(),
 ) {
     val navigate: (XitterRoute) -> Unit = { route ->
+        // Returning to a screen already in the back stack pops back to it instead of stacking a copy.
+        val inBackStack = runCatching { navController.getBackStackEntry(route) }.isSuccess
         navController.navigate(route) {
-            // Returning to a screen already in the back stack pops back to it instead of stacking a copy.
-            popUpTo(route) { inclusive = true }
+            if (inBackStack) popUpTo(route) { inclusive = true }
             launchSingleTop = true
         }
     }
     // Until U10 connects the real controller, the board plays the design's situation on the fake.
     val controller = remember { FakeGameController(BoardSamples.design) }
     val effects = rememberEffectQueue(controller)
+    val context = LocalContext.current
+    val feedback = remember(context) { FeedbackPreferences(context) }
+    GameFeedback(controller, BoardSamples.you, feedback)
     NavHost(navController = navController, startDestination = XitterRoute.Title, modifier = modifier) {
         placeholder<XitterRoute.Title>(XitterRoute.Title, navigate)
         placeholder<XitterRoute.PickLeader>(XitterRoute.PickLeader, navigate)
@@ -104,7 +117,14 @@ fun XitterNavHost(
         placeholder<XitterRoute.Victory>(XitterRoute.Victory, navigate)
         placeholder<XitterRoute.Defeat>(XitterRoute.Defeat, navigate)
         placeholder<XitterRoute.HowToPlay>(XitterRoute.HowToPlay, navigate)
-        placeholder<XitterRoute.Settings>(XitterRoute.Settings, navigate)
+        composable<XitterRoute.Settings> {
+            // V5 owns the Settings screen; until then it hosts the sound and haptics toggles.
+            val settings by feedback.settings.collectAsState()
+            Column(Modifier.fillMaxSize().nightBackground().safeDrawingPadding()) {
+                PlaceholderScreen(XitterRoute.Settings, placeholderLinks[XitterRoute.Settings].orEmpty(), navigate, Modifier.weight(1f))
+                FeedbackSettingsSection(settings, feedback::update, Modifier.padding(16.dp))
+            }
+        }
     }
 }
 
