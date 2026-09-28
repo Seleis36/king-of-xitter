@@ -17,8 +17,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -90,7 +90,7 @@ fun XAvatar(
                     drawContent()
                     val border = 3.dp.toPx()
                     drawCircle(XColors.Ink, radius = (this.size.minDimension - border) / 2, style = Stroke(border))
-                }.semantics { contentDescription = name },
+                }.clearAndSetSemantics { contentDescription = name },
         contentAlignment = Alignment.Center,
     ) {
         if (portrait != null) {

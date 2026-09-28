@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,22 +57,27 @@ fun YourPanel(
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         XTag(stringResource(R.string.board_you), fill = XColors.Characters, textStyle = XType.Tag.copy(fontSize = 10.sp))
-                        Text(
+                        // Long names shrink to fit instead of being cut off on narrow phones.
+                        BasicText(
                             stringResource(visual.shortName),
-                            style = XType.DisplayMedium.copy(fontSize = 19.sp),
-                            color = XColors.Paper,
+                            style = XType.DisplayMedium.copy(fontSize = 19.sp, color = XColors.Paper),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                            autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 19.sp),
                             modifier = Modifier.weight(1f, fill = false).padding(top = 3.dp).semantics { heading() },
                         )
                         CertificationBadge(player.mandates, size = 18.dp)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FollowersBar(player.followers, player.maxFollowers, pipSize = 15.dp)
+                        // The hearts give way to the count, which the bar already speaks.
+                        FollowersBar(player.followers, player.maxFollowers, Modifier.weight(1f, fill = false), pipSize = 15.dp)
                         Text(
                             stringResource(R.string.board_followers_short, player.followers),
                             style = XType.Caption.copy(fontSize = 12.sp),
                             color = XColors.Paper,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.clearAndSetSemantics { },
                         )
                     }
                 }

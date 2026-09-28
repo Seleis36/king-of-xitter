@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +29,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -50,6 +53,9 @@ enum class XButtonStyle(
 }
 
 private const val PRESS_DEPTH = 4
+
+/** Smallest a button label shrinks to, relative to its style. */
+private const val MIN_LABEL_SCALE = 0.6f
 
 /**
  * The kit's chunky button. Pressing pushes it into its shadow. [subtitle] is the small Rubik line
@@ -96,7 +102,16 @@ fun XButton(
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (icon != null) XIconImage(icon, contentDescription = null, size = 24.dp, tint = content)
-                Text(text, style = textStyle, color = content, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 3.dp))
+                // Labels stay on one line: at large font scales or on narrow phones they shrink
+                // instead of breaking mid-word ("RERO / LL").
+                BasicText(
+                    text,
+                    style = textStyle.copy(color = content, textAlign = TextAlign.Center),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    autoSize = TextAutoSize.StepBased(minFontSize = textStyle.fontSize * MIN_LABEL_SCALE, maxFontSize = textStyle.fontSize),
+                    modifier = Modifier.weight(1f, fill = false).padding(top = 3.dp),
+                )
             }
             if (subtitle != null) {
                 Text(

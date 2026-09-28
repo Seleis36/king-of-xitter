@@ -24,7 +24,8 @@ class GameViewModel private constructor(
     botAction: (GameState) -> Action?,
     botDelayMillis: Long,
 ) : ViewModel(),
-    GameController {
+    GameController,
+    AutoCloseable {
     private val controller =
         RealGameController(
             initialState = initialState,
@@ -46,7 +47,9 @@ class GameViewModel private constructor(
     /** Retry after a temporary disk or bot-provider failure. */
     fun retry() = controller.retry()
 
-    override fun onCleared() = controller.close()
+    override fun close() = controller.close()
+
+    override fun onCleared() = close()
 
     companion object {
         /** Restore before starting bots. The app shell supplies an app-private save path and its chosen leader. */

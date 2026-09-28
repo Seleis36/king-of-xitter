@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
@@ -23,7 +25,8 @@ import com.kingofxitter.app.ui.theme.sticker
 
 /**
  * Pill-shaped chip (`.chip`): turn counter, policy names, "if you stop now" previews. Becomes a
- * button when [onClick] is set.
+ * button when [onClick] is set. [contentDescription] replaces the text for TalkBack when the
+ * text leans on the icon ("+2" next to a mandate).
  */
 @Composable
 fun XChip(
@@ -34,6 +37,7 @@ fun XChip(
     textStyle: TextStyle = XType.Chip,
     minHeight: Dp = 30.dp,
     onClick: (() -> Unit)? = null,
+    contentDescription: String? = null,
 ) {
     Row(
         modifier =
@@ -41,7 +45,15 @@ fun XChip(
                 .heightIn(min = minHeight)
                 .sticker(fill = fill, shape = CircleShape, borderWidth = 2.5.dp, shadowOffset = DpOffset.Zero)
                 .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
-                .padding(horizontal = 12.dp, vertical = 4.dp),
+                .then(
+                    if (contentDescription !=
+                        null
+                    ) {
+                        Modifier.clearAndSetSemantics { this.contentDescription = contentDescription }
+                    } else {
+                        Modifier
+                    },
+                ).padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -50,7 +62,7 @@ fun XChip(
     }
 }
 
-/** Small upper-case tag (`.tag`): "Your turn", "on xitter", "−3M". */
+/** Small upper-case tag (`.tag`): "Your turn", "on xitter", "−3M". One line unless [maxLines] allows more. */
 @Composable
 fun XTag(
     text: String,
@@ -58,6 +70,7 @@ fun XTag(
     fill: Color = XColors.Mandates,
     icon: XIcon? = null,
     textStyle: TextStyle = XType.Tag,
+    maxLines: Int = 1,
 ) {
     Row(
         modifier =
@@ -68,6 +81,6 @@ fun XTag(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (icon != null) XIconImage(icon, contentDescription = null, size = 14.dp, tint = XColors.Ink)
-        Text(text.uppercase(), style = textStyle, color = XColors.Ink, maxLines = 1)
+        Text(text.uppercase(), style = textStyle, color = XColors.Ink, maxLines = maxLines)
     }
 }

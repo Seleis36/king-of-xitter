@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
@@ -14,13 +15,16 @@ import com.kingofxitter.app.ui.components.OutlinedText
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
 
-/** Rising numbers (`rise`) for [effects]: "−3M" in red, "+2" in gold, "+10" in green. */
+/**
+ * Rising numbers (`rise`) for [effects]: "−3M" in red, "+2" in gold, "+10" in green. Hidden from
+ * TalkBack: the stats they rise over change too, and read with their meaning.
+ */
 @Composable
 fun EffectNumbers(
     effects: List<BoardEffect>,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier, contentAlignment = Alignment.Center) {
+    Box(modifier.clearAndSetSemantics { }, contentAlignment = Alignment.Center) {
         effects.filter { it.isNumber }.forEach { effect ->
             key(effect.id) {
                 OutlinedText(

@@ -34,6 +34,7 @@ kotlin {
 
 dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.viewmodel.compose)
     implementation(project(":engine"))
     implementation(project(":cards"))
     implementation(project(":bots"))

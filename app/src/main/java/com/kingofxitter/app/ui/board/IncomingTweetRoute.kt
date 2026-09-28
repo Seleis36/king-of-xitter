@@ -12,7 +12,7 @@ import com.kingofxitter.engine.model.PlayerId
 /**
  * Incoming-tweet screen bound to a [GameController]. It stays up while the human owns a
  * stay/log-off decision; once the choice is submitted (or if there is none), [onDone] returns
- * to the board.
+ * to the board. [hit] is the damage from the engine's events; without it the dice estimate it.
  */
 @Composable
 fun IncomingTweetRoute(
@@ -20,6 +20,7 @@ fun IncomingTweetRoute(
     humanId: PlayerId,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
+    hit: IncomingHit? = null,
 ) {
     val state by controller.state.collectAsState()
     val decision = state.pendingDecisions.firstOrNull()?.takeIf { it.playerId == humanId && it.kind == DecisionKind.STAY_OR_LOG_OFF }
@@ -27,5 +28,5 @@ fun IncomingTweetRoute(
         LaunchedEffect(Unit) { onDone() }
         return
     }
-    IncomingTweetScreen(state, humanId, decision, controller::submit, modifier)
+    IncomingTweetScreen(state, humanId, decision, controller::submit, modifier, hit = hit ?: IncomingHit.estimate(state))
 }

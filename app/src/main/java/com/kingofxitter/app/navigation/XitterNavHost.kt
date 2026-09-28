@@ -1,5 +1,7 @@
 package com.kingofxitter.app.navigation
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,23 +13,32 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.kingofxitter.app.R
 import com.kingofxitter.app.feedback.FeedbackPreferences
 import com.kingofxitter.app.feedback.FeedbackSettingsSection
 import com.kingofxitter.app.feedback.GameFeedback
+import com.kingofxitter.app.game.GameViewModel
 import com.kingofxitter.app.ui.board.BoardCallbacks
 import com.kingofxitter.app.ui.board.BoardRoute
-import com.kingofxitter.app.ui.board.BoardSamples
 import com.kingofxitter.app.ui.board.ComposeTweetRoute
+import com.kingofxitter.app.ui.board.IncomingHit
 import com.kingofxitter.app.ui.board.IncomingTweetRoute
 import com.kingofxitter.app.ui.board.rememberEffectQueue
+import com.kingofxitter.app.ui.components.leaderVisual
+import com.kingofxitter.app.ui.endgame.DefeatScreen
+import com.kingofxitter.app.ui.endgame.StandingsScreen
+import com.kingofxitter.app.ui.endgame.VictoryScreen
 import com.kingofxitter.app.ui.theme.nightBackground
-import com.kingofxitter.engine.FakeGameController
+import com.kingofxitter.engine.model.GameState
+import com.kingofxitter.engine.model.MatchResult
 
-/** Where each placeholder leads. The board keeps its entry so the reachability test still covers it. */
+/** Where each placeholder leads. Real screens keep their entry so the reachability test covers them. */
 internal val placeholderLinks: Map<XitterRoute, List<XitterRoute>> =
     mapOf(
         XitterRoute.Title to listOf(XitterRoute.PickLeader, XitterRoute.HowToPlay, XitterRoute.Settings),
@@ -54,11 +65,15 @@ internal val placeholderLinks: Map<XitterRoute, List<XitterRoute>> =
         XitterRoute.Settings to listOf(XitterRoute.Title),
     )
 
-/** App navigation graph. Starts on the title screen. */
+/**
+ * App navigation graph. Starts on the title screen. The board and the screens around it play
+ * the real match from [MatchHost]; the front door's placeholders lead into it.
+ */
 @Composable
 fun XitterNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
+    host: MatchHost = viewModel(factory = MatchHost.Factory),
 ) {
     val navigate: (XitterRoute) -> Unit = { route ->
         // Returning to a screen already in the back stack pops back to it instead of stacking a copy.
@@ -68,59 +83,93 @@ fun XitterNavHost(
             launchSingleTop = true
         }
     }
-    // Until U10 connects the real controller, the board plays the design's situation on the fake.
-    val controller = remember { FakeGameController(BoardSamples.design) }
-    val effects = rememberEffectQueue(controller)
     val context = LocalContext.current
     val feedback = remember(context) { FeedbackPreferences(context) }
-    GameFeedback(controller, BoardSamples.you, feedback)
+    val session by host.session.collectAsState()
+    val game = (session as? MatchSession.Ready)?.game
+    // Effects and sounds follow the live match, above navigation so no screen misses them.
+    val effects = game?.let { rememberEffectQueue(it) }
+    if (game != null) GameFeedback(game, game.humanPlayerId, feedback)
+    val screen = Modifier.fillMaxSize().nightBackground().safeDrawingPadding()
+
     NavHost(navController = navController, startDestination = XitterRoute.Title, modifier = modifier) {
         placeholder<XitterRoute.Title>(XitterRoute.Title, navigate)
         placeholder<XitterRoute.PickLeader>(XitterRoute.PickLeader, navigate)
         placeholder<XitterRoute.Versus>(XitterRoute.Versus, navigate)
         composable<XitterRoute.Board> {
-            BoardRoute(
-                controller = controller,
-                humanId = BoardSamples.you,
-                callbacks =
-                    BoardCallbacks(
-                        onOpenTimeline = { navigate(XitterRoute.Timeline) },
-                        onOpenStandings = { navigate(XitterRoute.Standings) },
-                        onOpenShop = { navigate(XitterRoute.Shop) },
-                        onCompose = { navigate(XitterRoute.ComposeTweet) },
-                        onIncomingTweet = { navigate(XitterRoute.IncomingTweet) },
-                        onMatchFinished = { navigate(XitterRoute.Standings) },
-                    ),
-                modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
-                effects = effects,
-            )
+            MatchGate(host, screen) { live ->
+                Column(screen) {
+                    MatchFailureBanner(live, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                    BoardRoute(
+                        controller = live,
+                        humanId = live.humanPlayerId,
+                        callbacks =
+                            BoardCallbacks(
+                                onOpenTimeline = { navigate(XitterRoute.Timeline) },
+                                onOpenStandings = { navigate(XitterRoute.Standings) },
+                                onOpenShop = { navigate(XitterRoute.Shop) },
+                                onCompose = { navigate(XitterRoute.ComposeTweet) },
+                                onIncomingTweet = { navigate(XitterRoute.IncomingTweet) },
+                                onMatchFinished = { navigate(resultRoute(live.state.value, live)) },
+                            ),
+                        modifier = Modifier.weight(1f),
+                        effects = effects,
+                    )
+                }
+            }
         }
         composable<XitterRoute.ComposeTweet> {
-            ComposeTweetRoute(
-                controller = controller,
-                humanId = BoardSamples.you,
-                onDone = { navigate(XitterRoute.Board) },
-                modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
-            )
+            MatchGate(host, screen) { live ->
+                ComposeTweetRoute(live, live.humanPlayerId, onDone = { navigate(XitterRoute.Board) }, modifier = screen)
+            }
         }
         composable<XitterRoute.IncomingTweet> {
-            IncomingTweetRoute(
-                controller = controller,
-                humanId = BoardSamples.you,
-                onDone = { navigate(XitterRoute.Board) },
-                modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
-            )
+            MatchGate(host, screen) { live ->
+                val lastHit by host.lastHitOnHuman.collectAsState()
+                IncomingTweetRoute(
+                    live,
+                    live.humanPlayerId,
+                    onDone = { navigate(XitterRoute.Board) },
+                    modifier = screen,
+                    hit = lastHit?.let { (attacker, damage) -> IncomingHit(attacker, damage) },
+                )
+            }
         }
         placeholder<XitterRoute.Shop>(XitterRoute.Shop, navigate)
         placeholder<XitterRoute.Timeline>(XitterRoute.Timeline, navigate)
-        placeholder<XitterRoute.Standings>(XitterRoute.Standings, navigate)
-        placeholder<XitterRoute.Victory>(XitterRoute.Victory, navigate)
-        placeholder<XitterRoute.Defeat>(XitterRoute.Defeat, navigate)
+        composable<XitterRoute.Standings> {
+            MatchGate(host, screen) { live ->
+                val state by live.state.collectAsState()
+                StandingsScreen(state, onBack = { navigate(if (state.result == null) XitterRoute.Board else resultRoute(state, live)) })
+            }
+        }
+        composable<XitterRoute.Victory> {
+            MatchGate(host, screen) { live ->
+                val state by live.state.collectAsState()
+                VictoryScreen(
+                    state,
+                    onPlayAgain = { playAgain(host, navigate) },
+                    onShare = { shareWin(context, state) },
+                    onMainMenu = { navigate(XitterRoute.Title) },
+                )
+            }
+        }
+        composable<XitterRoute.Defeat> {
+            MatchGate(host, screen) { live ->
+                val state by live.state.collectAsState()
+                DefeatScreen(
+                    state,
+                    live.humanPlayerId,
+                    onPlayAgain = { playAgain(host, navigate) },
+                    onMainMenu = { navigate(XitterRoute.Title) },
+                )
+            }
+        }
         placeholder<XitterRoute.HowToPlay>(XitterRoute.HowToPlay, navigate)
         composable<XitterRoute.Settings> {
             // V5 owns the Settings screen; until then it hosts the sound and haptics toggles.
             val settings by feedback.settings.collectAsState()
-            Column(Modifier.fillMaxSize().nightBackground().safeDrawingPadding()) {
+            Column(screen) {
                 PlaceholderScreen(XitterRoute.Settings, placeholderLinks[XitterRoute.Settings].orEmpty(), navigate, Modifier.weight(1f))
                 FeedbackSettingsSection(settings, feedback::update, Modifier.padding(16.dp))
             }
@@ -128,7 +177,35 @@ fun XitterNavHost(
     }
 }
 
-private inline fun <reified T : XitterRoute> androidx.navigation.NavGraphBuilder.placeholder(
+/** Victory when the human won, Defeat otherwise (including nobody winning). */
+private fun resultRoute(
+    state: GameState,
+    game: GameViewModel,
+): XitterRoute = if ((state.result as? MatchResult.Victory)?.playerId == game.humanPlayerId) XitterRoute.Victory else XitterRoute.Defeat
+
+private fun playAgain(
+    host: MatchHost,
+    navigate: (XitterRoute) -> Unit,
+) {
+    host.startNew()
+    navigate(XitterRoute.Board)
+}
+
+private fun shareWin(
+    context: Context,
+    state: GameState,
+) {
+    val winner = state.players.firstOrNull { it.id == (state.result as? MatchResult.Victory)?.playerId } ?: return
+    val name = context.getString(leaderVisual(winner.leaderId).fullName)
+    val send =
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, context.getString(R.string.endgame_share_summary, name, winner.mandates))
+        }
+    context.startActivity(Intent.createChooser(send, null))
+}
+
+private inline fun <reified T : XitterRoute> NavGraphBuilder.placeholder(
     route: XitterRoute,
     noinline navigate: (XitterRoute) -> Unit,
 ) {

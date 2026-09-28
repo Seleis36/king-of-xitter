@@ -2,6 +2,7 @@ package com.kingofxitter.app.ui.board
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -20,12 +21,14 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
 import com.kingofxitter.app.ui.components.Die
 import com.kingofxitter.app.ui.components.DieSize
+import com.kingofxitter.app.ui.components.MIN_TOUCH_TARGET
 import com.kingofxitter.app.ui.components.XChip
 import com.kingofxitter.app.ui.components.XIcon
 import com.kingofxitter.app.ui.components.leaderVisual
@@ -68,7 +71,8 @@ fun RollCounter(
 
 /**
  * The six (or more) dice. Before the first roll, empty slots stand in. [selected] dice are shown
- * kept; [onToggle] makes them tappable. Dice rerolled on the latest roll tumble.
+ * kept; [onToggle] makes them tappable. Dice rerolled on the latest roll tumble. The dice take the
+ * largest size that fits the width: 54dp, then 44dp (six dice on a 320dp phone), then 36dp.
  */
 @Composable
 fun DiceTray(
@@ -77,36 +81,53 @@ fun DiceTray(
     modifier: Modifier = Modifier,
     onToggle: ((DieId, Boolean) -> Unit)? = null,
 ) {
-    Row(
-        modifier.fillMaxWidth().padding(top = 8.dp, bottom = 22.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (state.dice.isEmpty()) {
-            repeat(state.turnDiceCount ?: BASE_DICE) { EmptyDieSlot() }
-        } else {
-            val size = if (state.dice.size > BASE_DICE) DieSize.Small else DieSize.Default
-            state.dice.forEach { die ->
-                Die(
-                    face = die.face,
-                    size = size,
-                    kept = die.id in selected,
-                    tumbleKey = if (die.isKept) null else state.rollNumber,
-                    onToggleKept = onToggle?.let { toggle -> { keep -> toggle(die.id, keep) } },
-                )
+    BoxWithConstraints(modifier.fillMaxWidth().padding(top = 8.dp, bottom = 22.dp)) {
+        val count = if (state.dice.isEmpty()) state.turnDiceCount ?: BASE_DICE else state.dice.size
+        val size = dieSizeFor(count, maxWidth)
+        // 48dp touch targets unless there are so many dice that they'd overlap.
+        val touchTarget = (maxWidth / count).coerceAtMost(MIN_TOUCH_TARGET)
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (state.dice.isEmpty()) {
+                repeat(count) { EmptyDieSlot(size) }
+            } else {
+                state.dice.forEach { die ->
+                    Die(
+                        face = die.face,
+                        size = size,
+                        kept = die.id in selected,
+                        tumbleKey = if (die.isKept) null else state.rollNumber,
+                        onToggleKept = onToggle?.let { toggle -> { keep -> toggle(die.id, keep) } },
+                        touchTarget = touchTarget,
+                    )
+                }
             }
         }
     }
 }
 
+/** Largest board die size that leaves a small gap when [count] dice share [width] equally. */
+internal fun dieSizeFor(
+    count: Int,
+    width: Dp,
+): DieSize =
+    listOf(DieSize.Default, DieSize.Compact, DieSize.Small).firstOrNull { size ->
+        size.side + MIN_DIE_GAP <= width / count
+    } ?: DieSize.ExtraSmall
+
+private val MIN_DIE_GAP = 4.dp
+
 @Composable
-private fun EmptyDieSlot() {
+private fun EmptyDieSlot(size: DieSize) {
     Box(
         Modifier
-            .size(54.dp)
+            .size(size.side)
             .sticker(
                 fill = XColors.Panel,
-                shape = RoundedCornerShape(15.dp),
+                shape = RoundedCornerShape(size.corner),
                 borderColor = XColors.Disabled,
                 shadowOffset = DpOffset.Zero,
             ),
@@ -145,6 +166,7 @@ fun StopNowPreview(
                 fill = XColors.DamageTint,
                 textStyle = chipText,
                 minHeight = 26.dp,
+                contentDescription = stringResource(R.string.board_preview_tweet_target_spoken, tweets, target),
             )
         }
         if (preview.setMandates > 0) {
@@ -153,6 +175,12 @@ fun StopNowPreview(
                 icon = XIcon.Mandates,
                 textStyle = chipText,
                 minHeight = 26.dp,
+                contentDescription =
+                    pluralStringResource(
+                        R.plurals.board_preview_mandates_spoken,
+                        preview.setMandates,
+                        preview.setMandates,
+                    ),
             )
         }
         if (preview.entersXitter) {
@@ -162,6 +190,7 @@ fun StopNowPreview(
                 fill = XColors.Mandates,
                 textStyle = chipText,
                 minHeight = 26.dp,
+                contentDescription = stringResource(R.string.board_preview_take_xitter_spoken),
             )
         }
         if (preview.followersHealed > 0) {
@@ -170,6 +199,7 @@ fun StopNowPreview(
                 icon = XIcon.Like,
                 textStyle = chipText,
                 minHeight = 26.dp,
+                contentDescription = stringResource(R.string.board_preview_heal_spoken, preview.followersHealed),
             )
         }
         if (preview.likesBlocked) {
@@ -182,6 +212,12 @@ fun StopNowPreview(
                 fill = XColors.CharactersTint,
                 textStyle = chipText,
                 minHeight = 26.dp,
+                contentDescription =
+                    pluralStringResource(
+                        R.plurals.board_preview_characters_spoken,
+                        preview.characters,
+                        preview.characters,
+                    ),
             )
         }
         if (preview.isEmpty) Text(stringResource(R.string.board_preview_nothing), style = XType.Caption, color = XColors.Muted)

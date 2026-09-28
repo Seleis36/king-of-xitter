@@ -4,12 +4,13 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -45,8 +47,10 @@ import kotlin.math.hypot
 
 /**
  * The Xitter stage: a tilted card with the Main Character on a sunburst, their latest tweet, and
- * what holding Xitter means. Shows an empty stage when nobody holds it.
+ * what holding Xitter means. Shows an empty stage when nobody holds it. The design's height is a
+ * minimum: at large font scales the stage grows with its text.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun XitterStage(
     mainCharacter: PlayerState?,
@@ -54,16 +58,17 @@ fun XitterStage(
     line: String,
     modifier: Modifier = Modifier,
 ) {
-    XCard(modifier.rotate(-1f).fillMaxWidth().height(238.dp)) {
-        Column(Modifier.fillMaxSize().padding(3.dp).clip(StickerShape)) {
-            Row(
+    XCard(modifier.rotate(-1f).fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(3.dp).clip(StickerShape)) {
+            FlowRow(
                 Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
+                    .heightIn(min = 40.dp)
                     .background(XColors.Ink)
-                    .padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
                     buildAnnotatedString {
@@ -79,11 +84,10 @@ fun XitterStage(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .weight(1f)
                     .clipToBounds()
                     .background(XColors.Stage),
             ) {
-                Sunburst()
+                Sunburst(Modifier.matchParentSize())
                 if (mainCharacter == null) EmptyStage() else OccupiedStage(mainCharacter, isYou, line)
             }
         }
@@ -96,37 +100,49 @@ private fun OccupiedStage(
     isYou: Boolean,
     line: String,
 ) {
-    Row(Modifier.fillMaxSize().padding(end = 12.dp)) {
-        Column(
-            Modifier.width(150.dp).fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Bottom,
-        ) {
-            XIconImage(XIcon.Crown, contentDescription = null, size = 44.dp, modifier = Modifier.bob().rotate(-8f))
-            // Stand-in for the leader bust until S5 supplies portraits.
-            XAvatar(mainCharacter.leaderId, size = 118.dp, modifier = Modifier.padding(bottom = 10.dp))
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        // The bust takes the design's 150dp, or less on narrow phones and at large font scales so
+        // the tweet keeps room.
+        val bust = (maxWidth * BUST_SHARE / LocalDensity.current.fontScale.coerceAtLeast(1f)).coerceAtMost(150.dp)
+        Row(Modifier.fillMaxWidth().heightIn(min = STAGE_HEIGHT).padding(end = 12.dp), verticalAlignment = Alignment.Bottom) {
+            Column(Modifier.width(bust), horizontalAlignment = Alignment.CenterHorizontally) {
+                XIconImage(XIcon.Crown, contentDescription = null, size = bust * 0.29f, modifier = Modifier.bob().rotate(-8f))
+                // Stand-in for the leader bust until S5 supplies portraits.
+                XAvatar(mainCharacter.leaderId, size = bust * 0.79f, modifier = Modifier.padding(bottom = 10.dp))
+            }
+            StageText(line, isYou, Modifier.weight(1f).heightIn(min = STAGE_HEIGHT))
         }
-        Column(
-            Modifier.fillMaxHeight().weight(1f).padding(vertical = 12.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-            XSpeechBubble(
-                line,
-                Modifier.wobble(degrees = 1f),
-                textStyle =
-                    XType.BodyStrong.copy(
-                        fontSize =
-                            XType.BodyStrong.fontSize * 0.96f,
-                    ),
+    }
+}
+
+@Composable
+private fun StageText(
+    line: String,
+    isYou: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    // Bubble at the top and tags at the bottom, as in the design, pushed apart when there's room.
+    Column(modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.SpaceBetween) {
+        XSpeechBubble(
+            line,
+            Modifier.wobble(degrees = 1f),
+            textStyle = XType.BodyStrong.copy(fontSize = XType.BodyStrong.fontSize * 0.96f),
+        )
+        Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            XTag(stringResource(R.string.board_stage_mandates), fill = XColors.Paper, icon = XIcon.Mandates, maxLines = TAG_LINES)
+            XTag(
+                stringResource(if (isYou) R.string.board_stage_your_tweets else R.string.board_stage_their_tweets),
+                fill = XColors.Paper,
+                icon = XIcon.Tweet,
+                maxLines = TAG_LINES,
             )
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                XTag(stringResource(R.string.board_stage_mandates), fill = XColors.Paper, icon = XIcon.Mandates)
+            if (isYou) {
                 XTag(
-                    stringResource(if (isYou) R.string.board_stage_your_tweets else R.string.board_stage_their_tweets),
+                    stringResource(R.string.board_stage_no_likes),
                     fill = XColors.Paper,
-                    icon = XIcon.Tweet,
+                    icon = XIcon.LikeLost,
+                    maxLines = TAG_LINES,
                 )
-                if (isYou) XTag(stringResource(R.string.board_stage_no_likes), fill = XColors.Paper, icon = XIcon.LikeLost)
             }
         }
     }
@@ -135,7 +151,7 @@ private fun OccupiedStage(
 @Composable
 private fun EmptyStage() {
     Column(
-        Modifier.fillMaxSize().padding(16.dp),
+        Modifier.fillMaxWidth().heightIn(min = STAGE_HEIGHT).padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -151,8 +167,8 @@ private fun EmptyStage() {
 
 /** The stage's `repeating-conic-gradient`: 10° gold rays from 26% across, 70% down. */
 @Composable
-private fun Sunburst() {
-    Canvas(Modifier.fillMaxSize()) {
+private fun Sunburst(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
         val center = Offset(size.width * 0.26f, size.height * 0.7f)
         val radius = hypot(size.width, size.height)
         for (ray in 0 until 36 step 2) {
@@ -167,3 +183,12 @@ private fun Sunburst() {
         }
     }
 }
+
+/** Height of the stage below its header in the design (238dp card, 40dp header, 3dp inset). */
+private val STAGE_HEIGHT = 192.dp
+
+/** Share of the stage's width the Main Character's bust takes on narrow phones. */
+private const val BUST_SHARE = 0.42f
+
+/** Stage tags wrap rather than cut off at large font scales. */
+private const val TAG_LINES = 3

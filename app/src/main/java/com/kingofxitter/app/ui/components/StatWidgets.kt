@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,7 +55,10 @@ fun Certification.label(): Int =
         Certification.Gold -> R.string.stat_gold_check
     }
 
-/** Followers as a row of hearts: full for current followers, broken for lost ones (`.hearts`). */
+/**
+ * Followers as a row of hearts: full for current followers, broken for lost ones (`.hearts`).
+ * Hearts are [pipSize] at most and shrink when the row gets less width (narrow phones).
+ */
 @Composable
 fun FollowersBar(
     followers: Int,
@@ -63,15 +67,19 @@ fun FollowersBar(
     pipSize: Dp = 15.dp,
 ) {
     val description = stringResource(R.string.stat_followers_of_max, followers, maxFollowers)
-    Row(
-        modifier = modifier.clearAndSetSemantics { contentDescription = description },
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        followerPips(followers, maxFollowers).forEach { pip ->
-            XIconImage(if (pip == FollowerPip.Full) XIcon.Like else XIcon.LikeLost, contentDescription = null, size = pipSize)
+    val pips = followerPips(followers, maxFollowers)
+    BoxWithConstraints(modifier.clearAndSetSemantics { contentDescription = description }) {
+        val gap = 2.dp
+        val fitted = if (pips.isEmpty()) pipSize else ((maxWidth - gap * (pips.size - 1)) / pips.size).coerceIn(MIN_PIP, pipSize)
+        Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+            pips.forEach { pip ->
+                XIconImage(if (pip == FollowerPip.Full) XIcon.Like else XIcon.LikeLost, contentDescription = null, size = fitted)
+            }
         }
     }
 }
+
+private val MIN_PIP = 8.dp
 
 /** Characters (energy) ring with the value in the middle. Fills to [CHARACTER_RING_CAPACITY]. */
 @Composable
