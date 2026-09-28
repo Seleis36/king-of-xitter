@@ -110,7 +110,11 @@ fun BoardScreen(
                     mainCharacterLine
                         ?: stringResource(if (mainCharacter?.id == humanId) R.string.board_mc_line_you else R.string.board_mc_line_default),
             )
-            Box(Modifier.shakeOn(effects.latest(BoardEffect.Kind.Damage, humanId))) {
+            Box(
+                Modifier
+                    .shakeOn(effects.latest(BoardEffect.Kind.Damage, humanId))
+                    .stampOn(effects.latest(BoardEffect.Kind.Suspended, humanId)),
+            ) {
                 YourPanel(human, policyName = policyName)
                 EffectNumbers(effects.filter { it.playerId == humanId }, Modifier.align(Alignment.TopCenter))
             }
