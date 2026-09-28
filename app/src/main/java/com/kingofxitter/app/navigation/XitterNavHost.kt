@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.kingofxitter.app.ui.board.BoardCallbacks
 import com.kingofxitter.app.ui.board.BoardRoute
 import com.kingofxitter.app.ui.board.BoardSamples
+import com.kingofxitter.app.ui.board.ComposeTweetRoute
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.engine.FakeGameController
 
@@ -77,7 +78,14 @@ fun XitterNavHost(
                 modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
             )
         }
-        placeholder<XitterRoute.ComposeTweet>(XitterRoute.ComposeTweet, navigate)
+        composable<XitterRoute.ComposeTweet> {
+            ComposeTweetRoute(
+                controller = controller,
+                humanId = BoardSamples.you,
+                onDone = { navigate(XitterRoute.Board) },
+                modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
+            )
+        }
         placeholder<XitterRoute.IncomingTweet>(XitterRoute.IncomingTweet, navigate)
         placeholder<XitterRoute.Shop>(XitterRoute.Shop, navigate)
         placeholder<XitterRoute.Timeline>(XitterRoute.Timeline, navigate)
