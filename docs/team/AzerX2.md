@@ -8,7 +8,7 @@ You own all 66 power-ups (cards), the deck, the shop and the shop screen. Most o
 
 | Week | Task | Issue | Pts | Notes |
 |---|---|---|---|---|
-| 1 | S3 CardDef + card-effect implementations + TestGame | #3 | 2 | Hook protocol is decided in ROADMAP §3. Implement against the engine-owned protocol; @Samylay reviews its engine boundary. `TestGame` is your main tool until E6 lands |
+| 1 | S3 CardDef + card-effect implementations + TestGame | #3 | 2 | Hook protocol is decided in ROADMAP §3. Implement against the engine-owned protocol; @Samylay reviews its engine boundary. E6 is merged to `main` in PR #48; integrate the registry and effects with it |
 | 1 | C1 Catalogue of all 66 cards | #19 | 3 | Names, costs and effects are in ROADMAP §2. Change the parody names if you have better ones |
 | 1 | C2 Deck and shop logic | #20 | 4 | |
 | 2 | C3 Executive Orders | #21 | 4 | Needed for M1 |
@@ -27,7 +27,7 @@ You own all 66 power-ups (cards), the deck, the shop and the shop screen. Most o
 
 ## What you wait on
 
-- **E6 hook dispatch** (@Samylay, start of week 3) for C5–C7. The contract is settled in ROADMAP §3. Until E6 lands, do C1–C4 against `TestGame`. If E6 slips, bring C8 forward.
+- E6 hook dispatch is already merged to `main` in PR #48, so C5–C7 can build against it. S3's registry and card-effect integration remains your work. Keep C1–C4 moving against `TestGame` as planned.
 - **U1–U3 components** (@Seleis36, end of week 1/2) for C8. Meanwhile use plain Material components.
 
 ## Day one
@@ -38,5 +38,5 @@ You own all 66 power-ups (cards), the deck, the shop and the shop screen. Most o
 
 ## Track A handoff (2026-09-26)
 
-E6 is implemented and verified. Register effects through `CardEffectRegistry`; route shop completion through existing `Action.EndTurn`. Review the engine contract additions before merging.
+E6 is implemented and merged to `main` in PR #48. Register effects through `CardEffectRegistry`; route shop completion through existing `Action.EndTurn`. Cross-track review of the engine contract additions remains part of integration.
 See [API usage and verification](../track-a-handoff.md).

@@ -161,9 +161,11 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
   `Action.EndTurn` exits `SHOP`, so C2 never needs to block base matches.
   E8 supplies seeded leader selection and roll-off history. E9 stores state,
   RNG, queued choices, and human ownership atomically.
-- E6 is ready for S3's registry/effects; B/C/D must review the additions to the
-  engine contract. Actual card effects, shop purchases, and bot strategies
-  remain owned by B/D.
+- E6 is implemented and merged on `main` in PR #48, closing issue #12. S3's
+  registry/effects remain open for AzerX2 to integrate; B3/B4 can use the real
+  hook APIs. Cross-track review of the engine contract additions remains
+  outstanding, so E6 stays yellow under ROADMAP §7. Actual card effects, shop
+  purchases, and bot strategies remain owned by B/D.
 - E11 uses Material stand-ins and was checked on an API 27 emulator, including
   small-screen/large-text layouts. S4/U1–U3 supply the final theme/components;
   S5/V1 supply portraits and generated match text; S4/U10 wire navigation.

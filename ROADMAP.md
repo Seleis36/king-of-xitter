@@ -343,7 +343,7 @@ flowchart LR
   U1 -. fakes .-> E11 & C8 & V3 & V4
 ```
 
-- **E6 (hook dispatch) is implemented and tested on `codex/engine-base-rules`.** After review and merge, it unblocks C5–C7, B3 and B4. Integrate @AzerX2's S3 registry and card effects as they land. Until then, @AzerX2 can build against the engine hook protocol, while @khvatovat uses fixtures for B2. If E6 slips, @AzerX2 moves C8 earlier.
+- **E6 (hook dispatch) is implemented, tested, and merged to `main` in PR #48; issue #12 is closed.** It is available for C5–C7, B3 and B4. @AzerX2 still owns S3's registry and card-effect implementations, which need to be integrated with the engine protocol. Cross-track review of the engine contract changes remains outstanding under §7.
 - **B1 (Intern bot)** is 1 pt and unblocks bot decisions for E7. Use the
   always-first-option stand-in until it lands. E7 already advances from `SHOP`
   using `Action.EndTurn`; C2 adds purchases without blocking base matches.

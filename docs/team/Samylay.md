@@ -17,7 +17,7 @@ You build the rules engine: the heart of the game. Everyone else codes against y
 | 2 | E3 Xitter rules | #9 | 5 | |
 | 2 | E5 Elimination and win | #11 | 2 | M1 exit: a base-rules match plays end to end in a JVM test with 4 Intern bots |
 | 2 | E7 Real GameController | #13 | 4 | Implemented with the first-option stand-in; `Action.EndTurn` already exits `SHOP` |
-| 3 | **E6 Card hook dispatch** | #12 | 5 | Implemented and tested on `codex/engine-base-rules`; needs review, merge, and S3 card integration |
+| 3 | **E6 Card hook dispatch** | #12 | 5 | Implemented, tested, and merged to `main` in PR #48; S3 card registry/effect integration remains |
 | 3 | E8 Match setup + roll-off | #14 | 2 | |
 | 3 | E12 Golden-game tests | #18 | 3 | |
 | 4 | E10 Match stats | #16 | 1 | |
@@ -28,15 +28,15 @@ You build the rules engine: the heart of the game. Everyone else codes against y
 ## Who waits on you
 
 - **Everyone** needs S1, S2 and S6 by day 3.
-- **@AzerX2** needs E6 for C5, C6 and C7 (week 3). Until then they test cards with `TestGame`.
-- **@khvatovat** needs E6 for B3 (Troll Farm) and B4 (simulator), and E8 for the Versus intro roll-off.
+- **@AzerX2** can use merged E6 for C5–C7; S3 registry/effect integration is still theirs.
+- **@khvatovat** can use merged E6 for B3/B4 and merged E8 for the Versus intro roll-off.
 - **@Seleis36** needs E7 to wire the real game into the board (U10, week 4).
 
 ## What you wait on
 
 - **B1 Intern bot** (@khvatovat, day 4). Meanwhile use a bot that always picks the first option.
 - **C2 shop flow** (@AzerX2) for purchases. Base matches already leave `SHOP` through `Action.EndTurn`.
-- **S3 card definitions and effects** (@AzerX2) follow the contract in ROADMAP §3. The hook contract is decided, so E6 can proceed now; integrate S3 as it lands.
+- **S3 card definitions and effects** (@AzerX2) follow the contract in ROADMAP §3. E6 is already merged; integrate the S3 registry/effects with it as they land.
 - **U1–U3 components** (@Seleis36) for E11. Meanwhile use plain Material components.
 
 ## M0 decisions
@@ -51,7 +51,7 @@ Char cap, Bot Farm cost, and leader abilities are decided in ROADMAP §1.
 
 ## Current handoff (2026-09-26)
 
-All independent A implementation is complete on `codex/engine-base-rules`:
+All independent A implementation is complete and merged to `main` in PR #48:
 S1/S2, your half of S6, and E1–E12. E7/E8/E9 now include paced bot execution,
 human pauses, deterministic setup/roll-offs, lifecycle ownership, and atomic
 save/resume with failure recovery. The rule and end-screen review defects are fixed.
