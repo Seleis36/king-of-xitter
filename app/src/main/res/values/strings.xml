@@ -173,6 +173,13 @@
     <string name="motion_replay">REPLAY</string>
     <string name="feedback_sound">SOUND</string>
     <string name="feedback_haptics">HAPTICS</string>
+    <string name="match_loading">LOADING THE TIMELINE…</string>
+    <string name="match_failed_title">THE SAVE IS BROKEN</string>
+    <string name="match_failed_body">Your last match couldn\'t be loaded. Starting a new one replaces it.</string>
+    <string name="match_start_new">START A NEW MATCH</string>
+    <string name="match_step_failed">SOMETHING DIDN\'T SAVE</string>
+    <string name="match_step_failed_body">The last move is waiting. Try it again.</string>
+    <string name="match_retry">RETRY</string>
     <string name="route_title">Title</string>
     <string name="route_pick_leader">Pick your leader</string>
     <string name="route_versus">Versus</string>
