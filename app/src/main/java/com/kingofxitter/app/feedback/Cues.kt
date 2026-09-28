@@ -75,7 +75,6 @@ class CueThrottle(
     }
 }
 
-
 /** Queues sounds requested before SoundPool finishes loading them. */
 internal class SoundLoadQueue {
     private val loaded = mutableSetOf<Int>()
