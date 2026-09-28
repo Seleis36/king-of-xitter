@@ -145,7 +145,8 @@ flowchart LR
   classDef done fill:#b7efc5,stroke:#218838,color:#102a17,stroke-width:2px
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class M0D,HDEC done
-  class S1,S2,S4,S6,U1,U2,U3,U4,U5,U6,U7,U8,U9,U10,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
+  class S1,S2,S6,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
+  class S4,U1,U2,U3,U4,U5,U6,U7,U8,U9,U10 done
 ```
 
 ## Current hand-offs
@@ -167,9 +168,14 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
   small-screen/large-text layouts. S4/U1–U3 supply the final theme/components;
   S5/V1 supply portraits and generated match text; S4/U10 wire navigation.
 - S6 is shared: Samylay supplies states; Seleis36 checks them against the design.
+- Samylay (Track A) reviewed and approved Seleis36's S4 and U1–U10 work on
+  2026-09-28. PRs #49–#59 are merged, the combined local build/test/lint check
+  passed (100 tests, 0 failures), and post-merge CI passed on `main` at
+  `bf5914174d09591d24a3c1069d6e935766a03c5f`.
 - S1/S2 were previously green without evidence of the required cross-track
   approval. They are yellow until ROADMAP §7 is satisfied. Keep all task nodes
   yellow until implementation, tests, device checks where relevant, remote CI,
-  review, commit and push are verified.
+  review, commit and push are verified. S4 and U1–U10 are green after the
+  cross-track review and validation recorded above.
 - M0 decisions remain settled in ROADMAP §1. AzerX2 owns updating the Bot Farm
   catalogue/design to the agreed 40-character cost.
