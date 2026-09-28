@@ -32,8 +32,24 @@ class FeedbackPlayer(
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build(),
             ).build()
-    private val sounds = Cue.entries.associateWith { pool.load(context, it.sound, 1) }
     private val throttle = CueThrottle()
+    private val soundLock = Any()
+    private val soundLoadQueue = SoundLoadQueue()
+    private var closed = false
+    private val sounds: Map<Cue, Int>
+
+    init {
+        pool.setOnLoadCompleteListener { loadedPool, sampleId, status ->
+            synchronized(soundLock) {
+                if (!closed) {
+                    soundLoadQueue.complete(sampleId, status == 0).forEach { readyId ->
+                        loadedPool.play(readyId, 1f, 1f, 1, 0, 1f)
+                    }
+                }
+            }
+        }
+        sounds = Cue.entries.associateWith { pool.load(context, it.sound, 1) }
+    }
 
     /** Plays [cue] as far as [settings] allow. */
     fun play(
@@ -41,8 +57,15 @@ class FeedbackPlayer(
         settings: FeedbackSettings,
     ) {
         if (!throttle.allow(cue, SystemClock.uptimeMillis())) return
-        if (settings.sound) sounds[cue]?.let { pool.play(it, 1f, 1f, 1, 0, 1f) }
-        if (settings.haptics) haptic(cue.haptic)?.let(view::performHapticFeedback)
+        synchronized(soundLock) {
+            if (closed) return
+            if (settings.sound) {
+                sounds[cue]?.let { sampleId ->
+                    if (soundLoadQueue.request(sampleId)) pool.play(sampleId, 1f, 1f, 1, 0, 1f)
+                }
+            }
+            if (settings.haptics) haptic(cue.haptic)?.let(view::performHapticFeedback)
+        }
     }
 
     private fun haptic(haptic: Haptic): Int? =
@@ -68,7 +91,14 @@ class FeedbackPlayer(
                 }
         }
 
-    override fun close() = pool.release()
+    override fun close() {
+        synchronized(soundLock) {
+            if (closed) return
+            closed = true
+            soundLoadQueue.clear()
+            pool.release()
+        }
+    }
 
     private companion object {
         const val MAX_STREAMS = 4
@@ -91,7 +121,7 @@ fun GameFeedback(
     DisposableEffect(player) { onDispose { player.close() } }
     LaunchedEffect(controller, humanId, player) {
         controller.events.collect { event ->
-            cuesFor(event, humanId).forEach { player.play(it, preferences.settings.value) }
+            cuesFor(event, humanId, controller.state.value.currentPlayerId).forEach { player.play(it, preferences.settings.value) }
         }
     }
 }
