@@ -24,7 +24,14 @@ class CuesTest {
     fun `rolls rattle, tweets land, hits hurt`() {
         assertEquals(listOf(Cue.Dice), cuesFor(GameEvent.DiceRolled(kim, 1, emptyList()), you))
         assertEquals(listOf(Cue.Hit), cuesFor(damage(you), you))
-        assertEquals(listOf(Cue.Tweet), cuesFor(damage(kim), you))
+        assertEquals(emptyList(), cuesFor(damage(kim), you, actingPlayerId = PlayerId("poutine")))
+        assertEquals(listOf(Cue.Tweet), cuesFor(damage(kim), you, actingPlayerId = you))
+    }
+
+    @Test
+    fun `bot attacks on another bot do not play the human tweet cue`() {
+        assertEquals(emptyList(), cuesFor(damage(kim), you, actingPlayerId = PlayerId("poutine")))
+        assertEquals(listOf(Cue.Tweet), cuesFor(damage(kim), you, actingPlayerId = you))
     }
 
     @Test
@@ -47,5 +54,25 @@ class CuesTest {
         assertFalse(throttle.allow(Cue.Tweet, 1100))
         assertTrue(throttle.allow(Cue.Hit, 1100))
         assertTrue(throttle.allow(Cue.Tweet, 1250))
+    }
+}
+
+
+class SoundLoadQueueTest {
+    @Test
+    fun `requests play after their sound finishes loading`() {
+        val queue = SoundLoadQueue()
+        assertFalse(queue.request(7))
+        assertFalse(queue.request(7))
+        assertEquals(listOf(7, 7), queue.complete(7, success = true))
+        assertTrue(queue.request(7))
+    }
+
+    @Test
+    fun `failed sounds discard queued and future requests`() {
+        val queue = SoundLoadQueue()
+        assertFalse(queue.request(9))
+        assertEquals(emptyList(), queue.complete(9, success = false))
+        assertFalse(queue.request(9))
     }
 }

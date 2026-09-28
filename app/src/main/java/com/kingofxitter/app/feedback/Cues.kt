@@ -36,12 +36,17 @@ enum class Haptic { None, Tick, Heavy, Confirm, Reject }
 fun cuesFor(
     event: GameEvent,
     humanId: PlayerId,
+    actingPlayerId: PlayerId? = null,
 ): List<Cue> =
     when (event) {
         is GameEvent.DiceRolled -> listOf(Cue.Dice)
         is GameEvent.ResourceChanged ->
             if (event.resource == PlayerResource.FOLLOWERS && event.amount < 0 && event.reason == ResourceChangeReason.TWEET) {
-                listOf(if (event.playerId == humanId) Cue.Hit else Cue.Tweet)
+                when {
+                    event.playerId == humanId -> listOf(Cue.Hit)
+                    actingPlayerId == humanId -> listOf(Cue.Tweet)
+                    else -> emptyList()
+                }
             } else {
                 emptyList()
             }
@@ -67,5 +72,39 @@ class CueThrottle(
         if (last != null && nowMillis - last < windowMillis) return false
         lastPlayed[cue] = nowMillis
         return true
+    }
+}
+
+
+/** Queues sounds requested before SoundPool finishes loading them. */
+internal class SoundLoadQueue {
+    private val loaded = mutableSetOf<Int>()
+    private val failed = mutableSetOf<Int>()
+    private val pending = mutableListOf<Int>()
+
+    /** Returns true if [sampleId] is ready to play; failed loads are dropped. */
+    fun request(sampleId: Int): Boolean =
+        when {
+            sampleId in loaded -> true
+            sampleId in failed -> false
+            else -> false.also { pending += sampleId }
+        }
+
+    /** Marks a load complete and returns queued requests to play on success. */
+    fun complete(
+        sampleId: Int,
+        success: Boolean,
+    ): List<Int> {
+        if (success) loaded += sampleId else failed += sampleId
+        val queued = pending.filter { it == sampleId }
+        pending.removeAll { it == sampleId }
+        return if (success) queued else emptyList()
+    }
+
+    /** Discards requests when the player is disposed. */
+    fun clear() {
+        pending.clear()
+        loaded.clear()
+        failed.clear()
     }
 }
