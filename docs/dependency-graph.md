@@ -145,7 +145,7 @@ flowchart LR
   classDef done fill:#b7efc5,stroke:#218838,color:#102a17,stroke-width:2px
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class M0D,HDEC done
-  class S1,S2,S4,S6,U1,U2,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
+  class S1,S2,S4,S6,U1,U2,U3,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
 ```
 
 ## Current hand-offs

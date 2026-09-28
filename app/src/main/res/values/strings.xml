@@ -46,6 +46,21 @@
     <string name="kit_title">THE KIT</string>
     <string name="action_timeline">Timeline</string>
     <string name="action_standings">Standings</string>
+    <string name="stat_unverified">Unverified</string>
+    <string name="stat_blue_check">Blue check</string>
+    <string name="stat_gold_check">Gold check</string>
+    <string name="stat_followers_of_max">%1$dM of %2$dM followers</string>
+    <string name="stat_of_twenty">of 20</string>
+    <string name="stat_to_blue">%1$d to blue</string>
+    <string name="stat_to_gold">%1$d to gold</string>
+    <string name="stat_to_win">%1$d to win</string>
+    <string name="stat_bot">BOT</string>
+    <string name="stat_on_xitter">on xitter</string>
+    <string name="stat_acting">Taking their turn</string>
+    <string name="stat_suspended">SUSPENDED</string>
+    <string name="kit_followers_label">FOLLOWERS · HP</string>
+    <string name="kit_characters_label">CHARACTERS · ENERGY</string>
+    <string name="kit_mandates_label">MANDATES · VP</string>
     <string name="route_title">Title</string>
     <string name="route_pick_leader">Pick your leader</string>
     <string name="route_versus">Versus</string>
@@ -108,4 +123,12 @@
     <string name="endgame_last_tweet">THE TWEET THAT ENDED YOU</string>
     <string name="endgame_fixture_last_tweet">The Respected Supreme Leader has personally unfollowed @EmmanuelMacaron on behalf of 25 million grateful citizens. It took 0.3 seconds. A new world record.</string>
     <string name="endgame_score_number">%1$d</string>
+    <plurals name="stat_characters">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
+    <plurals name="stat_mandates">
+        <item quantity="one">%1$d mandate</item>
+        <item quantity="other">%1$d mandates</item>
+    </plurals>
 </resources>
