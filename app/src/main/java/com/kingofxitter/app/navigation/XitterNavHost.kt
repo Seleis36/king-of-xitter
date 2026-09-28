@@ -14,6 +14,7 @@ import com.kingofxitter.app.ui.board.BoardRoute
 import com.kingofxitter.app.ui.board.BoardSamples
 import com.kingofxitter.app.ui.board.ComposeTweetRoute
 import com.kingofxitter.app.ui.board.IncomingTweetRoute
+import com.kingofxitter.app.ui.board.rememberEffectQueue
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.engine.FakeGameController
 
@@ -59,6 +60,7 @@ fun XitterNavHost(
     }
     // Until U10 connects the real controller, the board plays the design's situation on the fake.
     val controller = remember { FakeGameController(BoardSamples.design) }
+    val effects = rememberEffectQueue(controller)
     NavHost(navController = navController, startDestination = XitterRoute.Title, modifier = modifier) {
         placeholder<XitterRoute.Title>(XitterRoute.Title, navigate)
         placeholder<XitterRoute.PickLeader>(XitterRoute.PickLeader, navigate)
@@ -77,6 +79,7 @@ fun XitterNavHost(
                         onMatchFinished = { navigate(XitterRoute.Standings) },
                     ),
                 modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding(),
+                effects = effects,
             )
         }
         composable<XitterRoute.ComposeTweet> {

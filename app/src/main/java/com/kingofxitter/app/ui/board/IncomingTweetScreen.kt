@@ -1,6 +1,5 @@
 package com.kingofxitter.app.ui.board
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +43,11 @@ import com.kingofxitter.app.ui.components.XStamp
 import com.kingofxitter.app.ui.components.XTag
 import com.kingofxitter.app.ui.components.leaderVisual
 import com.kingofxitter.app.ui.components.tweetText
+import com.kingofxitter.app.ui.motion.flash
+import com.kingofxitter.app.ui.motion.rise
+import com.kingofxitter.app.ui.motion.shakeOn
+import com.kingofxitter.app.ui.motion.slamOn
+import com.kingofxitter.app.ui.motion.stampOn
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
 import com.kingofxitter.engine.model.Action
@@ -93,8 +97,8 @@ fun IncomingTweetScreen(
     val logOff = decision.options.firstOrNull { it.action is Action.LogOffXitter }
 
     Column(modifier.fillMaxSize()) {
-        // The alarm bar across the top (`.a-flash`); U8 makes it flash.
-        Box(Modifier.fillMaxWidth().height(6.dp).background(XColors.SendIt))
+        // The alarm bar across the top (`.a-flash`).
+        Box(Modifier.fillMaxWidth().height(6.dp).flash(XColors.SendIt, XColors.AlarmFlash))
         Column(
             Modifier
                 .weight(1f)
@@ -122,12 +126,12 @@ fun IncomingTweetScreen(
                 stringResource(R.string.incoming_title),
                 XType.MemeHero,
                 XColors.Followers,
-                modifier = Modifier.fillMaxWidth().semantics { heading() },
+                modifier = Modifier.fillMaxWidth().shakeOn(decision.id).semantics { heading() },
                 outline = 6.dp,
                 dropShadow = 6.dp,
                 textAlign = TextAlign.Center,
             )
-            XCard(Modifier.fillMaxWidth()) {
+            XCard(Modifier.fillMaxWidth().slamOn(decision.id)) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     TweetAuthor(attacker, avatarSize = 46.dp, time = stringResource(R.string.incoming_time, 3, (state.turnNumber * 7) % 60))
                     Text(tweetText(tweetText), style = XType.TweetLarge, color = XColors.Ink)
@@ -151,13 +155,16 @@ fun IncomingTweetScreen(
             ) {
                 Box(Modifier.width(180.dp).fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                     // Stand-in for your leader's bust until S5 supplies portraits.
-                    XAvatar(you.leaderId, size = 150.dp, modifier = Modifier.padding(bottom = 12.dp))
-                    XStamp(stringResource(R.string.incoming_ratioed), Modifier.align(Alignment.BottomStart).padding(bottom = 28.dp))
+                    XAvatar(you.leaderId, size = 150.dp, modifier = Modifier.padding(bottom = 12.dp).shakeOn(decision.id))
+                    XStamp(
+                        stringResource(R.string.incoming_ratioed),
+                        Modifier.align(Alignment.BottomStart).padding(bottom = 28.dp).stampOn(decision.id),
+                    )
                     OutlinedText(
                         stringResource(R.string.compose_damage, hit.damage),
                         XType.DisplayLarge.copy(fontSize = 30.sp),
                         XColors.Followers,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(top = 24.dp),
+                        modifier = Modifier.align(Alignment.TopEnd).padding(top = 24.dp).rise(),
                     )
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -35,6 +35,8 @@ import com.kingofxitter.app.ui.components.XIcon
 import com.kingofxitter.app.ui.components.XIconImage
 import com.kingofxitter.app.ui.components.XSpeechBubble
 import com.kingofxitter.app.ui.components.XTag
+import com.kingofxitter.app.ui.motion.bob
+import com.kingofxitter.app.ui.motion.wobble
 import com.kingofxitter.app.ui.theme.StickerShape
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
@@ -100,7 +102,7 @@ private fun OccupiedStage(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom,
         ) {
-            XIconImage(XIcon.Crown, contentDescription = null, size = 44.dp, modifier = Modifier.rotate(-8f))
+            XIconImage(XIcon.Crown, contentDescription = null, size = 44.dp, modifier = Modifier.bob().rotate(-8f))
             // Stand-in for the leader bust until S5 supplies portraits.
             XAvatar(mainCharacter.leaderId, size = 118.dp, modifier = Modifier.padding(bottom = 10.dp))
         }
@@ -108,7 +110,15 @@ private fun OccupiedStage(
             Modifier.fillMaxHeight().weight(1f).padding(vertical = 12.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            XSpeechBubble(line, Modifier.rotate(1f), textStyle = XType.BodyStrong.copy(fontSize = XType.BodyStrong.fontSize * 0.96f))
+            XSpeechBubble(
+                line,
+                Modifier.wobble(degrees = 1f),
+                textStyle =
+                    XType.BodyStrong.copy(
+                        fontSize =
+                            XType.BodyStrong.fontSize * 0.96f,
+                    ),
+            )
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 XTag(stringResource(R.string.board_stage_mandates), fill = XColors.Paper, icon = XIcon.Mandates)
                 XTag(

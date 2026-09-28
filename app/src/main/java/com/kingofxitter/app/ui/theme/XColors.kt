@@ -58,6 +58,9 @@ object XColors {
     /** "Send it" button and hot actions. */
     val SendIt = Color(0xFFD81E54)
 
+    /** Second colour of the incoming alarm bar's flash. */
+    val AlarmFlash = Color(0xFFFF4F7E)
+
     /** RATIO'D and SUSPENDED stamps. */
     val Stamp = Color(0xFFE81E4E)
 

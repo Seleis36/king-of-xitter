@@ -2,6 +2,7 @@ package com.kingofxitter.app.ui.board
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,13 @@ import com.kingofxitter.app.ui.components.XIconImage
 import com.kingofxitter.app.ui.components.XPanel
 import com.kingofxitter.app.ui.components.XTag
 import com.kingofxitter.app.ui.components.leaderVisual
+import com.kingofxitter.app.ui.motion.BoardEffect
+import com.kingofxitter.app.ui.motion.EffectNumbers
+import com.kingofxitter.app.ui.motion.latest
+import com.kingofxitter.app.ui.motion.pulse
+import com.kingofxitter.app.ui.motion.shakeOn
+import com.kingofxitter.app.ui.motion.slamOn
+import com.kingofxitter.app.ui.motion.stampOn
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
 import com.kingofxitter.engine.model.Action
@@ -72,6 +80,7 @@ fun BoardScreen(
     callbacks: BoardCallbacks = BoardCallbacks(),
     mainCharacterLine: String? = null,
     policyName: (CardId) -> String = ::fallbackPolicyName,
+    effects: List<BoardEffect> = emptyList(),
 ) {
     val mode = BoardMode.of(state, humanId)
     val human = state.players.first { it.id == humanId }
@@ -92,15 +101,19 @@ fun BoardScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             TopBar(state, humanId, callbacks)
-            BotRow(state, humanId)
+            BotRow(state, humanId, effects)
             XitterStage(
+                modifier = Modifier.slamOn(effects.latest(BoardEffect.Kind.NewMainCharacter, state.xitterPlayerId)),
                 mainCharacter = mainCharacter,
                 isYou = mainCharacter?.id == humanId,
                 line =
                     mainCharacterLine
                         ?: stringResource(if (mainCharacter?.id == humanId) R.string.board_mc_line_you else R.string.board_mc_line_default),
             )
-            YourPanel(human, policyName = policyName)
+            Box(Modifier.shakeOn(effects.latest(BoardEffect.Kind.Damage, humanId))) {
+                YourPanel(human, policyName = policyName)
+                EffectNumbers(effects.filter { it.playerId == humanId }, Modifier.align(Alignment.TopCenter))
+            }
             DiceHeader(state, humanId, mode)
             DiceTray(
                 state,
@@ -155,7 +168,7 @@ private fun TopBar(
             XChip(stringResource(R.string.board_turn, state.turnNumber), textStyle = XType.DisplaySmall, minHeight = 34.dp)
             if (state.result == null) {
                 if (state.currentPlayerId == humanId) {
-                    XTag(stringResource(R.string.board_your_turn), fill = XColors.Characters)
+                    XTag(stringResource(R.string.board_your_turn), fill = XColors.Characters, modifier = Modifier.pulse())
                 } else {
                     val actor = state.players.first { it.id == state.currentPlayerId }
                     XTag(
@@ -176,22 +189,26 @@ private fun TopBar(
 private fun BotRow(
     state: GameState,
     humanId: PlayerId,
+    effects: List<BoardEffect>,
 ) {
     val humanIndex = state.players.indexOfFirst { it.id == humanId }
     // Opponents in turn order after you.
     val bots = (1 until state.players.size).map { state.players[(humanIndex + it) % state.players.size] }
     Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         bots.forEach { bot ->
-            BotPanel(
-                bot,
-                Modifier.weight(1f),
-                highlight =
-                    when {
-                        bot.id == state.xitterPlayerId -> BotPanelHighlight.MainCharacter
-                        bot.id == state.currentPlayerId && state.result == null -> BotPanelHighlight.Acting
-                        else -> BotPanelHighlight.None
-                    },
-            )
+            Box(Modifier.weight(1f).shakeOn(effects.latest(BoardEffect.Kind.Damage, bot.id))) {
+                BotPanel(
+                    bot,
+                    highlight =
+                        when {
+                            bot.id == state.xitterPlayerId -> BotPanelHighlight.MainCharacter
+                            bot.id == state.currentPlayerId && state.result == null -> BotPanelHighlight.Acting
+                            else -> BotPanelHighlight.None
+                        },
+                    stampModifier = Modifier.stampOn(effects.latest(BoardEffect.Kind.Suspended, bot.id)),
+                )
+                EffectNumbers(effects.filter { it.playerId == bot.id }, Modifier.align(Alignment.Center))
+            }
         }
     }
 }
@@ -274,7 +291,7 @@ private fun Controls(
             XButton(
                 stringResource(R.string.board_roll),
                 onClick = { onAction(Action.RollDice(humanId)) },
-                modifier = modifier.fillMaxWidth(),
+                modifier = modifier.fillMaxWidth().pulse(),
                 icon = XIcon.Reroll,
                 textStyle = buttonText,
             )
@@ -299,7 +316,7 @@ private fun Controls(
                             onAction(Action.ResolveRoll(humanId))
                         }
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).pulse(),
                     textStyle = buttonText,
                 )
             }
