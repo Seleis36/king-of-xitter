@@ -282,4 +282,330 @@
         <item quantity="one">%1$d unfollow</item>
         <item quantity="other">%1$d unfollows</item>
     </plurals>
+
+    <!-- =====================================================================
+         Power-up cards — name / rules / flavour
+         Keys: card_cNN_name, card_cNN_rules, card_cNN_flavour
+         ===================================================================== -->
+
+    <!-- c01 Doomscroll Drip (Acid Attack) -->
+    <string name="card_c01_name">Doomscroll Drip</string>
+    <string name="card_c01_rules">Deal 1 extra unfollow each turn, even if you roll no tweets.</string>
+    <string name="card_c01_flavour">The algorithm knows what you need. It\'s more.</string>
+
+    <!-- c02 Lobbyist (Alien Metabolism) -->
+    <string name="card_c02_name">Lobbyist</string>
+    <string name="card_c02_rules">Power-ups cost 10 fewer characters.</string>
+    <string name="card_c02_flavour">He doesn\'t work for you. He works adjacent to you.</string>
+
+    <!-- c03 Alpha Poster (Alpha Monster) -->
+    <string name="card_c03_name">Alpha Poster</string>
+    <string name="card_c03_rules">+1 mandate when you tweet at someone.</string>
+    <string name="card_c03_flavour">Every ratio is a mandate. Every mandate is a message.</string>
+
+    <!-- c04 Thick Skin PR (Armor Plating) -->
+    <string name="card_c04_name">Thick Skin PR</string>
+    <string name="card_c04_rules">Ignore hits of exactly 1 unfollow.</string>
+    <string name="card_c04_flavour">Our client has no further comment on the allegations.</string>
+
+    <!-- c05 Lurker (Background Dweller) -->
+    <string name="card_c05_name">Lurker</string>
+    <string name="card_c05_rules">You may always reroll any 3s.</string>
+    <string name="card_c05_flavour">Reads everything. Posts nothing. Knows everything.</string>
+
+    <!-- c06 Home Turf (Burrowing) -->
+    <string name="card_c06_name">Home Turf</string>
+    <string name="card_c06_rules">+1 unfollow while on Xitter. When you log off, the new Main Character loses 1M followers.</string>
+    <string name="card_c06_flavour">Your corner of the internet. Trespassers get ratio\'d.</string>
+
+    <!-- c07 Parody Account (Camouflage) -->
+    <string name="card_c07_name">Parody Account</string>
+    <string name="card_c07_rules">When hit, roll 1 die per unfollow; each like cancels one.</string>
+    <string name="card_c07_flavour">For entertainment purposes only. Results may vary.</string>
+
+    <!-- c08 Full Bingo (Complete Destruction) -->
+    <string name="card_c08_name">Full Bingo</string>
+    <string name="card_c08_rules">Rolling 1-2-3-like-tweet-characters: +9 mandates.</string>
+    <string name="card_c08_flavour">The universe aligned. You screenshot this.</string>
+
+    <!-- c09 Press Office (Dedicated News Team) -->
+    <string name="card_c09_name">Press Office</string>
+    <string name="card_c09_rules">+1 mandate per power-up bought.</string>
+    <string name="card_c09_flavour">Every transaction is an opportunity for a press release.</string>
+
+    <!-- c10 Gravedancer (Eater of the Dead) -->
+    <string name="card_c10_name">Gravedancer</string>
+    <string name="card_c10_rules">+3 mandates whenever a leader is suspended.</string>
+    <string name="card_c10_flavour">Post-suspension tweet: "I barely even knew them."</string>
+
+    <!-- c11 Drafts Folder (Energy Hoarder) -->
+    <string name="card_c11_name">Drafts Folder</string>
+    <string name="card_c11_rules">At end of turn, +1 mandate per 60 characters you hold.</string>
+    <string name="card_c11_flavour">Thirty-seven unsent tweets. One will be perfect.</string>
+
+    <!-- c12 Bot Farm (Even Bigger) -->
+    <string name="card_c12_name">Bot Farm</string>
+    <string name="card_c12_rules">+2M max followers; gain 2M now.</string>
+    <string name="card_c12_flavour">Each account is totally real. We have their profiles.</string>
+
+    <!-- c13 Second Phone (Extra Head ×2) -->
+    <string name="card_c13_name">Second Phone</string>
+    <string name="card_c13_rules">+1 die.</string>
+    <string name="card_c13_flavour">One for the posts. One for the apologies.</string>
+
+    <!-- c15 Quote Tweet (Fire Breathing) -->
+    <string name="card_c15_name">Quote Tweet</string>
+    <string name="card_c15_rules">Your neighbours lose 1M extra followers when you deal damage.</string>
+    <string name="card_c15_flavour">Adding context. Specifically: you\'re finished.</string>
+
+    <!-- c16 Pinned Tweet (Freeze Time) -->
+    <string name="card_c16_name">Pinned Tweet</string>
+    <string name="card_c16_rules">On 1-1-1, take another turn with one fewer die.</string>
+    <string name="card_c16_flavour">This message is permanently at the top of the timeline.</string>
+
+    <!-- c17 Influencer Deal (Friend of Children) -->
+    <string name="card_c17_name">Influencer Deal</string>
+    <string name="card_c17_rules">+10 extra characters whenever you gain characters.</string>
+    <string name="card_c17_flavour">Use code MANDATE for 10% off your first order.</string>
+
+    <!-- c18 Speechwriter (Giant Brain) -->
+    <string name="card_c18_name">Speechwriter</string>
+    <string name="card_c18_rules">+1 reroll each turn.</string>
+    <string name="card_c18_flavour">The words are yours. The ideas are negotiable.</string>
+
+    <!-- c19 Old Guard (Gourmet) -->
+    <string name="card_c19_name">Old Guard</string>
+    <string name="card_c19_rules">1-1-1 scores +2 extra mandates.</string>
+    <string name="card_c19_flavour">The classics, for a reason.</string>
+
+    <!-- c20 Retweet for Retweet (Healing Ray) -->
+    <string name="card_c20_name">Retweet for Retweet</string>
+    <string name="card_c20_rules">Your likes can heal others; they pay you 20 characters per 1M.</string>
+    <string name="card_c20_flavour">Engagement is a currency. Invoice attached.</string>
+
+    <!-- c21 Peace Summit (Herbivore) -->
+    <string name="card_c21_name">Peace Summit</string>
+    <string name="card_c21_rules">+1 mandate on a turn where you hit nobody.</string>
+    <string name="card_c21_flavour">An historic handshake. No photos, please.</string>
+
+    <!-- c22 Poll Rigger (Herd Culler) -->
+    <string name="card_c22_name">Poll Rigger</string>
+    <string name="card_c22_rules">Once per turn, change one die to a 1.</string>
+    <string name="card_c22_flavour">97% of respondents agree: this is fine.</string>
+
+    <!-- c23 Burner Account (It Has a Child) -->
+    <string name="card_c23_name">Burner Account</string>
+    <string name="card_c23_rules">When suspended: discard all cards, lose all mandates, return with 10M followers.</string>
+    <string name="card_c23_flavour">New account. Fresh start. Same enemies.</string>
+
+    <!-- c24 Private Jet (Jets) -->
+    <string name="card_c24_name">Private Jet</string>
+    <string name="card_c24_rules">You lose no followers when you log off.</string>
+    <string name="card_c24_flavour">I\'m not fleeing. I have a meeting in Davos.</string>
+
+    <!-- c25 Leaked Memo (Made in a Lab) -->
+    <string name="card_c25_name">Leaked Memo</string>
+    <string name="card_c25_rules">Peek at and buy the top card of the deck.</string>
+    <string name="card_c25_flavour">The source requests anonymity. Obviously.</string>
+
+    <!-- c26 Pivot (Metamorph) -->
+    <string name="card_c26_name">Pivot</string>
+    <string name="card_c26_rules">At end of turn, discard policies for their full cost in characters.</string>
+    <string name="card_c26_flavour">We\'ve always been an AI company.</string>
+
+    <!-- c27 Copycat Policy (Mimic) -->
+    <string name="card_c27_name">Copycat Policy</string>
+    <string name="card_c27_rules">Copy another leader\'s policy; pay 10 characters at turn start to switch targets.</string>
+    <string name="card_c27_flavour">Imitation is the sincerest form of political plagiarism.</string>
+
+    <!-- c28 Super PAC (Monster Batteries) -->
+    <string name="card_c28_name">Super PAC</string>
+    <string name="card_c28_rules">Load 60 characters; take 20 at the start of each turn; discard when empty.</string>
+    <string name="card_c28_flavour">Technically not coordinating. Technically.</string>
+
+    <!-- c29 Going Viral (Nova Breath) -->
+    <string name="card_c29_name">Going Viral</string>
+    <string name="card_c29_rules">Your tweets hit everyone.</string>
+    <string name="card_c29_flavour">Trending in 47 countries simultaneously.</string>
+
+    <!-- c30 Big Tent (Omnivore) -->
+    <string name="card_c30_name">Big Tent</string>
+    <string name="card_c30_rules">Once per turn, 1-2-3 scores 2 mandates (those dice still count for other sets).</string>
+    <string name="card_c30_flavour">Room for everyone. As long as they agree with us.</string>
+
+    <!-- c31 Breaking News Alerts (Opportunist) -->
+    <string name="card_c31_name">Breaking News Alerts</string>
+    <string name="card_c31_rules">You may buy newly revealed cards immediately.</string>
+    <string name="card_c31_flavour">DEVELOPING: sources confirm you got there first.</string>
+
+    <!-- c32 Hostile Takeover (Parasitic Tentacles) -->
+    <string name="card_c32_name">Hostile Takeover</string>
+    <string name="card_c32_rules">Buy other leaders\' policies by paying them.</string>
+    <string name="card_c32_flavour">An offer they technically can\'t refuse.</string>
+
+    <!-- c33 October Surprise (Plot Twist) -->
+    <string name="card_c33_name">October Surprise</string>
+    <string name="card_c33_rules">Change one die to any face, then discard.</string>
+    <string name="card_c33_flavour">Nobody saw it coming. Except us.</string>
+
+    <!-- c34 Fact Check (Poison Quills) -->
+    <string name="card_c34_name">Fact Check</string>
+    <string name="card_c34_rules">2-2-2 also deals 2 unfollows.</string>
+    <string name="card_c34_flavour">Context added. Damage done.</string>
+
+    <!-- c35 Cancel Campaign (Poison Spit) -->
+    <string name="card_c35_name">Cancel Campaign</string>
+    <string name="card_c35_rules">Give cancelled counters when you deal damage; −1M per counter at end of their turn; a like removes one.</string>
+    <string name="card_c35_flavour">The receipts are permanent.</string>
+
+    <!-- c36 Phone Tap (Psychic Probe) -->
+    <string name="card_c36_name">Phone Tap</string>
+    <string name="card_c36_rules">Reroll one of another leader\'s dice once per turn; discard if it becomes a like.</string>
+    <string name="card_c36_flavour">This conversation may be monitored for quality assurance.</string>
+
+    <!-- c37 Paid Promotion (Rapid Healing) -->
+    <string name="card_c37_name">Paid Promotion</string>
+    <string name="card_c37_rules">Pay 20 characters at any time: +1M followers.</string>
+    <string name="card_c37_flavour">Organic growth, sponsored by characters.</string>
+
+    <!-- c38 Comeback Tour (Regeneration) -->
+    <string name="card_c38_name">Comeback Tour</string>
+    <string name="card_c38_rules">Heal 1M extra followers whenever you heal.</string>
+    <string name="card_c38_flavour">The third album is always the best.</string>
+
+    <!-- c39 Underdog Narrative (Rooting for the Underdog) -->
+    <string name="card_c39_name">Underdog Narrative</string>
+    <string name="card_c39_rules">At end of turn, if you have the fewest mandates: +1 mandate.</string>
+    <string name="card_c39_flavour">They said it couldn\'t be done. Thread incoming.</string>
+
+    <!-- c40 Shadowban (Shrink Ray) -->
+    <string name="card_c40_name">Shadowban</string>
+    <string name="card_c40_rules">Give shadowban counters when you deal damage; −1 die per counter; a like removes one.</string>
+    <string name="card_c40_flavour">Your posts are still there. Sort of.</string>
+
+    <!-- c41 Smoke and Mirrors (Smoke Cloud) -->
+    <string name="card_c41_name">Smoke and Mirrors</string>
+    <string name="card_c41_rules">3 counters; spend 1 for an extra reroll; discard when empty.</string>
+    <string name="card_c41_flavour">The real story is somewhere behind all this.</string>
+
+    <!-- c42 Ghostwriter (Solar Powered) -->
+    <string name="card_c42_name">Ghostwriter</string>
+    <string name="card_c42_rules">At end of turn with 0 characters, gain 10.</string>
+    <string name="card_c42_flavour">He wrote it. You tweeted it. History will never know.</string>
+
+    <!-- c43 CAPS LOCK STUCK (Spiked Tail) -->
+    <string name="card_c43_name">CAPS LOCK STUCK</string>
+    <string name="card_c43_rules">+1 unfollow when you tweet.</string>
+    <string name="card_c43_flavour">EVERYTHING IS EXTREMELY IMPORTANT AND ALSO FINE.</string>
+
+    <!-- c44 Spin Doctor (Stretchy) -->
+    <string name="card_c44_name">Spin Doctor</string>
+    <string name="card_c44_rules">Pay 20 characters: change one die to any face.</string>
+    <string name="card_c44_flavour">It\'s not a loss. It\'s a strategic redeployment.</string>
+
+    <!-- c45 Focus Group (Telepath) -->
+    <string name="card_c45_name">Focus Group</string>
+    <string name="card_c45_rules">Pay 10 characters: +1 reroll.</string>
+    <string name="card_c45_flavour">Six undecided voters in a rented room. Priceless.</string>
+
+    <!-- c46 Main Character Energy (Urbavore) -->
+    <string name="card_c46_name">Main Character Energy</string>
+    <string name="card_c46_rules">+1 mandate when starting on Xitter; +1 unfollow while on Xitter.</string>
+    <string name="card_c46_flavour">The timeline revolves around you. Cosmically confirmed.</string>
+
+    <!-- c47 Martyr Complex (We're Only Making It Stronger) -->
+    <string name="card_c47_name">Martyr Complex</string>
+    <string name="card_c47_rules">Lose 2M+ followers at once: +10 characters.</string>
+    <string name="card_c47_flavour">The harder they come, the more content you get.</string>
+
+    <!-- c48 Touch Grass (Wings) -->
+    <string name="card_c48_name">Touch Grass</string>
+    <string name="card_c48_rules">Pay 20 characters: negate all unfollows to you this turn.</string>
+    <string name="card_c48_flavour">It\'s called a weekend. You should try it sometime.</string>
+
+    <!-- c49 Op-Ed (Apartment Building) -->
+    <string name="card_c49_name">Op-Ed</string>
+    <string name="card_c49_rules">+3 mandates.</string>
+    <string name="card_c49_flavour">The editors gave me 800 words. I used 2,400.</string>
+
+    <!-- c50 Photo Op (Commuter Train) -->
+    <string name="card_c50_name">Photo Op</string>
+    <string name="card_c50_rules">+2 mandates.</string>
+    <string name="card_c50_flavour">Holding a rake at a disaster site. +2 mandates.</string>
+
+    <!-- c51 Baby Kissing (Corner Store) -->
+    <string name="card_c51_name">Baby Kissing</string>
+    <string name="card_c51_rules">+1 mandate.</string>
+    <string name="card_c51_flavour">The baby had no comment.</string>
+
+    <!-- c52 Hijack the Trend (Death From Above) -->
+    <string name="card_c52_name">Hijack the Trend</string>
+    <string name="card_c52_rules">+2 mandates and take Xitter.</string>
+    <string name="card_c52_flavour">#NotSponsored but also absolutely sponsored.</string>
+
+    <!-- c53 Content Binge (Energize) -->
+    <string name="card_c53_name">Content Binge</string>
+    <string name="card_c53_rules">+90 characters.</string>
+    <string name="card_c53_flavour">Seven hours of timeline. Completely worth it.</string>
+
+    <!-- c54 Leaked Group Chat (Evacuation Orders ×2) -->
+    <string name="card_c54_name">Leaked Group Chat</string>
+    <string name="card_c54_rules">Every other leader loses 5 mandates.</string>
+    <string name="card_c54_flavour">The screenshots speak for themselves.</string>
+
+    <!-- c56 Subtweet Storm (Fire Blast) -->
+    <string name="card_c56_name">Subtweet Storm</string>
+    <string name="card_c56_rules">2 unfollows to every other leader.</string>
+    <string name="card_c56_flavour">No names. You know who you are.</string>
+
+    <!-- c57 All-Nighter (Frenzy) -->
+    <string name="card_c57_name">All-Nighter</string>
+    <string name="card_c57_rules">Take another turn after this one.</string>
+    <string name="card_c57_flavour">3 AM. Phone in hand. Zero regrets.</string>
+
+    <!-- c58 State Media Blitz (Gas Refinery) -->
+    <string name="card_c58_name">State Media Blitz</string>
+    <string name="card_c58_rules">+2 mandates; 3 unfollows to every other leader.</string>
+    <string name="card_c58_flavour">Breaking on all twelve channels simultaneously.</string>
+
+    <!-- c59 Buy Followers (Heal) -->
+    <string name="card_c59_name">Buy Followers</string>
+    <string name="card_c59_rules">+2M followers (works while on Xitter).</string>
+    <string name="card_c59_flavour">Real engagement. Verified purchase.</string>
+
+    <!-- c60 Reply-All Disaster (High Altitude Bombing) -->
+    <string name="card_c60_name">Reply-All Disaster</string>
+    <string name="card_c60_rules">Every leader, you included, loses 3M followers.</string>
+    <string name="card_c60_flavour">Sent to: All Staff. Oops.</string>
+
+    <!-- c61 Military Parade (Jet Fighters) -->
+    <string name="card_c61_name">Military Parade</string>
+    <string name="card_c61_rules">+5 mandates; you lose 4M followers.</string>
+    <string name="card_c61_flavour">Spectacular. The tanks were a bit much.</string>
+
+    <!-- c62 Press Conference (National Guard) -->
+    <string name="card_c62_name">Press Conference</string>
+    <string name="card_c62_rules">+2 mandates; you lose 2M followers.</string>
+    <string name="card_c62_flavour">I\'ll take three questions. Actually, zero questions.</string>
+
+    <!-- c63 Rally (Nuclear Power Plant) -->
+    <string name="card_c63_name">Rally</string>
+    <string name="card_c63_rules">+2 mandates; +3M followers.</string>
+    <string name="card_c63_flavour">Huge crowd. The biggest. Everyone says so.</string>
+
+    <!-- c64 Golden Tower (Skyscraper) -->
+    <string name="card_c64_name">Golden Tower</string>
+    <string name="card_c64_rules">+4 mandates.</string>
+    <string name="card_c64_flavour">Visible from space. Also from Xitter.</string>
+
+    <!-- c65 Hot Mic (Tanks) -->
+    <string name="card_c65_name">Hot Mic</string>
+    <string name="card_c65_rules">+4 mandates; you lose 3M followers.</string>
+    <string name="card_c65_flavour">I didn\'t know it was on. Anyway.</string>
+
+    <!-- c66 Market Crash (Vast Storm) -->
+    <string name="card_c66_name">Market Crash</string>
+    <string name="card_c66_rules">+2 mandates; others lose 10 characters per 20 characters held.</string>
+    <string name="card_c66_flavour">This is fine. Everything is fine. Please hold.</string>
+
 </resources>
