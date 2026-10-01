@@ -75,10 +75,17 @@ class TestGame {
     /** Overrides the bot player's full state. */
     fun withBot(state: PlayerState): TestGame = apply { bot = state.copy(id = BOT) }
 
-    /** Adds [policies] to the human player's policy list. */
+    /** Adds [policy] to the target player's policy list. */
     fun withPolicy(
         playerId: PlayerId,
-        vararg policies: CardId,
+        policy: CardId,
+    ): TestGame =
+        withPolicies(playerId, listOf(policy))
+
+    /** Adds [policies] to the target player's policy list. */
+    fun withPolicies(
+        playerId: PlayerId,
+        policies: List<CardId>,
     ): TestGame =
         apply {
             when (playerId) {
@@ -157,13 +164,13 @@ class TestGame {
     fun withRollNumber(n: Int): TestGame = apply { rollNumber = n }
 
     /** Sets the draw pile card IDs (top of pile first). */
-    fun withDrawPile(vararg cardIds: CardId): TestGame = apply { drawPile = cardIds.toList() }
+    fun withDrawPile(cardIds: List<CardId>): TestGame = apply { drawPile = cardIds }
 
     /** Sets the visible shop row. */
-    fun withShop(vararg cardIds: CardId): TestGame = apply { shop = cardIds.toList() }
+    fun withShop(cardIds: List<CardId>): TestGame = apply { shop = cardIds }
 
     /** Sets the discard pile. */
-    fun withDiscardPile(vararg cardIds: CardId): TestGame = apply { discardPile = cardIds.toList() }
+    fun withDiscardPile(cardIds: List<CardId>): TestGame = apply { discardPile = cardIds }
 
     /** Overrides the deterministic random seed. */
     fun withSeed(seed: Long): TestGame = apply { randomState = seed }
