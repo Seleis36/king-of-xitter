@@ -21,7 +21,11 @@ object ShopLogic {
     const val SHOP_SIZE = 3
 
     /** Initializes the deck and shop in the given state snapshot. */
-    fun setupDeck(state: GameState, allCardIds: List<CardId>, seed: Long): GameState {
+    fun setupDeck(
+        state: GameState,
+        allCardIds: List<CardId>,
+        seed: Long,
+    ): GameState {
         val random = SplitMix64(seed)
         val shuffled = allCardIds.toMutableList()
         for (i in shuffled.indices.reversed()) {
@@ -36,7 +40,7 @@ object ShopLogic {
             shopCardIds = shop,
             drawPileCardIds = drawPile,
             discardPileCardIds = emptyList(),
-            randomState = random.state
+            randomState = random.state,
         )
     }
 }
@@ -51,21 +55,26 @@ class ShopReducer(
     private val baseReducer: GameReducer,
 ) : GameReducer {
 
-    override fun reduce(state: GameState, action: Action): GameTransition {
-        return when (action) {
+    override fun reduce(
+        state: GameState,
+        action: Action,
+    ): GameTransition =
+        when (action) {
             is Action.BuyPowerUp -> buyPowerUp(state, action)
             is Action.SweepShop -> sweepShop(state, action)
             else -> baseReducer.reduce(state, action)
         }
-    }
 
     override fun dispatchOnBuy(
         state: GameState,
         buyerId: PlayerId,
-        purchasedCardId: CardId
+        purchasedCardId: CardId,
     ): GameTransition = baseReducer.dispatchOnBuy(state, buyerId, purchasedCardId)
 
-    private fun buyPowerUp(state: GameState, action: Action.BuyPowerUp): GameTransition {
+    private fun buyPowerUp(
+        state: GameState,
+        action: Action.BuyPowerUp,
+    ): GameTransition {
         if (state.phase != TurnPhase.SHOP) {
             return reject(state, action.playerId, ActionRejectionReason.WRONG_PHASE)
         }
@@ -76,11 +85,13 @@ class ShopReducer(
             return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         }
 
-        val cardDef = CardCatalog.byId[action.cardId]
-            ?: return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
+        val cardDef =
+            CardCatalog.byId[action.cardId]
+                ?: return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
 
-        val player = state.players.firstOrNull { it.id == action.playerId }
-            ?: return reject(state, action.playerId, ActionRejectionReason.WRONG_PLAYER)
+        val player =
+            state.players.firstOrNull { it.id == action.playerId }
+                ?: return reject(state, action.playerId, ActionRejectionReason.WRONG_PLAYER)
 
         val cost = cardDef.cost
         // The Lobbyist discount is handled by C4 (Passive policies), so we assume cost is final for now,
@@ -97,22 +108,22 @@ class ShopReducer(
         val newCharacters = player.characters - cost
         val playerIdx = workingState.players.indexOfFirst { it.id == action.playerId }
         val updatedPlayer = player.copy(characters = newCharacters)
-        
+
         events.add(
             GameEvent.ResourceChanged(
                 playerId = action.playerId,
                 resource = PlayerResource.CHARACTERS,
                 amount = -cost,
                 totalAfter = newCharacters,
-                reason = ResourceChangeReason.POWER_UP
-            )
+                reason = ResourceChangeReason.POWER_UP,
+            ),
         )
 
         // Process purchase
         val newShop = workingState.shopCardIds.toMutableList()
         newShop.remove(action.cardId)
         workingState = workingState.copy(shopCardIds = newShop)
-        
+
         if (cardDef.type == CardType.POLICY) {
             val p = updatedPlayer.copy(policyIds = updatedPlayer.policyIds + action.cardId)
             val players = workingState.players.toMutableList().also { it[playerIdx] = p }
@@ -121,7 +132,7 @@ class ShopReducer(
             val players = workingState.players.toMutableList().also { it[playerIdx] = updatedPlayer }
             workingState = workingState.copy(
                 players = players,
-                discardPileCardIds = workingState.discardPileCardIds + action.cardId
+                discardPileCardIds = workingState.discardPileCardIds + action.cardId,
             )
         }
 
@@ -137,23 +148,26 @@ class ShopReducer(
         }
     }
 
-    private fun sweepShop(state: GameState, action: Action.SweepShop): GameTransition {
+    private fun sweepShop(
+        state: GameState,
+        action: Action.SweepShop,
+    ): GameTransition {
         if (state.phase != TurnPhase.SHOP) {
             return reject(state, action.playerId, ActionRejectionReason.WRONG_PHASE)
         }
         if (state.currentPlayerId != action.playerId) {
             return reject(state, action.playerId, ActionRejectionReason.WRONG_PLAYER)
         }
-        
-        val player = state.players.firstOrNull { it.id == action.playerId }
-            ?: return reject(state, action.playerId, ActionRejectionReason.WRONG_PLAYER)
 
-        val SWEEP_COST = 20
-        if (player.characters < SWEEP_COST) {
+        val player =
+            state.players.firstOrNull { it.id == action.playerId }
+                ?: return reject(state, action.playerId, ActionRejectionReason.WRONG_PLAYER)
+
+        if (player.characters < ShopLogic.SWEEP_COST) {
             return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         }
 
-        val newCharacters = player.characters - SWEEP_COST
+        val newCharacters = player.characters - ShopLogic.SWEEP_COST
         val playerIdx = state.players.indexOfFirst { it.id == action.playerId }
         val updatedPlayer = player.copy(characters = newCharacters)
         val players = state.players.toMutableList().also { it[playerIdx] = updatedPlayer }
@@ -163,16 +177,16 @@ class ShopReducer(
             GameEvent.ResourceChanged(
                 playerId = action.playerId,
                 resource = PlayerResource.CHARACTERS,
-                amount = -SWEEP_COST,
+                amount = -ShopLogic.SWEEP_COST,
                 totalAfter = newCharacters,
-                reason = ResourceChangeReason.POWER_UP
-            )
+                reason = ResourceChangeReason.POWER_UP,
+            ),
         )
 
         var workingState = state.copy(
             players = players,
             discardPileCardIds = state.discardPileCardIds + state.shopCardIds,
-            shopCardIds = emptyList()
+            shopCardIds = emptyList(),
         )
 
         val refilled = refillShop(workingState)
@@ -189,7 +203,7 @@ class ShopReducer(
         val random = SplitMix64(state.randomState)
         var changed = false
 
-        while (shop.size < 3) {
+        while (shop.size < ShopLogic.SHOP_SIZE) {
             if (drawPile.isEmpty()) {
                 if (discardPile.isEmpty()) {
                     break // Nothing to draw
@@ -215,14 +229,16 @@ class ShopReducer(
             shopCardIds = shop,
             drawPileCardIds = drawPile,
             discardPileCardIds = discardPile,
-            randomState = random.state
+            randomState = random.state,
         )
 
         val events = if (changed) listOf(GameEvent.ShopChanged(shop)) else emptyList()
         return Pair(newState, events)
     }
 
-    private fun reject(state: GameState, playerId: PlayerId, reason: ActionRejectionReason): GameTransition {
-        return GameTransition(state, listOf(GameEvent.ActionRejected(playerId, reason)))
-    }
+    private fun reject(
+        state: GameState,
+        playerId: PlayerId,
+        reason: ActionRejectionReason,
+    ): GameTransition = GameTransition(state, listOf(GameEvent.ActionRejected(playerId, reason)))
 }
