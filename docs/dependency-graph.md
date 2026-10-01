@@ -146,7 +146,7 @@ flowchart LR
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class M0D,HDEC done
   class S1,S2,S3,S6,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
-  class C1 active
+  class C1,C2 active
   class S4,U1,U2,U3,U4,U5,U6,U7,U8,U9,U10 done
 ```
 
@@ -182,11 +182,11 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
   cross-track review and validation recorded above.
 - M0 decisions remain settled in ROADMAP §1. AzerX2 owns updating the Bot Farm
   catalogue/design to the agreed 40-character cost.
-- S3 (CardDef + TestGame) and C1 (CardCatalog, all 66 cards) are implemented on
-  `C1-CardCatalog-data-for-66-pu` (commit bf6b0cf). `CardDef` holds name, cost,
+- S3 (CardDef + TestGame), C1 (CardCatalog, all 66 cards), and C2 (Deck and shop logic) 
+  are implemented and pushed on their respective branches. `CardDef` holds name, cost,
   type, rules-key and flavour-key for each card. `TestGame` is a fluent
   `GameState` builder for unit tests and Compose previews. `CardCatalog` exposes
-  `all`, `byId`, and `standardDeck` (68 entries: 66 cards + two duplicates).
-  18 unit tests cover structure, costs, types, and the builder API; `ktlintCheck`
-  passes. Tests require JDK 21 via toolchain (available in CI). S3 and C1 remain
-  yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
+  `all`, `byId`, and `standardDeck`. `ShopReducer` intercepts BuyPowerUp and SweepShop, 
+  applies costs, and delegates hooks to the base reducer.
+  18 unit tests cover structure for C1/S3, and tests exist for C2 logic.
+  S3, C1, and C2 remain yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
