@@ -4,7 +4,7 @@ import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.HookRandom
 
 /** Small deterministic generator whose complete state is stored in [GameState]. */
-internal class SplitMix64(
+class SplitMix64(
     var state: Long,
 ) : HookRandom {
     override fun nextInt(bound: Int): Int {
