@@ -3,13 +3,13 @@ package com.kingofxitter.cards
 import com.kingofxitter.engine.model.CardId
 
 /**
- * Registry of all 66 base-game power-up definitions.
+ * Registry of 64 unique definitions representing all 66 base-game power-up cards.
  *
  * Card IDs are stable snake_case strings that match the KoT card number so they
  * remain sortable and won't conflict with future expansions.
  *
- * String resource keys follow the pattern `card_<id>_name`, `card_<id>_rules`,
- * `card_<id>_flavour` — all declared in `app/src/main/res/values/strings.xml`.
+ * String resource keys follow the pattern `card_cNN_name`, `card_cNN_rules`,
+ * `card_cNN_flavour` — all declared in `app/src/main/res/values/strings.xml`.
  *
  * Costs are in characters (×10 vs. original energy). The two duplicate cards
  * (Extra Head ×2 and Evacuation Orders ×2) have [CardDef.count] = 2.
@@ -672,7 +672,7 @@ object CardCatalog {
     // -------------------------------------------------------------------------
 
     /**
-     * All 66 card definitions in KoT catalogue order.
+     * All 64 unique card definitions in KoT catalogue order.
      * Duplicate entries (Second Phone and Leaked Group Chat) appear once here;
      * use [standardDeck] for the physical deck that contains two copies each.
      */
@@ -746,12 +746,12 @@ object CardCatalog {
 
     /**
      * Lookup map from [CardId] to its definition.
-     * Throws [NoSuchElementException] for unknown IDs; all engine-issued IDs come from here.
+     * Unknown IDs return null when using this map; [get] rejects them.
      */
     val byId: Map<CardId, CardDef> = all.associateBy { it.id }
 
     /**
-     * The physical draw deck: 66 distinct cards, with Second Phone and Leaked Group Chat
+     * The physical draw deck: 66 cards, with Second Phone and Leaked Group Chat
      * each contributing two copies. The list preserves catalogue order so shuffling is the
      * caller's responsibility.
      */

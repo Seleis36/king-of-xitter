@@ -18,7 +18,7 @@ import com.kingofxitter.engine.model.TurnPhase
  *
  * ```kotlin
  * val state = TestGame()
- *     .withPolicy(human, CardCatalog["c02_lobbyist"].id)
+ *     .withPolicy(human, CardCatalog[CardId("c02_lobbyist")].id)
  *     .withCharacters(human, 60)
  *     .withDice(DiceFace.TWEET, DiceFace.TWEET, DiceFace.TWEET)
  *     .build()
@@ -79,8 +79,7 @@ class TestGame {
     fun withPolicy(
         playerId: PlayerId,
         policy: CardId,
-    ): TestGame =
-        withPolicies(playerId, listOf(policy))
+    ): TestGame = withPolicies(playerId, listOf(policy))
 
     /** Adds [policies] to the target player's policy list. */
     fun withPolicies(

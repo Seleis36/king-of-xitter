@@ -19,16 +19,16 @@ class CardCatalogTest {
     // -------------------------------------------------------------------------
 
     @Test
-    fun `catalogue contains exactly 66 unique definitions`() {
-        assertEquals(66, CardCatalog.all.size)
+    fun `catalogue contains exactly 64 unique definitions`() {
+        assertEquals(64, CardCatalog.all.size)
         val ids = CardCatalog.all.map { it.id }
         assertEquals(ids.distinct().size, ids.size, "Card IDs must be unique")
     }
 
     @Test
-    fun `standard deck contains exactly 68 cards`() {
-        // 66 base + 1 extra Second Phone + 1 extra Leaked Group Chat = 68
-        assertEquals(68, CardCatalog.standardDeck.size)
+    fun `standard deck contains exactly 66 cards`() {
+        // ROADMAP entries 13–14 and 54–55 each represent two physical copies.
+        assertEquals(66, CardCatalog.standardDeck.size)
     }
 
     @Test
@@ -84,6 +84,91 @@ class CardCatalogTest {
     // -------------------------------------------------------------------------
     // Costs (ROADMAP §2)
     // -------------------------------------------------------------------------
+
+    @Test
+    fun `all catalogue costs match ROADMAP section two`() {
+        val physicalCardCosts =
+            listOf(
+                60,
+                30,
+                50,
+                40,
+                40,
+                50,
+                30,
+                30,
+                30,
+                40,
+                30,
+                40,
+                70,
+                70,
+                40,
+                50,
+                30,
+                50,
+                40,
+                40,
+                50,
+                30,
+                70,
+                50,
+                20,
+                30,
+                80,
+                20,
+                70,
+                40,
+                30,
+                40,
+                30,
+                30,
+                40,
+                30,
+                30,
+                40,
+                30,
+                60,
+                40,
+                20,
+                50,
+                30,
+                40,
+                40,
+                30,
+                60,
+                50,
+                40,
+                30,
+                50,
+                80,
+                70,
+                70,
+                30,
+                70,
+                60,
+                30,
+                40,
+                50,
+                30,
+                60,
+                60,
+                40,
+                60,
+            )
+        val expectedCosts =
+            physicalCardCosts
+                .mapIndexed { index, cost -> index + 1 to cost }
+                .filter { (number, _) -> number != 14 && number != 55 }
+                .toMap()
+        val actualCosts =
+            CardCatalog.all.associate { def ->
+                def.id.value
+                    .substring(1, 3)
+                    .toInt() to def.cost
+            }
+        assertEquals(expectedCosts, actualCosts)
+    }
 
     @Test
     fun `all costs are positive multiples of 10`() {
