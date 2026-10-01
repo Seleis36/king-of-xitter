@@ -285,7 +285,7 @@ class CardCatalogTest {
     fun `TestGame withShop populates the shop row`() {
         val id1 = CardId("c49_op_ed")
         val id2 = CardId("c50_photo_op")
-        val state = TestGame().withShop(id1, id2).build()
+        val state = TestGame().withShop(listOf(id1, id2)).build()
         assertEquals(listOf(id1, id2), state.shopCardIds)
     }
 }
