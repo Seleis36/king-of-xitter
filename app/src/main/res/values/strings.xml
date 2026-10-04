@@ -608,4 +608,14 @@
     <string name="card_c66_rules">+2 mandates; others lose 10 characters per 20 characters held.</string>
     <string name="card_c66_flavour">This is fine. Everything is fine. Please hold.</string>
 
+    <!-- C8: power-up shop and card. -->
+    <string name="shop_title">POWER-UP SHOP</string>
+    <string name="shop_close">Close shop</string>
+    <string name="shop_characters">%1$d CHARACTERS</string>
+    <string name="shop_empty">The shop is empty.</string>
+    <string name="shop_buy">BUY FOR %1$d</string>
+    <string name="shop_sweep">SWEEP (%1$d)</string>
+    <string name="card_type_policy">POLICY</string>
+    <string name="card_type_order">ORDER</string>
+    <string name="card_rules_missing">Rules missing</string>
 </resources>

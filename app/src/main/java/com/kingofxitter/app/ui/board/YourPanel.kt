@@ -25,14 +25,13 @@ import com.kingofxitter.app.ui.components.CertificationBadge
 import com.kingofxitter.app.ui.components.CharactersRing
 import com.kingofxitter.app.ui.components.FollowersBar
 import com.kingofxitter.app.ui.components.MandateProgress
+import com.kingofxitter.app.ui.components.PowerUpCard
 import com.kingofxitter.app.ui.components.XAvatar
-import com.kingofxitter.app.ui.components.XChip
 import com.kingofxitter.app.ui.components.XPanel
 import com.kingofxitter.app.ui.components.XTag
 import com.kingofxitter.app.ui.components.leaderVisual
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
-import com.kingofxitter.app.ui.components.PowerUpCard
 import com.kingofxitter.cards.CardCatalog
 import com.kingofxitter.engine.model.CardId
 import com.kingofxitter.engine.model.PlayerState

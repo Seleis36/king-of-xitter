@@ -25,6 +25,7 @@ import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.cards.CardCatalog
+import com.kingofxitter.cards.ShopLogic
 import com.kingofxitter.engine.model.Action
 import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.PlayerId
@@ -36,76 +37,78 @@ fun ShopScreen(
     humanId: PlayerId,
     onAction: (Action) -> Unit,
     onClose: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val player = state.players.first { it.id == humanId }
     val isShoppingPhase = state.phase == TurnPhase.SHOP && state.currentPlayerId == humanId
-    
+
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .nightBackground()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .nightBackground()
+                .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Top Bar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "POWER-UP SHOP",
+                text = stringResource(R.string.shop_title),
                 style = XType.DisplayLarge,
-                color = XColors.Paper
+                color = XColors.Paper,
             )
             XIconButton(
-                icon = XIcon.Timeline, // Replace with close icon if available, Timeline as fallback? Wait, XIcon might not have Close. Let's just use Text button if no icon.
-                contentDescription = "Close",
-                onClick = onClose
+                icon = XIcon.Close,
+                contentDescription = stringResource(R.string.shop_close),
+                onClick = onClose,
             )
         }
 
         // Characters (currency)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             XIconImage(icon = XIcon.Characters, contentDescription = null, size = 24.dp)
             Text(
-                text = "${player.characters} CHARACTERS",
+                text = stringResource(R.string.shop_characters, player.characters),
                 style = XType.DisplayMedium,
-                color = XColors.Characters
+                color = XColors.Characters,
             )
         }
 
         // Cards list
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (state.shopCardIds.isEmpty()) {
                 Text(
-                    text = "The shop is empty.",
+                    text = stringResource(R.string.shop_empty),
                     style = XType.Body,
-                    color = XColors.Muted
+                    color = XColors.Muted,
                 )
             }
-            
+
             for (cardId in state.shopCardIds) {
                 val cardDef = CardCatalog[cardId]
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     PowerUpCard(card = cardDef, modifier = Modifier.fillMaxWidth())
-                    
+
                     if (isShoppingPhase) {
                         XButton(
-                            text = "BUY FOR ${cardDef.cost}",
+                            text = stringResource(R.string.shop_buy, cardDef.cost),
                             onClick = { onAction(Action.BuyPowerUp(humanId, cardId)) },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = player.characters >= cardDef.cost,
-                            style = XButtonStyle.Primary
+                            style = XButtonStyle.Primary,
                         )
                     }
                 }
@@ -115,11 +118,11 @@ fun ShopScreen(
         // Sweep Shop
         if (isShoppingPhase) {
             XButton(
-                text = "SWEEP (20)",
+                text = stringResource(R.string.shop_sweep, ShopLogic.SWEEP_COST),
                 onClick = { onAction(Action.SweepShop(humanId)) },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = player.characters >= 20,
-                style = XButtonStyle.Secondary
+                enabled = player.characters >= ShopLogic.SWEEP_COST,
+                style = XButtonStyle.Secondary,
             )
         }
     }
