@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
-import com.kingofxitter.bots.InternBot
+import com.kingofxitter.bots.ReplyGuyBot
 import com.kingofxitter.bots.asBotAction
 import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.MatchSaveFile
@@ -79,9 +79,9 @@ class MatchHost(
             initialState = setup.state.copy(characterCap = options.characterCap),
             humanPlayerId = setup.humanPlayerId,
             saveFile = MatchSaveFile(saveFile.toPath()),
-            // B1 replaces the engine's always-first-option stand-in. The deck is still empty, so
-            // the bots play base rules with CardMarket.Unknown until C2 wires the shop in.
-            botAction = InternBot().asBotAction(),
+            // B2 is the design's default difficulty. The deck is still empty, so the bots play
+            // base rules with CardMarket.Unknown until C2 wires the shop in.
+            botAction = ReplyGuyBot().asBotAction(),
             botDelayMillis = options.botDelayMillis,
         )
     },

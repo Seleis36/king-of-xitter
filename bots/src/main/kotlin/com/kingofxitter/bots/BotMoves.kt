@@ -22,6 +22,9 @@ object BotMoves {
     /** Characters a shop sweep costs (ROADMAP §1). */
     const val SWEEP_COST = 20
 
+    /** The cheapest power-up in the catalogue (ROADMAP §2), so a bot knows what a fresh row might cost. */
+    const val CHEAPEST_CARD = 20
+
     /** Whoever the state is waiting on: the owner of the head decision, otherwise the current player. */
     fun actingPlayerId(state: GameState): PlayerId? {
         if (state.result != null || state.phase == TurnPhase.FINISHED) return null
