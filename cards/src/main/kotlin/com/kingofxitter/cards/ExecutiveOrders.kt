@@ -71,7 +71,7 @@ object ExecutiveOrders {
 
                 override fun onBuy(context: CardHookContext) =
                     listOf(
-                        CardEffectIntent.ChangeExtraTurns(context.ownerId, 1)
+                        CardEffectIntent.ChangeExtraTurns(context.ownerId, 1),
                     )
             },
             object : CardEffect {

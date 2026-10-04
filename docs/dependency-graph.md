@@ -146,7 +146,7 @@ flowchart LR
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class M0D,HDEC done
   class S1,S2,S3,S6,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
-  class C1,C2,C3,C6 active
+  class C1,C2,C3,C4,C5,C6 active
   class S5,B1,B2,B3,B4,V1,V2,V3,V4,V5,V6 active
   class S4,U1,U2,U3,U4,U5,U6,U7,U8,U9,U10 done
 ```
@@ -204,3 +204,5 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
   S3, C1, and C2 remain yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
 - C3 (Executive Orders) is implemented with 16 card effects and matching tests. It remains yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
 - C6 (Counters and extra turns) is implemented with 6 card effects and tests. The engine was updated to natively handle removing negative counters with likes and processing intrinsic effects for shadowban and cancelled counters. It remains yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
+- C4 (Passive policies) and C5 (Activated policies) are implemented with their card effects and tests. They remain yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
+- C4 (Passive policies) is implemented with 26 card effects. The implementation required adding missing hooks to E6 for healing, damage reactions, and logging off. It remains yellow until CI passes and a cross-track reviewer approves.

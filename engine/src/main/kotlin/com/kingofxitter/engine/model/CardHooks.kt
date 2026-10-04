@@ -1,5 +1,8 @@
 package com.kingofxitter.engine.model
 
+/** Counter that removes one die per point from a player's next turn in a chain of extra turns. */
+const val EXTRA_TURN_DICE_PENALTY = "extra_turn_dice_penalty"
+
 /** Card implementation boundary called by the engine at rule-defined windows. */
 interface CardEffect {
     /** Stable card identity used to bind the effect to a definition. */
@@ -43,6 +46,18 @@ interface CardEffect {
         context: CardHookContext,
         action: Action.ActivateAbility,
     ): List<CardEffectIntent> = emptyList()
+
+    /** Effects triggered when the Main Character logs off. */
+    fun onLogOff(context: CardHookContext): List<CardEffectIntent> = emptyList()
+
+    /** Modifies the amount of healing received. */
+    fun modifyHealing(context: CardHookContext): Int = 0
+
+    /** Effects triggered after this card owner receives damage. */
+    fun onDamageReceived(context: CardHookContext): List<CardEffectIntent> = emptyList()
+
+    /** Modifies characters gained. */
+    fun modifyGainCharacters(context: CardHookContext): Int = 0
 }
 
 /** Immutable rule snapshot and trigger details passed to one card hook. */
@@ -75,6 +90,10 @@ enum class CardHookWindow {
     TURN_END,
     ELIMINATED,
     ACTIVATED_ABILITY,
+    ON_LOG_OFF,
+    HEALING,
+    ON_DAMAGE_RECEIVED,
+    GAIN_CHARACTERS,
 }
 
 /** Deterministic random stream owned by one reducer invocation. */
@@ -89,6 +108,7 @@ data class DamageAdjustment(
     val damageReduction: Int = 0,
     val preventDamage: Boolean = false,
     val hitsAllOpponents: Boolean = false,
+    val perTargetBonus: Map<PlayerId, Int> = emptyMap(),
 )
 
 /** Optional player-facing ability offered by an active card. */
@@ -134,10 +154,14 @@ sealed interface CardEffectIntent {
         val amount: Int,
     ) : CardEffectIntent
 
-    /** Changes the owner's extra-reroll modifier. */
+    /**
+     * Changes the owner's extra-reroll modifier. When [thisTurnOnly] is true, only the current
+     * turn's roll limit changes and the persistent modifier is left alone.
+     */
     data class ChangeRerollCount(
         val playerId: PlayerId,
         val amount: Int,
+        val thisTurnOnly: Boolean = false,
     ) : CardEffectIntent
 
     /** Grants or removes an extra turn. */
@@ -156,7 +180,7 @@ sealed interface CardEffectIntent {
         val decision: PendingDecision,
     ) : CardEffectIntent
 
-    /** Discards a policy card from a player's active policies. */
+    /** Discards an active policy. */
     data class DiscardPolicy(
         val playerId: PlayerId,
         val cardId: CardId,
