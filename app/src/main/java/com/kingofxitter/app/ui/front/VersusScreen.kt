@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
@@ -217,7 +218,7 @@ private fun RollRow(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(leaderVisual(player.leaderId).shortName), style = XType.DisplayTiny, color = XColors.Ink)
             Box(Modifier.weight(1f))
-            XTag(stringResource(R.string.versus_tweets, tweets), fill = if (tweets > 0) XColors.Tweet else XColors.Disabled)
+            XTag(pluralStringResource(R.plurals.versus_tweets, tweets, tweets), fill = if (tweets > 0) XColors.Tweet else XColors.Disabled)
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             dice.forEach { face -> Die(face, size = DieSize.ExtraSmall) }

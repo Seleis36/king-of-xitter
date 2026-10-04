@@ -76,7 +76,10 @@
     <string name="versus_roll_off_rule">Most tweets goes first</string>
     <string name="versus_round">ROUND %1$d</string>
     <string name="versus_starts">%1$s STARTS</string>
-    <string name="versus_tweets">%1$d tweets</string>
+    <plurals name="versus_tweets">
+        <item quantity="one">%1$d tweet</item>
+        <item quantity="other">%1$d tweets</item>
+    </plurals>
     <string name="versus_begin">TWEET FIRST</string>
     <string name="versus_skip">Skip</string>
     <!-- V3: Match timeline. -->
