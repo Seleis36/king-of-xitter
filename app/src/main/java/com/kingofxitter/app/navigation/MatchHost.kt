@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
+import com.kingofxitter.bots.InternBot
+import com.kingofxitter.bots.asBotAction
 import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
@@ -57,7 +59,14 @@ class MatchHost(
     private val saveFile: File,
     private val gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
         val setup = MatchSetup.create(leader, LeaderRoster.ids, Random.nextLong())
-        GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+        GameViewModel.restore(
+            initialState = setup.state,
+            humanPlayerId = setup.humanPlayerId,
+            saveFile = MatchSaveFile(saveFile.toPath()),
+            // B1 replaces the engine's always-first-option stand-in. The deck is still empty, so
+            // the bots play base rules with CardMarket.Unknown until C2 wires the shop in.
+            botAction = InternBot().asBotAction(),
+        )
     },
 ) : ViewModel() {
     private val store = ViewModelStore()
