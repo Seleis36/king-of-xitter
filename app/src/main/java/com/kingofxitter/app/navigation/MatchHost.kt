@@ -8,12 +8,18 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
+import com.kingofxitter.bots.BotDifficulty
+import com.kingofxitter.bots.LeaderBots
+import com.kingofxitter.bots.asBotAction
+import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
+import com.kingofxitter.engine.RollOffRound
 import com.kingofxitter.engine.model.GameEvent
 import com.kingofxitter.engine.model.LeaderId
 import com.kingofxitter.engine.model.PlayerId
 import com.kingofxitter.engine.model.PlayerResource
+import com.kingofxitter.engine.model.PlayerState
 import com.kingofxitter.engine.model.ResourceChangeReason
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -27,11 +33,47 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.random.Random
 
-/** The six leaders `MatchSetup` draws from. Stand-in for S5's roster. */
-val LeaderRoster = listOf("trumpet", "poutine", "kim", "macaron", "xi", "mi-leon").map(::LeaderId)
-
 /** Your leader until V4's Pick your leader screen supplies one: the design's Macaron. */
-val DefaultLeader = LeaderId("macaron")
+val DefaultLeader = LeaderRoster.macaron.id
+
+/**
+ * What a new match is set up with. The defaults are the base rules at the controller's own
+ * pacing; V5's Settings screen and V4's Pick your leader screen replace them.
+ *
+ * [characterCap] only reaches a new match: a resumed one keeps the cap it was started with, which
+ * is why the Settings screen says rules changes apply next match.
+ */
+data class MatchOptions(
+    val leader: LeaderId = DefaultLeader,
+    val difficulty: BotDifficulty = BotDifficulty.REPLY_GUY,
+    val botDelayMillis: Long = DEFAULT_BOT_DELAY_MILLIS,
+    val characterCap: Int? = null,
+    /** Fixed seed for a reproducible match; null draws a new one. */
+    val seed: Long? = null,
+)
+
+/**
+ * What the Versus intro shows: who was drawn, who won the roll-off, and the dice that decided it
+ * (ROADMAP §1, "First player"). It is only produced for a match that actually started here; a
+ * resumed save has no roll-off to replay.
+ */
+data class MatchIntro(
+    val humanPlayerId: PlayerId,
+    val firstPlayerId: PlayerId,
+    val players: List<PlayerState>,
+    val rollOff: List<RollOffRound>,
+    /** The number on the Versus screen's ticket, from the match's own seed. */
+    val matchNumber: Int,
+)
+
+/** A started match, plus the intro when it is a fresh one. */
+data class StartedMatch(
+    val game: GameViewModel,
+    val intro: MatchIntro?,
+)
+
+/** `RealGameController`'s own default pause between bot moves. */
+const val DEFAULT_BOT_DELAY_MILLIS = 400L
 
 /** The current match, or why there isn't one. */
 sealed interface MatchSession {
@@ -57,14 +99,43 @@ sealed interface MatchSession {
  */
 class MatchHost(
     private val saveFile: File,
-    private val gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
-        val setup = MatchSetup.create(leader, LeaderRoster, Random.nextLong())
-        GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+    private val gameFactory: suspend (MatchOptions) -> StartedMatch = { options ->
+        val seed = options.seed ?: Random.nextLong()
+        val setup = MatchSetup.create(options.leader, LeaderRoster.ids, seed)
+        val initial = setup.state.copy(characterCap = options.characterCap)
+        val game =
+            GameViewModel.restore(
+                initialState = initial,
+                humanPlayerId = setup.humanPlayerId,
+                saveFile = MatchSaveFile(saveFile.toPath()),
+                // The deck is still empty, so the bots play base rules with CardMarket.Unknown
+                // until C2 wires the shop in.
+                // V6 gives each seat its own leader's personality at the chosen difficulty.
+                botAction = LeaderBots(options.difficulty).asBotAction(),
+                botDelayMillis = options.botDelayMillis,
+            )
+        // A restored save is a different match, so it has no roll-off for the Versus screen.
+        val fresh = game.humanPlayerId == setup.humanPlayerId && game.state.value == initial
+        StartedMatch(
+            game,
+            if (!fresh) {
+                null
+            } else {
+                MatchIntro(
+                    humanPlayerId = setup.humanPlayerId,
+                    firstPlayerId = setup.state.currentPlayerId,
+                    players = setup.state.players,
+                    rollOff = setup.rollOff,
+                    matchNumber = Math.floorMod(seed, MATCH_NUMBERS),
+                )
+            },
+        )
     },
 ) : ViewModel() {
     private val store = ViewModelStore()
     private val mutableSession = MutableStateFlow<MatchSession?>(null)
     private val mutableLastHit = MutableStateFlow<Pair<PlayerId, Int>?>(null)
+    private val mutableIntro = MutableStateFlow<MatchIntro?>(null)
     private var starting: Job? = null
     private var hitWatcher: Job? = null
 
@@ -77,23 +148,27 @@ class MatchHost(
      */
     val lastHitOnHuman: StateFlow<Pair<PlayerId, Int>?> = mutableLastHit.asStateFlow()
 
+    /** The roll-off of the current match, or null when it was resumed from a save. */
+    val intro: StateFlow<MatchIntro?> = mutableIntro.asStateFlow()
+
     /** Continues the saved match, or starts a new one when there is no save. */
-    fun resumeOrStart(leader: LeaderId = DefaultLeader) {
+    fun resumeOrStart(options: MatchOptions = MatchOptions()) {
         if (mutableSession.value is MatchSession.Ready || starting?.isActive == true) return
-        start(leader, discardSave = false)
+        start(options, discardSave = false)
     }
 
     /** Throws away any saved match and starts a fresh one. */
-    fun startNew(leader: LeaderId = DefaultLeader) = start(leader, discardSave = true)
+    fun startNew(options: MatchOptions = MatchOptions()) = start(options, discardSave = true)
 
     private fun start(
-        leader: LeaderId,
+        options: MatchOptions,
         discardSave: Boolean,
     ) {
         starting?.cancel()
         hitWatcher?.cancel()
         // Stop the old match first, so its bots can't write to the save while it's replaced.
         store.clear()
+        mutableIntro.value = null
         mutableSession.value = MatchSession.Loading
         starting =
             viewModelScope.launch {
@@ -101,7 +176,8 @@ class MatchHost(
                 var unregisteredGame: GameViewModel? = null
                 try {
                     if (discardSave) saveFile.delete()
-                    val game = gameFactory(leader)
+                    val started = gameFactory(options)
+                    val game = started.game
                     unregisteredGame = game
                     currentCoroutineContext().ensureActive()
                     if (starting !== startupJob) {
@@ -111,6 +187,7 @@ class MatchHost(
                     val registered = ViewModelProvider(store, SingleInstanceFactory(game))[GameViewModel::class.java]
                     unregisteredGame = null
                     watchHits(registered)
+                    mutableIntro.value = started.intro
                     mutableSession.value = MatchSession.Ready(registered)
                 } catch (cancelled: CancellationException) {
                     unregisteredGame?.close()
@@ -156,6 +233,9 @@ class MatchHost(
 
     companion object {
         private const val SAVE_NAME = "match.json"
+
+        /** The Versus screen's ticket is four digits, as in the design's "MATCH #0427". */
+        private const val MATCH_NUMBERS = 10_000
 
         /** Saves the match as `match.json` in the app's private files. */
         val Factory =

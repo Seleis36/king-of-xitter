@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
+import com.kingofxitter.app.content.engagementCounts
 import com.kingofxitter.app.ui.components.DashedFooter
 import com.kingofxitter.app.ui.components.Die
 import com.kingofxitter.app.ui.components.DieSize
@@ -150,7 +151,7 @@ fun IncomingTweetScreen(
                                 ),
                         )
                         Text(tweetText(tweetText), style = XType.TweetLarge, color = XColors.Ink)
-                        Engagement(state.turnNumber)
+                        Engagement(attacker.leaderId, state.turnNumber)
                         DashedFooter {
                             // The dice and the damage tag, which moves to its own line when space is short.
                             FlowRow(
@@ -334,11 +335,14 @@ private fun DecisionPanel(
     }
 }
 
-/** Reply, retweet, like and view counts. Placeholder numbers until V2's fake engagement lands. */
+/** Reply, retweet, like and view counts, from V2's fake engagement. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Engagement(seed: Int) {
-    val counts = fakeEngagement(seed)
+private fun Engagement(
+    leaderId: LeaderId,
+    seed: Int,
+) {
+    val counts = engagementCounts(leaderId, seed)
     val labels =
         listOf(R.string.incoming_replies, R.string.incoming_retweets, R.string.incoming_likes, R.string.incoming_views)
             .zip(counts) { label, count -> stringResource(label, count) }
@@ -361,20 +365,6 @@ private fun Engagement(seed: Int) {
         }
     }
 }
-
-/** Deterministic, plausibly viral counts ("12.4K", "9.9M") for a seed. */
-internal fun fakeEngagement(seed: Int): List<String> {
-    val base = Math.floorMod(seed * 7919, 900) + 100
-    return listOf(base * 124L, base * 481L, base * 2_110L, base * 99_000L).map(::compactCount)
-}
-
-/** 12400 → "12.4K", 9900000 → "9.9M". */
-internal fun compactCount(value: Long): String =
-    when {
-        value >= 1_000_000 -> "%.1fM".format(java.util.Locale.ROOT, value / 1_000_000.0)
-        value >= 1_000 -> "%.1fK".format(java.util.Locale.ROOT, value / 1_000.0)
-        else -> value.toString()
-    }
 
 private const val MAX_FOOTER_DICE = 6
 

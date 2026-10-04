@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import com.kingofxitter.app.content.VoiceLog
 import com.kingofxitter.app.ui.motion.EffectQueue
 import com.kingofxitter.engine.GameController
 import com.kingofxitter.engine.model.PlayerId
@@ -14,7 +15,8 @@ import com.kingofxitter.engine.model.PlayerId
 /**
  * Board bound to a [GameController]: renders its latest state and submits the human's actions.
  * Opens the incoming-tweet screen when the human must decide whether to stay on Xitter, and
- * draws [effects] (damage numbers, shakes, stamps).
+ * draws [effects] (damage numbers, shakes, stamps). [voices] supplies the Main Character's latest
+ * tweet (V1); without it the stage keeps its fixed line.
  */
 @Composable
 fun BoardRoute(
@@ -23,8 +25,16 @@ fun BoardRoute(
     callbacks: BoardCallbacks,
     modifier: Modifier = Modifier,
     effects: EffectQueue? = null,
+    voices: VoiceLog? = null,
 ) {
     val state by controller.state.collectAsState()
+    val tweets =
+        voices
+            ?.entries
+            ?.collectAsState()
+            ?.value
+            .orEmpty()
+    val mainCharacterLine = state.xitterPlayerId?.let { id -> tweets.lastOrNull { it.playerId == id }?.text }
     val active =
         effects
             ?.active
@@ -34,7 +44,7 @@ fun BoardRoute(
     // Being hit as Main Character interrupts the board: open the incoming tweet once per decision.
     val incoming = (BoardMode.of(state, humanId) as? BoardMode.IncomingTweet)?.decision?.id
     LaunchedEffect(incoming) { if (incoming != null) callbacks.onIncomingTweet() }
-    BoardScreen(state, humanId, controller::submit, modifier, callbacks, effects = active)
+    BoardScreen(state, humanId, controller::submit, modifier, callbacks, mainCharacterLine, effects = active)
 }
 
 /**

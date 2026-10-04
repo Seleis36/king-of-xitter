@@ -1,0 +1,17 @@
+<resources>
+    <!-- Track D owns the leader roster (S5) and the cast's voice lines. -->
+    <string name="leader_first_trumpet">Donald J.</string>
+    <string name="leader_first_poutine">Vladimir</string>
+    <string name="leader_first_kim">Supreme Leader</string>
+    <string name="leader_first_macaron">Emmanuel</string>
+    <string name="leader_first_xi">Chairman</string>
+    <string name="leader_first_mileon">Javier</string>
+    <string name="leader_voice_trumpet">ALL CAPS. 3 AM. SAD!</string>
+    <string name="leader_voice_poutine">Short. Cold. Long table.</string>
+    <string name="leader_voice_kim">State TV, about himself.</string>
+    <string name="leader_voice_macaron">47-part threads.</string>
+    <string name="leader_voice_xi">Harmonizes your tweets.</string>
+    <string name="leader_voice_mileon">¡AFUERA! Plus chainsaw.</string>
+    <string name="leader_first_unknown">Unknown</string>
+    <string name="leader_voice_unknown">No voice on record.</string>
+</resources>

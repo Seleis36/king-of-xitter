@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
+import com.kingofxitter.app.content.rememberContentZingers
 import com.kingofxitter.app.ui.components.ComposingText
 import com.kingofxitter.app.ui.components.DashedFooter
 import com.kingofxitter.app.ui.components.Die
@@ -60,7 +61,7 @@ import com.kingofxitter.engine.model.PlayerState
 /** How many zingers the screen offers at once. */
 private const val ZINGER_CHOICES = 3
 
-/** Zingers from `R.array.compose_placeholder_zingers` until V2 lands. */
+/** Fixture zingers for previews and tests; the screen itself uses V2's book. */
 @Composable
 fun rememberPlaceholderZingers(): ZingerSource {
     val lines = stringArrayResource(R.array.compose_placeholder_zingers).toList()
@@ -85,7 +86,7 @@ fun ComposeTweetScreen(
     onSend: (zinger: String) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
-    zingers: ZingerSource = rememberPlaceholderZingers(),
+    zingers: ZingerSource = rememberContentZingers(),
 ) {
     val you = state.players.first { it.id == humanId }
     val preview = RollPreview.of(state, humanId)

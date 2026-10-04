@@ -1,0 +1,125 @@
+<resources>
+    <!-- V2: zingers for the compose screen, plus the title screen's trending tags. -->
+    <!-- trumpet -->
+    <string name="zinger_trumpet_poutine_0">Sleepy %1$s and his LONG TABLE. Nobody sits at that table, very weak furniture. SAD!</string>
+    <string name="zinger_trumpet_poutine_1">%1$s rode a bear. I rode a LANDSLIDE. Big difference, folks. BIGLY.</string>
+    <string name="zinger_trumpet_poutine_2">The judo guy %1$s is finished. Many people are saying it, the best people.</string>
+    <string name="zinger_trumpet_kim_0">Little Rocket Fun %1$s has FAKE followers. 25 million? Try 25. SAD!</string>
+    <string name="zinger_trumpet_kim_1">%1$s puts himself on TELEVISION all day. I don\'t have to, they BEG me. BIGLY.</string>
+    <string name="zinger_trumpet_kim_2">I have a great relationship with %1$s. Tremendous letters. Terrible dice.</string>
+    <string name="zinger_trumpet_macaron_0">Low Energy %1$s is writing another 47-part thread. NOBODY reads them. SAD!</string>
+    <string name="zinger_trumpet_macaron_1">%1$s says \'en même temps\' because he cannot pick a side. WEAK!</string>
+    <string name="zinger_trumpet_macaron_2">I will unfollow %1$s and he will write a BOOK about it. Thank you for your attention to this matter!</string>
+    <string name="zinger_trumpet_xi_0">%1$s wants to HARMONIZE my timeline. Not happening, folks. Never. BIGLY.</string>
+    <string name="zinger_trumpet_xi_1">Five-year plan? I do it in five MINUTES. %1$s should take notes.</string>
+    <string name="zinger_trumpet_xi_2">%1$s has 5,000 years and ZERO mandates. Very sad, very low energy.</string>
+    <string name="zinger_trumpet_mileon_0">%1$s and his CHAINSAW. I have a BIGGER chainsaw, the best chainsaw. SAD for him!</string>
+    <string name="zinger_trumpet_mileon_1">¡AFUERA! is a nice word. MY words are TREMENDOUS. %1$s should learn them.</string>
+    <string name="zinger_trumpet_mileon_2">The screaming guy %1$s is finished. FINISHED! Thank you for your attention to this matter!</string>
+    <string name="zinger_trumpet_everyone_0">EVERYBODY on this timeline is finished. All of them. Many are saying it. SAD!</string>
+    <string name="zinger_trumpet_everyone_1">I am tweeting at EVERYONE, which nobody has ever done better. BIGLY.</string>
+    <string name="zinger_trumpet_everyone_2">The whole platform is weak and low energy. Thank you for your attention to this matter!</string>
+    <!-- poutine -->
+    <string name="zinger_poutine_trumpet_0">Mr. %1$s. Your followers were not stolen. They defected.</string>
+    <string name="zinger_poutine_trumpet_1">%1$s posts at 3 AM. I work at 3 AM. Different.</string>
+    <string name="zinger_poutine_trumpet_2">Please sit, %1$s. The table is long. Your account is short.</string>
+    <string name="zinger_poutine_kim_0">%1$s. Twenty-five million. Always. Suspicious.</string>
+    <string name="zinger_poutine_kim_1">Comrade %1$s, your television lies politely. Da.</string>
+    <string name="zinger_poutine_kim_2">%1$s counts his followers. I remember mine.</string>
+    <string name="zinger_poutine_macaron_0">Mr. %1$s. Please, sit. We talk. Briefly.</string>
+    <string name="zinger_poutine_macaron_1">%1$s wrote forty-seven parts. I need five words.</string>
+    <string name="zinger_poutine_macaron_2">Nuance, %1$s? The bear disagrees. Da.</string>
+    <string name="zinger_poutine_xi_0">%1$s harmonises. I simply remove. Efficient.</string>
+    <string name="zinger_poutine_xi_1">A five-year plan, %1$s? I prefer surprises.</string>
+    <string name="zinger_poutine_xi_2">%1$s. We are friends. For now. Da.</string>
+    <string name="zinger_poutine_mileon_0">%1$s screams. The bear is unimpressed.</string>
+    <string name="zinger_poutine_mileon_1">A chainsaw, %1$s? I brought judo.</string>
+    <string name="zinger_poutine_mileon_2">Calm down, %1$s. Sit. Six meters.</string>
+    <string name="zinger_poutine_everyone_0">All of you. Sit. We talk.</string>
+    <string name="zinger_poutine_everyone_1">Everyone loses followers today. Da.</string>
+    <string name="zinger_poutine_everyone_2">The table is long. There is room for all.</string>
+    <!-- kim -->
+    <string name="zinger_kim_trumpet_0">The Respected Supreme Leader notes that %1$s posts at 3 AM, unsupervised. Historic negligence.</string>
+    <string name="zinger_kim_trumpet_1">%1$s has been corrected 25,000,000 times. Spontaneously. Joyfully.</string>
+    <string name="zinger_kim_trumpet_2">State television confirms %1$s was invented by the Supreme Leader as a cautionary example.</string>
+    <string name="zinger_kim_poutine_0">The Supreme Leader\'s table is 25,000,000 meters long. %1$s has been informed.</string>
+    <string name="zinger_kim_poutine_1">%1$s brought a bear. The Supreme Leader rode a historic tiger. Unanimously.</string>
+    <string name="zinger_kim_poutine_2">Five words from %1$s. The Supreme Leader requires 25,000,000. Each one is perfect.</string>
+    <string name="zinger_kim_macaron_0">%1$s wrote 47 parts. The Supreme Leader wrote 25,000,000. Nobody replied to either.</string>
+    <string name="zinger_kim_macaron_1">The Respected Supreme Leader has harmonised the thread of %1$s into one historic sentence.</string>
+    <string name="zinger_kim_macaron_2">State television reports %1$s has been reclassified as a footnote.</string>
+    <string name="zinger_kim_xi_0">%1$s has 5,000 years. The Supreme Leader has 25,000,000. The mathematics is historic.</string>
+    <string name="zinger_kim_xi_1">The Supreme Leader thanks %1$s for the cooperation agreement he was never shown.</string>
+    <string name="zinger_kim_xi_2">%1$s harmonises. The Supreme Leader simply announces. More efficient.</string>
+    <string name="zinger_kim_mileon_0">%1$s shouts. The Supreme Leader is announced. There is a historic difference.</string>
+    <string name="zinger_kim_mileon_1">The chainsaw of %1$s has been confiscated by 25,000,000 grateful citizens.</string>
+    <string name="zinger_kim_mileon_2">State television has muted %1$s. The silence was unanimous.</string>
+    <string name="zinger_kim_everyone_0">The Respected Supreme Leader has corrected the entire timeline. Unanimously.</string>
+    <string name="zinger_kim_everyone_1">25,000,000 unfollows, distributed equally and joyfully among all leaders.</string>
+    <string name="zinger_kim_everyone_2">State television confirms every other account has been harmonised at once. Historic.</string>
+    <!-- macaron -->
+    <string name="zinger_macaron_trumpet_0">Cher %1$s, en même temps: you post at 3 AM and you still arrive late. 1/47</string>
+    <string name="zinger_macaron_trumpet_1">Mes chers compatriotes, %1$s uses capital letters where arguments should be. 2/19</string>
+    <string name="zinger_macaron_trumpet_2">%1$s, I have read your tweet. Twice. Montaigne wept. 1/47</string>
+    <string name="zinger_macaron_poutine_0">Cher %1$s, the table is long because the argument is short. 1/47</string>
+    <string name="zinger_macaron_poutine_1">En même temps, %1$s, I will sit. I will also win. 1/12</string>
+    <string name="zinger_macaron_poutine_2">Mes chers compatriotes, %1$s brought a bear to a debate. 3/47</string>
+    <string name="zinger_macaron_kim_0">Cher %1$s, 25 million of what, exactly? Thread below. 1/47</string>
+    <string name="zinger_macaron_kim_1">En même temps, %1$s is both a leader and a broadcast. Mostly a broadcast. 1/18</string>
+    <string name="zinger_macaron_kim_2">Mes chers compatriotes, %1$s has never once been contradicted. It shows. 1/47</string>
+    <string name="zinger_macaron_xi_0">Cher %1$s, harmony without consent has a name. Rousseau named it. 1/47</string>
+    <string name="zinger_macaron_xi_1">En même temps, %1$s, your five-year plan omits me. Bold. 1/12</string>
+    <string name="zinger_macaron_xi_2">Mes chers compatriotes, %1$s is reassigning my followers. I am reassigning his mandates. 1/47</string>
+    <string name="zinger_macaron_mileon_0">Cher %1$s, a chainsaw is not an economic policy. Thread. 1/47</string>
+    <string name="zinger_macaron_mileon_1">En même temps, %1$s, liberty also requires punctuation. 1/19</string>
+    <string name="zinger_macaron_mileon_2">Mes chers compatriotes, %1$s shouts. I annotate. 1/47</string>
+    <string name="zinger_macaron_everyone_0">Mes chers compatriotes, I address the entire timeline. En même temps, I ratio it. 1/47</string>
+    <string name="zinger_macaron_everyone_1">To all of you: a thread. It is long. You are wrong. 1/47</string>
+    <string name="zinger_macaron_everyone_2">En même temps, everyone here lacks nuance. I will supply it, forcibly. 1/19</string>
+    <!-- xi -->
+    <string name="zinger_xi_trumpet_0">The tweets of %1$s have been harmonised. His 3 AM has been rescheduled. Win-win.</string>
+    <string name="zinger_xi_trumpet_1">%1$s shouts in capitals. We prefer five-year plans. Quieter.</string>
+    <string name="zinger_xi_trumpet_2">A friendly reminder that %1$s signed something he did not read. Cooperation.</string>
+    <string name="zinger_xi_poutine_0">%1$s and I have a mutually beneficial understanding. Mostly beneficial to me.</string>
+    <string name="zinger_xi_poutine_1">The long table of %1$s has been added to the five-year plan. As furniture.</string>
+    <string name="zinger_xi_poutine_2">Win-win: %1$s keeps the bear, and I keep his followers.</string>
+    <string name="zinger_xi_kim_0">The broadcast of %1$s has been harmonised into a press release. Win-win.</string>
+    <string name="zinger_xi_kim_1">%1$s reports 25,000,000. Our records say otherwise, and our records are the records.</string>
+    <string name="zinger_xi_kim_2">A friendly reminder to %1$s that the five-year plan is now also his plan.</string>
+    <string name="zinger_xi_macaron_0">The thread of %1$s has been harmonised into a single serene paragraph. Win-win.</string>
+    <string name="zinger_xi_macaron_1">%1$s offers nuance. We offer infrastructure. Infrastructure wins.</string>
+    <string name="zinger_xi_macaron_2">The followers of %1$s have been reassigned for their own stability.</string>
+    <string name="zinger_xi_mileon_0">The chainsaw of %1$s has been harmonised. The silence is win-win.</string>
+    <string name="zinger_xi_mileon_1">%1$s abolished a ministry. We built six. Patience.</string>
+    <string name="zinger_xi_mileon_2">A friendly reminder that %1$s shouts in a market we already own.</string>
+    <string name="zinger_xi_everyone_0">The entire timeline has been harmonised. A win-win for everybody except everybody.</string>
+    <string name="zinger_xi_everyone_1">All followers have been reassigned. Please update your five-year plans.</string>
+    <string name="zinger_xi_everyone_2">A friendly reminder to the whole platform that cooperation is mandatory.</string>
+    <!-- mileon -->
+    <string name="zinger_mileon_trumpet_0">%1$s TWEETS IN CAPS BUT PRINTS HIS FOLLOWERS. ¡AFUERA!</string>
+    <string name="zinger_mileon_trumpet_1">BRRRRRRM. That was the chainsaw going through the 3 AM posts of %1$s.</string>
+    <string name="zinger_mileon_trumpet_2">%1$s IS A STATIST WITH A GOLD TOILET. ¡VIVA LA LIBERTAD, CARAJO!</string>
+    <string name="zinger_mileon_poutine_0">THE LONG TABLE OF %1$s: ¡AFUERA! BUY A SMALLER TABLE.</string>
+    <string name="zinger_mileon_poutine_1">BRRRRRRM. %1$s brought judo. I brought the free market.</string>
+    <string name="zinger_mileon_poutine_2">%1$s SUBSIDISES BEARS. I SUBSIDISE NOTHING. ¡VIVA LA LIBERTAD, CARAJO!</string>
+    <string name="zinger_mileon_kim_0">CENTRAL PLANNING OF %1$s: ¡AFUERA! ¡AFUERA! ¡AFUERA!</string>
+    <string name="zinger_mileon_kim_1">BRRRRRRM. 25 million printed followers. THAT IS INFLATION, %1$s!</string>
+    <string name="zinger_mileon_kim_2">%1$s HAS STATE TELEVISION. I HAVE A CHAINSAW. ¡VIVA LA LIBERTAD, CARAJO!</string>
+    <string name="zinger_mileon_macaron_0">FORTY-SEVEN PARTS FROM %1$s AND NOT ONE BUDGET CUT. ¡AFUERA!</string>
+    <string name="zinger_mileon_macaron_1">BRRRRRRM. The thread of %1$s has been deregulated.</string>
+    <string name="zinger_mileon_macaron_2">%1$s SAYS \'EN MÊME TEMPS\'. I SAY ¡VIVA LA LIBERTAD, CARAJO!</string>
+    <string name="zinger_mileon_xi_0">THE FIVE-YEAR PLAN OF %1$s: ¡AFUERA! ALL FIVE YEARS!</string>
+    <string name="zinger_mileon_xi_1">BRRRRRRM. %1$s harmonises. I liberate.</string>
+    <string name="zinger_mileon_xi_2">%1$s REASSIGNS FOLLOWERS. THAT IS CALLED THEFT. ¡VIVA LA LIBERTAD, CARAJO!</string>
+    <string name="zinger_mileon_everyone_0">EVERY MINISTRY ON THIS TIMELINE: ¡AFUERA!</string>
+    <string name="zinger_mileon_everyone_1">BRRRRRRM BRRRRRRM. THE CHAINSAW IS FOR EVERYONE TODAY.</string>
+    <string name="zinger_mileon_everyone_2">ALL OF YOU ARE SOCIALISTS. ¡VIVA LA LIBERTAD, CARAJO!</string>
+    <string name="trending_tag_trumpet" translatable="false">#TrumpetRatio</string>
+    <string name="trending_tag_poutine" translatable="false">#PoutineIsServedCold</string>
+    <string name="trending_tag_macaron" translatable="false">#EnMêmeTemps</string>
+    <string name="trending_tag_kim" translatable="false">#SupremeFun</string>
+    <string name="trending_tag_xi" translatable="false">#Harmonized</string>
+    <string name="trending_tag_mileon" translatable="false">#AFUERA</string>
+    <string name="trending_tag_extra_0" translatable="false">#MainCharacterEnergy</string>
+    <string name="trending_tag_extra_1" translatable="false">#TouchGrass</string>
+</resources>
