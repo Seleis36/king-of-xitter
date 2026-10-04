@@ -242,12 +242,16 @@ class DefaultGameReducer(
                 resolveHooksAppliedForRoll = false,
             )
         val abilityDecisions =
-            collectAbilityDecisions(
-                nextState,
-                action.playerId,
-                CardHookWindow.AFTER_DICE_ROLL,
-                random,
-            )
+            nextState.players
+                .filter { !it.isSuspended }
+                .flatMap { player ->
+                    collectAbilityDecisions(
+                        nextState,
+                        player.id,
+                        CardHookWindow.AFTER_DICE_ROLL,
+                        random,
+                    )
+                }
         if (abilityDecisions.isNotEmpty()) {
             nextState =
                 nextState.copy(
@@ -413,7 +417,11 @@ class DefaultGameReducer(
         nextState = ended.first
         events += ended.second
         if (nextState.result == null) {
-            val offers = collectAbilityDecisions(nextState, playerId, CardHookWindow.AFTER_RESOLVE, random)
+            val offers = nextState.players
+                .filter { !it.isSuspended }
+                .flatMap { player ->
+                    collectAbilityDecisions(nextState, player.id, CardHookWindow.AFTER_RESOLVE, random)
+                }
             if (offers.isNotEmpty()) {
                 nextState =
                     nextState.copy(
@@ -834,7 +842,7 @@ class DefaultGameReducer(
                 .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
         return limits + resources + counters + dice + rerolls + turns +
             intents.filter {
-                it is CardEffectIntent.ChangeDie || it is CardEffectIntent.ChangeMainCharacter || it is CardEffectIntent.QueueDecision
+                it is CardEffectIntent.ChangeDie || it is CardEffectIntent.ChangeMainCharacter || it is CardEffectIntent.QueueDecision || it is CardEffectIntent.DiscardPolicy
             }
     }
 
@@ -982,6 +990,21 @@ class DefaultGameReducer(
                     ) {
                         state = state.copy(pendingDecisions = state.pendingDecisions + intent.decision)
                         events += GameEvent.DecisionQueued(intent.decision)
+                    }
+                }
+
+                is CardEffectIntent.DiscardPolicy -> {
+                    val index = state.players.indexOfFirst { it.id == intent.playerId }
+                    if (index >= 0) {
+                        val player = state.players[index]
+                        if (intent.cardId in player.policyIds) {
+                            state = state.copy(
+                                players = state.players.toMutableList().also {
+                                    it[index] = player.copy(policyIds = player.policyIds - intent.cardId)
+                                },
+                                discardPileCardIds = state.discardPileCardIds + intent.cardId
+                            )
+                        }
                     }
                 }
             }

@@ -151,6 +151,12 @@ sealed interface CardEffectIntent {
     data class QueueDecision(
         val decision: PendingDecision,
     ) : CardEffectIntent
+
+    /** Discards an active policy. */
+    data class DiscardPolicy(
+        val playerId: PlayerId,
+        val cardId: CardId,
+    ) : CardEffectIntent
 }
 
 /** Registry of card effects injected by the app's card catalogue. */
