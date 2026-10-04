@@ -15,15 +15,12 @@ object PassivePolicies {
             object : CardEffect {
                 override val cardId = CardId("c01_doomscroll_drip")
 
-                override fun modifyOutgoingDamage(context: CardHookContext) =
-                    DamageAdjustment(bonusDamage = 1)
+                override fun modifyOutgoingDamage(context: CardHookContext) = DamageAdjustment(bonusDamage = 1)
             },
-
             // C02 Alien Metabolism / Lobbyist (Handled in ShopReducer)
             object : CardEffect {
                 override val cardId = CardId("c02_lobbyist")
             },
-
             // C03 Alpha Monster / Alpha Poster
             object : CardEffect {
                 override val cardId = CardId("c03_alpha_poster")
@@ -38,7 +35,6 @@ object PassivePolicies {
                     return emptyList()
                 }
             },
-
             // C04 Armor Plating / Thick Skin PR
             object : CardEffect {
                 override val cardId = CardId("c04_thick_skin_pr")
@@ -50,7 +46,6 @@ object PassivePolicies {
                         DamageAdjustment()
                     }
             },
-
             // C06 Burrowing / Home Turf
             object : CardEffect {
                 override val cardId = CardId("c06_home_turf")
@@ -67,7 +62,6 @@ object PassivePolicies {
                         listOf(CardEffectIntent.ChangeResource(newOwnerId, PlayerResource.FOLLOWERS, -1))
                     } ?: emptyList()
             },
-
             // C08 Complete Destruction / Full Bingo
             object : CardEffect {
                 override val cardId = CardId("c08_full_bingo")
@@ -80,7 +74,6 @@ object PassivePolicies {
                     return emptyList()
                 }
             },
-
             // C09 Dedicated News Team / Press Office
             object : CardEffect {
                 override val cardId = CardId("c09_press_office")
@@ -88,7 +81,6 @@ object PassivePolicies {
                 override fun onBuy(context: CardHookContext): List<CardEffectIntent> =
                     listOf(CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.MANDATES, 1))
             },
-
             // C10 Eater of the Dead / Gravedancer
             object : CardEffect {
                 override val cardId = CardId("c10_gravedancer")
@@ -100,13 +92,15 @@ object PassivePolicies {
                         emptyList()
                     }
             },
-
             // C11 Energy Hoarder / Drafts Folder
             object : CardEffect {
                 override val cardId = CardId("c11_drafts_folder")
 
                 override fun onTurnEnd(context: CardHookContext): List<CardEffectIntent> {
-                    val chars = context.state.players.first { it.id == context.ownerId }.characters
+                    val chars =
+                        context.state.players
+                            .first { it.id == context.ownerId }
+                            .characters
                     val mandates = chars / 60
                     if (mandates > 0) {
                         return listOf(CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.MANDATES, mandates))
@@ -114,7 +108,6 @@ object PassivePolicies {
                     return emptyList()
                 }
             },
-
             // C12 Even Bigger / Bot Farm
             object : CardEffect {
                 override val cardId = CardId("c12_bot_farm")
@@ -125,21 +118,18 @@ object PassivePolicies {
                         CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.FOLLOWERS, 2),
                     )
             },
-
             // C13 Extra Head / Second Phone
             object : CardEffect {
                 override val cardId = CardId("c13_second_phone")
 
                 override fun diceCount(context: CardHookContext): Int = 1
             },
-
             // C14 Extra Head 2 / Backup Phone
             object : CardEffect {
                 override val cardId = CardId("c14_backup_phone")
 
                 override fun diceCount(context: CardHookContext): Int = 1
             },
-
             // C15 Fire Breathing / Quote Tweet
             object : CardEffect {
                 override val cardId = CardId("c15_quote_tweet")
@@ -156,21 +146,18 @@ object PassivePolicies {
                     return DamageAdjustment()
                 }
             },
-
             // C17 Friend of Children / Influencer Deal
             object : CardEffect {
                 override val cardId = CardId("c17_influencer_deal")
 
                 override fun modifyGainCharacters(context: CardHookContext): Int = 10
             },
-
             // C18 Giant Brain / Speechwriter
             object : CardEffect {
                 override val cardId = CardId("c18_speechwriter")
 
                 override fun rerollCount(context: CardHookContext): Int = 1
             },
-
             // C19 Gourmet / Old Guard
             object : CardEffect {
                 override val cardId = CardId("c19_old_guard")
@@ -183,7 +170,6 @@ object PassivePolicies {
                     return emptyList()
                 }
             },
-
             // C21 Herbivore / Peace Summit
             object : CardEffect {
                 override val cardId = CardId("c21_peace_summit")
@@ -195,20 +181,17 @@ object PassivePolicies {
                     return emptyList()
                 }
             },
-
             // C24 Jets / Private Jet
             object : CardEffect {
                 override val cardId = CardId("c24_private_jet")
                 // Not cleanly implementable as purely passive damage evasion during yield in this engine flow.
             },
-
             // C29 Nova Breath / Going Viral
             object : CardEffect {
                 override val cardId = CardId("c29_going_viral")
 
                 override fun modifyOutgoingDamage(context: CardHookContext) = DamageAdjustment(hitsAllOpponents = true)
             },
-
             // C30 Omnivore / Big Tent
             object : CardEffect {
                 override val cardId = CardId("c30_big_tent")
@@ -223,7 +206,6 @@ object PassivePolicies {
                     return emptyList()
                 }
             },
-
             // C34 Poison Quills / Fact Check
             object : CardEffect {
                 override val cardId = CardId("c34_fact_check")
@@ -235,20 +217,21 @@ object PassivePolicies {
                         DamageAdjustment()
                     }
             },
-
             // C38 Regeneration / Comeback Tour
             object : CardEffect {
                 override val cardId = CardId("c38_comeback_tour")
 
                 override fun modifyHealing(context: CardHookContext): Int = 1
             },
-
             // C39 Rooting for the Underdog / Underdog Narrative
             object : CardEffect {
                 override val cardId = CardId("c39_underdog_narrative")
 
                 override fun onTurnEnd(context: CardHookContext): List<CardEffectIntent> {
-                    val myMandates = context.state.players.first { it.id == context.ownerId }.mandates
+                    val myMandates =
+                        context.state.players
+                            .first { it.id == context.ownerId }
+                            .mandates
                     val others =
                         context.state.players
                             .filter { it.id != context.ownerId && !it.isSuspended }
@@ -258,20 +241,21 @@ object PassivePolicies {
                     return emptyList()
                 }
             },
-
             // C42 Solar Powered / Ghostwriter
             object : CardEffect {
                 override val cardId = CardId("c42_ghostwriter")
 
                 override fun onTurnEnd(context: CardHookContext): List<CardEffectIntent> {
-                    val chars = context.state.players.first { it.id == context.ownerId }.characters
+                    val chars =
+                        context.state.players
+                            .first { it.id == context.ownerId }
+                            .characters
                     if (chars == 0) {
                         return listOf(CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.CHARACTERS, 10))
                     }
                     return emptyList()
                 }
             },
-
             // C43 Spiked Tail / CAPS LOCK STUCK
             object : CardEffect {
                 override val cardId = CardId("c43_caps_lock_stuck")
@@ -283,7 +267,6 @@ object PassivePolicies {
                         DamageAdjustment()
                     }
             },
-
             // C46 Urbavore / Main Character Energy
             object : CardEffect {
                 override val cardId = CardId("c46_main_character_energy")
@@ -302,7 +285,6 @@ object PassivePolicies {
                         DamageAdjustment()
                     }
             },
-
             // C47 We're Only Making It Stronger / Martyr Complex
             object : CardEffect {
                 override val cardId = CardId("c47_martyr_complex")
