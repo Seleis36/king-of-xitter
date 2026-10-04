@@ -147,10 +147,14 @@ sealed interface CardEffectIntent {
         val amount: Int,
     ) : CardEffectIntent
 
-    /** Changes the owner's extra-reroll modifier. */
+    /**
+     * Changes the owner's extra-reroll modifier. When [thisTurnOnly] is true, only the current
+     * turn's roll limit changes and the persistent modifier is left alone.
+     */
     data class ChangeRerollCount(
         val playerId: PlayerId,
         val amount: Int,
+        val thisTurnOnly: Boolean = false,
     ) : CardEffectIntent
 
     /** Grants or removes an extra turn. */
@@ -167,6 +171,12 @@ sealed interface CardEffectIntent {
     /** Adds a decision to the ordered queue. */
     data class QueueDecision(
         val decision: PendingDecision,
+    ) : CardEffectIntent
+
+    /** Discards an active policy. */
+    data class DiscardPolicy(
+        val playerId: PlayerId,
+        val cardId: CardId,
     ) : CardEffectIntent
 }
 
