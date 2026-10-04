@@ -11,10 +11,16 @@ import com.kingofxitter.app.game.GameViewModel
 import com.kingofxitter.bots.BotDifficulty
 import com.kingofxitter.bots.LeaderBots
 import com.kingofxitter.bots.asBotAction
+import com.kingofxitter.cards.CardCatalog
+import com.kingofxitter.cards.CardEffects
+import com.kingofxitter.cards.ShopLogic
+import com.kingofxitter.cards.ShopReducer
 import com.kingofxitter.content.LeaderRoster
+import com.kingofxitter.engine.DefaultGameReducer
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
 import com.kingofxitter.engine.RollOffRound
+import com.kingofxitter.engine.model.CardEffectRegistry
 import com.kingofxitter.engine.model.GameEvent
 import com.kingofxitter.engine.model.LeaderId
 import com.kingofxitter.engine.model.PlayerId
@@ -102,16 +108,16 @@ class MatchHost(
     private val gameFactory: suspend (MatchOptions) -> StartedMatch = { options ->
         val seed = options.seed ?: Random.nextLong()
         val setup = MatchSetup.create(options.leader, LeaderRoster.ids, seed)
-        val initial = setup.state.copy(characterCap = options.characterCap)
+        val initial = ShopLogic.setupDeck(setup.state.copy(characterCap = options.characterCap), CardCatalog.standardDeck, seed)
         val game =
             GameViewModel.restore(
                 initialState = initial,
                 humanPlayerId = setup.humanPlayerId,
                 saveFile = MatchSaveFile(saveFile.toPath()),
-                // The deck is still empty, so the bots play base rules with CardMarket.Unknown
-                // until C2 wires the shop in.
-                // V6 gives each seat its own leader's personality at the chosen difficulty.
-                botAction = LeaderBots(options.difficulty).asBotAction(),
+                reducer = ShopReducer(DefaultGameReducer(CardEffectRegistry(CardEffects.all))),
+                // V6 gives each seat its own leader's personality at the chosen difficulty,
+                // and the catalogue lets the bots price what is in the shop.
+                botAction = LeaderBots(options.difficulty, CatalogMarket).asBotAction(),
                 botDelayMillis = options.botDelayMillis,
             )
         // A restored save is a different match, so it has no roll-off for the Versus screen.

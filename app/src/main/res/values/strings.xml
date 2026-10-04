@@ -121,6 +121,9 @@
     <string name="board_see_results">SEE RESULTS</string>
     <string name="board_decision_prompt">A power-up wants a word</string>
     <string name="board_decision_use">USE IT</string>
+    <string name="board_decision_prompt_card">%1$s wants a word</string>
+    <string name="board_decision_buy">BUY %1$s</string>
+    <string name="board_ability_die">Die %1$d</string>
     <string name="board_decision_skip">SKIP</string>
     <string name="board_decision_ok">OK</string>
     <string name="compose_cancel">Cancel and go back to the board</string>

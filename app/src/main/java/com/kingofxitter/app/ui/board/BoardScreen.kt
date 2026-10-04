@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -413,16 +414,21 @@ private fun DecisionControls(
 ) {
     XPanel(modifier.fillMaxWidth(), accent = XColors.Mandates) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(R.string.board_decision_prompt), style = XType.DisplaySmall, color = XColors.Paper)
-            mode.decision.options.forEach { option ->
-                XButton(
-                    decisionOptionLabel(option),
-                    onClick = { onAction(Action.ChooseDecisionOption(mode.decision.playerId, mode.decision.id, option.id)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    style = if (option.action is Action.DeclineAbility) XButtonStyle.Secondary else XButtonStyle.Primary,
-                    minHeight = 48.dp,
-                    textStyle = XType.DisplaySmall,
-                )
+            Text(decisionPrompt(mode.decision), style = XType.DisplaySmall, color = XColors.Paper)
+            Column(
+                modifier = Modifier.heightIn(max = 280.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                mode.decision.options.forEach { option ->
+                    XButton(
+                        decisionOptionLabel(option),
+                        onClick = { onAction(Action.ChooseDecisionOption(mode.decision.playerId, mode.decision.id, option.id)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        style = if (option.action is Action.DeclineAbility) XButtonStyle.Secondary else XButtonStyle.Primary,
+                        minHeight = 48.dp,
+                        textStyle = XType.DisplaySmall,
+                    )
+                }
             }
         }
     }
@@ -430,9 +436,10 @@ private fun DecisionControls(
 
 @Composable
 private fun decisionOptionLabel(option: DecisionOption): String =
-    when (option.action) {
+    when (val action = option.action) {
         is Action.DeclineAbility -> stringResource(R.string.board_decision_skip)
-        is Action.ActivateAbility -> stringResource(R.string.board_decision_use)
+        is Action.ActivateAbility -> abilityLabel(action)
+        is Action.BuyPowerUp -> stringResource(R.string.board_decision_buy, cardName(action.cardId))
         else -> stringResource(R.string.board_decision_ok)
     }
 
