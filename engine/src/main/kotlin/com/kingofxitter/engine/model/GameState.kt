@@ -38,6 +38,8 @@ data class GameState(
     val turnDiceCount: Int? = null,
     /** Roll limit frozen for the current turn after its first-roll hooks. */
     val turnRollLimit: Int? = null,
+    /** Unfollows dealt during the current turn. */
+    val turnUnfollowsDealt: Int = 0,
 )
 
 /** Current game-flow phase, shared by the reducer, bots, and screens. */
