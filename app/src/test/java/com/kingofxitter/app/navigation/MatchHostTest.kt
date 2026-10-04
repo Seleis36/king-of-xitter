@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
+import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
 import com.kingofxitter.engine.model.LeaderId
@@ -62,7 +63,7 @@ class MatchHostTest {
             )
             assertTrue(
                 game.state.value.players
-                    .all { it.leaderId in LeaderRoster },
+                    .all { it.leaderId in LeaderRoster.ids },
             )
         }
 
@@ -109,18 +110,33 @@ class MatchHostTest {
         }
 
     @Test
+    fun `match options choose the leader and the rules a new match starts with`() =
+        matchTest {
+            val host = host()
+            host.startNew(MatchOptions(leader = LeaderId("kim"), characterCap = 280))
+            val game = host.awaitGame()
+
+            assertEquals(
+                LeaderId("kim"),
+                game.state.value.players
+                    .first { it.id == game.humanPlayerId }
+                    .leaderId,
+            )
+            assertEquals(280, game.state.value.characterCap)
+        }
+
+    @Test
     fun `canceling an old startup cannot replace a newer match session`() =
         matchTest {
             val firstStartEntered = CompletableDeferred<Unit>()
             var starts = 0
             val host =
-                host { leader ->
+                host { options ->
                     if (starts++ == 0) {
                         firstStartEntered.complete(Unit)
                         awaitCancellation()
                     }
-                    val setup = MatchSetup.create(leader, LeaderRoster, 42)
-                    GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+                    startedMatch(options)
                 }
             host.resumeOrStart()
             runCurrent()
@@ -160,14 +176,21 @@ class MatchHostTest {
             }
         }
 
-    private fun host(
-        gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
-            val setup = MatchSetup.create(leader, LeaderRoster, 42)
-            GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
-        },
-    ): MatchHost {
+    private fun host(gameFactory: suspend (MatchOptions) -> StartedMatch = { options -> startedMatch(options) }): MatchHost {
         val store = ViewModelStore().also(stores::add)
         return ViewModelProvider(store, viewModelFactory { initializer { MatchHost(saveFile, gameFactory) } })[MatchHost::class.java]
+    }
+
+    /** A match on a fixed seed, with the roll-off the Versus screen would show. */
+    private suspend fun startedMatch(options: MatchOptions): StartedMatch {
+        val setup = MatchSetup.create(options.leader, LeaderRoster.ids, 42)
+        val initial = setup.state.copy(characterCap = options.characterCap)
+        val game = GameViewModel.restore(initial, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+        val fresh = game.humanPlayerId == setup.humanPlayerId && game.state.value == initial
+        return StartedMatch(
+            game,
+            if (fresh) MatchIntro(setup.humanPlayerId, setup.state.currentPlayerId, setup.state.players, setup.rollOff, 42) else null,
+        )
     }
 
     /** Waits for a live match accepted by [accept]; fails if the match can't start. */

@@ -1,0 +1,106 @@
+<resources>
+    <!-- V5: How to play and Settings. -->
+    <string name="how_to_title_lead">HOW TO</string>
+    <string name="how_to_title_x" translatable="false">X</string>
+    <string name="how_to_title_tail">ITTER</string>
+    <string name="how_to_subtitle">Same rules as the monster classic, worse manners</string>
+    <string name="how_to_dice_count" translatable="false">6</string>
+    <string name="how_to_dice">Roll 6 dice. Keep any, reroll the rest, up to twice. Then everything on the table resolves.</string>
+    <string name="how_to_mandates_title">MANDATES</string>
+    <string name="how_to_mandates">Three of a kind scores its number. Each extra match: +1.</string>
+    <string name="how_to_tweet_title">TWEET</string>
+    <string name="how_to_tweet">1 unfollow each. The Main Character hits everyone; everyone else hits the Main Character.</string>
+    <string name="how_to_like_title">LIKE</string>
+    <string name="how_to_like">+1M followers, up to 10M. The Main Character gets no likes.</string>
+    <string name="how_to_characters_title">CHARACTERS</string>
+    <string name="how_to_characters">+10 chars each. Spend them on power-ups. The 280 cap is a Settings toggle.</string>
+    <string name="how_to_main_character_title">BEING THE MAIN CHARACTER</string>
+    <string name="how_to_main_character">Xitter empty? You take it: +1 mandate. Start your turn there: +2 mandates. Tweeted at while on Xitter? You may log off, and the attacker takes your spot.</string>
+    <string name="how_to_win_title">HOW YOU WIN</string>
+    <string name="how_to_win">Reach 20 mandates, or be the last account standing. 0 followers means suspended.</string>
+    <string name="how_to_check_none">0–5</string>
+    <string name="how_to_check_blue">6–14 blue</string>
+    <string name="how_to_check_gold">15+ gold</string>
+    <string name="how_to_got_it">GOT IT</string>
+    <string name="how_to_dice_faces">The six dice faces</string>
+
+    <string name="settings_title">SETTINGS</string>
+    <string name="settings_feedback_section">SOUND AND FEEL</string>
+    <string name="settings_speed_section">SPEED</string>
+    <string name="settings_rules_section">RULES</string>
+    <string name="settings_animations">ANIMATIONS</string>
+    <string name="settings_animation_speed">ANIMATION SPEED</string>
+    <string name="settings_bot_speed">BOT SPEED</string>
+    <string name="settings_speed_slow">SLOW</string>
+    <string name="settings_speed_normal">NORMAL</string>
+    <string name="settings_speed_fast">FAST</string>
+    <string name="settings_character_cap">280-CHARACTER CAP</string>
+    <string name="settings_character_cap_help">The base game banks characters without a limit. Turn this on to cap them at 280.</string>
+    <string name="settings_next_match">Rules changes apply to your next match.</string>
+    <string name="settings_done">DONE</string>
+    <string name="settings_speed_choice">%1$s: %2$s</string>
+    <!-- V4: Title, Pick your leader, Versus intro. -->
+    <string name="title_king_of">KING OF</string>
+    <string name="title_x" translatable="false">X</string>
+    <string name="title_itter">ITTER</string>
+    <string name="title_tagline">the shitposting board game</string>
+    <string name="title_main_character">Main character</string>
+    <string name="title_play_solo">PLAY SOLO</string>
+    <string name="title_play_solo_subtitle">You vs 3 bots · first to 20 mandates</string>
+    <string name="title_rules">RULES</string>
+    <string name="title_settings">SETTINGS</string>
+    <string name="title_trending">Trending:</string>
+    <string name="title_trending_marquee">Trending now: %1$s</string>
+    <string name="title_disclaimer">Parody. Not endorsed by any head of state, platform or billionaire.</string>
+
+    <string name="pick_title">PICK YOUR LEADER</string>
+    <string name="pick_subtitle">1 human · 3 bots · first to 20 mandates wins</string>
+    <string name="pick_you">YOU</string>
+    <string name="pick_difficulty">BOT DIFFICULTY</string>
+    <string name="pick_random_opponents">Opponents drawn at random</string>
+    <string name="pick_go">LET\'S GO</string>
+    <string name="pick_leader_selected">%1$s selected</string>
+    <string name="difficulty_intern">INTERN</string>
+    <string name="difficulty_reply_guy">REPLY GUY</string>
+    <string name="difficulty_troll_farm">TROLL FARM</string>
+    <string name="difficulty_intern_help">Intern: rolls at random and keeps whatever lands.</string>
+    <string name="difficulty_reply_guy_help">Reply Guy: buys power-ups, rarely logs off, tweets at whoever is weakest.</string>
+    <string name="difficulty_troll_farm_help">Troll Farm: plays your turn out in its head before taking its own.</string>
+
+    <string name="versus_match_number">MATCH #%1$04d</string>
+    <string name="versus_headline">4 LEADERS. 1 XITTER.</string>
+    <string name="versus_you">YOU</string>
+    <string name="versus_bot">BOT</string>
+    <string name="versus_vs">VS</string>
+    <string name="versus_roll_off">ROLL-OFF</string>
+    <string name="versus_roll_off_rule">Most tweets goes first</string>
+    <string name="versus_round">ROUND %1$d</string>
+    <string name="versus_starts">%1$s STARTS</string>
+    <string name="versus_tweets">%1$d tweets</string>
+    <string name="versus_begin">TWEET FIRST</string>
+    <string name="versus_skip">Skip</string>
+    <!-- V3: Match timeline. -->
+    <string name="timeline_title_x" translatable="false">X</string>
+    <string name="timeline_title">ITTER TIMELINE</string>
+    <string name="timeline_subtitle">Everything said this match, newest first</string>
+    <string name="timeline_filter_for_you">FOR YOU</string>
+    <string name="timeline_filter_beef">BEEF ONLY</string>
+    <string name="timeline_filter_mine">MY RATIOS</string>
+    <string name="timeline_empty">Nothing has been said yet. Roll some dice.</string>
+    <string name="timeline_empty_beef">No beef yet. Give it a turn.</string>
+    <string name="timeline_empty_mine">You haven\'t ratio\'d anybody yet.</string>
+    <string name="timeline_back">BACK TO GAME</string>
+    <string name="timeline_time">%1$d:%2$02d AM</string>
+    <string name="timeline_turn">Turn %1$d</string>
+    <string name="timeline_unfollows_to">−%1$dM to %2$s</string>
+    <string name="timeline_unfollows_from">−%1$dM from %2$s</string>
+    <string name="timeline_took_xitter">Took Xitter · +1 mandate</string>
+    <string name="timeline_logged_off">Logged off Xitter</string>
+    <string name="timeline_bought">Bought %1$s</string>
+    <string name="timeline_bought_unknown">Bought a power-up</string>
+    <string name="timeline_suspended">Account suspended</string>
+    <string name="timeline_won">Won the match</string>
+    <string name="timeline_lost">Lost the match</string>
+    <string name="timeline_burner">Back on a burner account</string>
+    <string name="timeline_filter_selected">%1$s filter</string>
+</resources>

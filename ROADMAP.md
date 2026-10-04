@@ -366,5 +366,21 @@ See [the handoff](docs/track-a-handoff.md) for precise coverage, checks, API usa
 and remaining owners. The application shell remains a placeholder until the
 UI/front-door tracks connect it. This is not the M2 full-app milestone.
 
+## 9. Track D implementation status (2026-10-04)
+
+S5, B1–B4 and V1–V6 are implemented on `codex/bots-voices-front-door`: the leader
+roster and both D contracts, all three bot difficulties with per-leader
+personalities, the headless simulator, every tweet voice and zinger, and the
+title, pick-your-leader, versus, how-to-play, settings and timeline screens.
+The local `build test ktlintCheck` passes (270 tests, 0 failures) and 12,000
+simulated matches completed with no crash.
+
+Not yet satisfied under §7: a device or emulator run of the five new screens,
+a remote CI result, and a cross-track review. The bots still play base rules
+because the app runs on `DefaultGameReducer` with no deck; wiring C2's shop
+reducer and a catalogue-backed `CardMarket` into `MatchHost` turns shopping on.
+See [the Track D handoff](docs/track-d-handoff.md) for the measured numbers and
+the integration notes for each track.
+
 Task status is tracked in [the dependency graph](docs/dependency-graph.md).
 Cross-track review and approval of contract changes remain required by §7.

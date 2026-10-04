@@ -147,6 +147,7 @@ flowchart LR
   class M0D,HDEC done
   class S1,S2,S3,S6,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
   class C1,C2,C3 active
+  class S5,B1,B2,B3,B4,V1,V2,V3,V4,V5,V6 active
   class S4,U1,U2,U3,U4,U5,U6,U7,U8,U9,U10 done
 ```
 
@@ -182,6 +183,17 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
   cross-track review and validation recorded above.
 - M0 decisions remain settled in ROADMAP §1. AzerX2 owns updating the Bot Farm
   catalogue/design to the agreed 40-character cost.
+- All of Track D (S5, B1-B4, V1-V6) is implemented and pushed on
+  `codex/bots-voices-front-door`. `:content` holds the leader roster, the
+  TweetWriter seam, 300 voice lines, 108 zingers, fake engagement and the trending
+  tags; `:bots` holds the three difficulties, the shared legal-move surface, the
+  per-leader personalities and the `:bots:sim` simulator; `:app` gains the title,
+  pick-your-leader, versus, how-to-play, settings and timeline screens. The local
+  `build test ktlintCheck` passes with 270 tests and 0 failures, and 12,000
+  simulated matches completed with no crash. The nodes stay yellow because ROADMAP
+  §7 is not satisfied yet: there is no device/emulator run of the five new screens,
+  no remote CI result, and no cross-track review. Details and integration notes are
+  in [the Track D handoff](track-d-handoff.md).
 - S3 (CardDef + TestGame), C1 (CardCatalog, all 66 cards), and C2 (Deck and shop logic) 
   are implemented and pushed on their respective branches. `CardDef` holds name, cost,
   type, rules-key and flavour-key for each card. `TestGame` is a fluent
