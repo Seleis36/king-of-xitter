@@ -376,7 +376,7 @@ class DefaultGameReducer(
                     playerId,
                     PlayerResource.CHARACTERS,
                     characterFaces * CHARACTERS_PER_FACE + charBonus,
-                    ResourceChangeReason.CHARACTER_ROLL,
+                    ResourceChangeReason.CHARACTERS_FACE,
                 )
             nextState = changed.first
             events += changed.second
@@ -497,8 +497,11 @@ class DefaultGameReducer(
                 val damageApplied = applyCardIntents(nextState, listOf(intent), random, attackerId, transferMainCharacter = false)
                 nextState = damageApplied.first
                 events += damageApplied.second
-                
-                val reactIntents = invokeOwnerHooks(nextState, targetId, CardHookWindow.ON_DAMAGE_RECEIVED, random, damage = damage) { effect, ctx -> effect.onDamageReceived(ctx) }
+
+                val reactIntents =
+                    invokeOwnerHooks(nextState, targetId, CardHookWindow.ON_DAMAGE_RECEIVED, random, damage = damage) { effect, ctx ->
+                        effect.onDamageReceived(ctx)
+                    }
                 val reactApplied = applyCardIntents(nextState, reactIntents, random, attackerId, transferMainCharacter = false)
                 nextState = reactApplied.first
                 events += reactApplied.second
@@ -568,6 +571,7 @@ class DefaultGameReducer(
         purchasedCardId: CardId? = null,
         actingPlayerId: PlayerId? = null,
         targetPlayerId: PlayerId? = null,
+        damage: Int = 0,
         eliminatedPlayerId: PlayerId? = null,
         invoke: (CardEffect, CardHookContext) -> List<CardEffectIntent>,
     ): List<CardEffectIntent> {
@@ -584,6 +588,7 @@ class DefaultGameReducer(
                     purchasedCardId = purchasedCardId,
                     actingPlayerId = actingPlayerId,
                     targetPlayerId = targetPlayerId,
+                    damage = damage,
                     eliminatedPlayerId = eliminatedPlayerId,
                 ),
             )
@@ -1068,7 +1073,7 @@ class DefaultGameReducer(
         val previousOwner = state.xitterPlayerId
         var nextState = state.copy(xitterPlayerId = attacker.id)
         val events = mutableListOf<GameEvent>(GameEvent.MainCharacterChanged(previousOwner, attacker.id))
-        
+
         val random = SplitMix64(state.randomState)
         val intents = invokeOwnerHooks(
             nextState,

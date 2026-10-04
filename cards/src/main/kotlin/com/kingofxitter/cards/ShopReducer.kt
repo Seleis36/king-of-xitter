@@ -64,12 +64,13 @@ class ShopReducer(
             CardCatalog.byId[action.cardId]
                 ?: return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         val player = state.players.first { it.id == action.playerId }
-        val cost = if (player.policyIds.contains(CardId("c02_lobbyist"))) {
-            maxOf(0, definition.cost - 10)
-        } else {
-            definition.cost
-        }
-        
+        val cost =
+            if (player.policyIds.contains(CardId("c02_lobbyist"))) {
+                maxOf(0, definition.cost - 10)
+            } else {
+                definition.cost
+            }
+
         if (action.cardId !in state.shopCardIds || player.characters < cost) {
             return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         }
