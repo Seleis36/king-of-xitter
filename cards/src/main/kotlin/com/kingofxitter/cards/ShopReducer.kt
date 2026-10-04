@@ -143,11 +143,26 @@ class ShopReducer(
                 purchased.state
             }
         val refilled = offerRevealedCards(discarded, refillShop(discarded), action.playerId)
-        return GameTransition(
-            refilled,
-            listOf(payment(action.playerId, cost, player.characters), GameEvent.PowerUpBought(action.playerId, action.cardId)) +
-                purchased.events + GameEvent.ShopChanged(refilled.shopCardIds),
+        return endTurnIfCurrentPlayerSuspended(
+            GameTransition(
+                refilled,
+                listOf(payment(action.playerId, cost, player.characters), GameEvent.PowerUpBought(action.playerId, action.cardId)) +
+                    purchased.events + GameEvent.ShopChanged(refilled.shopCardIds),
+            ),
         )
+    }
+
+    /**
+     * A purchase can suspend the player whose turn it is (Military Parade costs 4M). Nobody can
+     * act for a suspended player, so their turn ends here once no decision is waiting.
+     */
+    private fun endTurnIfCurrentPlayerSuspended(transition: GameTransition): GameTransition {
+        val state = transition.state
+        val current = state.players.firstOrNull { it.id == state.currentPlayerId }
+        if (state.result != null || current == null || !current.isSuspended || state.pendingDecisions.isNotEmpty()) return transition
+        val ended = baseReducer.reduce(state.copy(phase = TurnPhase.SHOP), Action.EndTurn(current.id))
+        if (ended.events.any { it is GameEvent.ActionRejected }) return transition
+        return GameTransition(ended.state, transition.events + ended.events)
     }
 
     private fun sweepShop(

@@ -120,7 +120,7 @@ class ActivatedPoliciesTest {
 
     @Test
     fun `Paid Promotion pays 20 chars for 1M`() {
-        val result = choose(rollWith("c43_paid_promotion", characters = 50, followers = 5), "buy_followers")
+        val result = choose(rollWith("c37_paid_promotion", characters = 50, followers = 5), "buy_followers")
 
         assertEquals(30, human(result).characters)
         assertEquals(6, human(result).followers)
@@ -128,7 +128,7 @@ class ActivatedPoliciesTest {
 
     @Test
     fun `Paid Promotion is not offered below 20 chars`() {
-        val rolled = rollWith("c43_paid_promotion", characters = 10)
+        val rolled = rollWith("c37_paid_promotion", characters = 10)
 
         assertTrue(rolled.state.pendingDecisions.isEmpty())
     }
@@ -159,7 +159,7 @@ class ActivatedPoliciesTest {
 
     @Test
     fun `Touch Grass pays 20 chars and marks the turn`() {
-        val result = choose(rollWith("c46_touch_grass"), "buy")
+        val result = choose(rollWith("c48_touch_grass"), "buy")
 
         assertEquals(30, human(result).characters)
         assertEquals(1, human(result).counters[CounterId("touch_grass_${result.state.turnNumber}")])

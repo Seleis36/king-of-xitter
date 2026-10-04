@@ -176,9 +176,9 @@ object ActivatedPolicies {
                     return intents
                 }
             },
-            // c43_paid_promotion
+            // c37_paid_promotion
             object : CardEffect {
-                override val cardId = CardId("c43_paid_promotion")
+                override val cardId = CardId("c37_paid_promotion")
 
                 override fun activatedAbilities(context: CardHookContext): List<AbilityOffer> {
                     if (context.window != CardHookWindow.AFTER_DICE_ROLL && context.window != CardHookWindow.ON_RESOLVE) return emptyList()
@@ -189,13 +189,13 @@ object ActivatedPolicies {
                     return listOf(
                         AbilityOffer(
                             abilityId = "use_paid_promotion",
-                            promptKey = "card_c43_prompt",
+                            promptKey = "card_c37_prompt",
                             options =
                                 listOf(
                                     DecisionOption(
                                         id = DecisionOptionId("buy_followers"),
                                         action = Action.ActivateAbility(context.ownerId, cardId, "use_paid_promotion"),
-                                        labelKey = "card_c43_option",
+                                        labelKey = "card_c37_option",
                                     ),
                                 ),
                         ),
@@ -293,9 +293,9 @@ object ActivatedPolicies {
                         CardEffectIntent.ChangeRerollCount(context.ownerId, 1, thisTurnOnly = true),
                     )
             },
-            // c46_touch_grass
+            // c48_touch_grass
             object : CardEffect {
-                override val cardId = CardId("c46_touch_grass")
+                override val cardId = CardId("c48_touch_grass")
 
                 override fun activatedAbilities(context: CardHookContext): List<AbilityOffer> {
                     if (context.window != CardHookWindow.AFTER_DICE_ROLL && context.window != CardHookWindow.ON_RESOLVE) return emptyList()
@@ -307,13 +307,13 @@ object ActivatedPolicies {
                     return listOf(
                         AbilityOffer(
                             abilityId = "use_touch_grass",
-                            promptKey = "card_c46_prompt",
+                            promptKey = "card_c48_prompt",
                             options =
                                 listOf(
                                     DecisionOption(
                                         id = DecisionOptionId("buy"),
                                         action = Action.ActivateAbility(context.ownerId, cardId, "use_touch_grass"),
-                                        labelKey = "card_c46_option",
+                                        labelKey = "card_c48_option",
                                     ),
                                 ),
                         ),

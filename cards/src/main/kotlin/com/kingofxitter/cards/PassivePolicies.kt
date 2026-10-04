@@ -122,13 +122,12 @@ object PassivePolicies {
             object : CardEffect {
                 override val cardId = CardId("c13_second_phone")
 
-                override fun diceCount(context: CardHookContext): Int = 1
-            },
-            // C14 Extra Head 2 / Backup Phone
-            object : CardEffect {
-                override val cardId = CardId("c14_backup_phone")
-
-                override fun diceCount(context: CardHookContext): Int = 1
+                // The deck holds two copies, and the registry runs this effect once per card id.
+                override fun diceCount(context: CardHookContext): Int =
+                    context.state.players
+                        .first { it.id == context.ownerId }
+                        .policyIds
+                        .count { it == cardId }
             },
             // C15 Fire Breathing / Quote Tweet
             object : CardEffect {
