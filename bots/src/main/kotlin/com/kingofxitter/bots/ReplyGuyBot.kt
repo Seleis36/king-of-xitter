@@ -179,6 +179,13 @@ class ReplyGuyBot(
         return keptFaces.flatMap { face -> byFace.getValue(face).map { it.id } }.toSet()
     }
 
+    /**
+     * A face is kept when what it is worth in this position, weighted by the matching appetite,
+     * reaches [KEEP_THRESHOLD]. At the default weights that is exactly "keep what pays": a
+     * completed set, the best pair, likes that can heal, characters for a card out of reach, and
+     * unfollows with somebody to hit. A lower appetite makes the bot need more of a face before
+     * it bothers, and a higher one makes it keep a single die.
+     */
     private fun keepFace(
         face: DiceFace,
         count: Int,
@@ -186,39 +193,60 @@ class ReplyGuyBot(
         player: PlayerState,
     ): Boolean {
         if (count == 0) return false
-        return when (face) {
-            DiceFace.ONE, DiceFace.TWO, DiceFace.THREE -> keepNumbers(face, count, state)
-            // Likes are wasted on Xitter and above the follower maximum (ROADMAP §1).
-            DiceFace.LIKE ->
-                weights.selfPreservation > 0 &&
-                    state.xitterPlayerId != player.id &&
-                    player.followers < player.maxFollowers
-
-            DiceFace.CHARACTERS -> weights.shopAppetite > 0 && wantsCharacters(state, player)
-            DiceFace.TWEET -> weights.aggression > 0 && hasSomeoneToHit(state, player)
-        }
+        val value =
+            when (face) {
+                DiceFace.ONE, DiceFace.TWO, DiceFace.THREE -> numberValue(face, count, state) * weights.mandateHunger
+                DiceFace.LIKE -> likeValue(count, state, player) * weights.selfPreservation
+                DiceFace.CHARACTERS -> charactersValue(count, state, player) * weights.shopAppetite
+                DiceFace.TWEET -> tweetValue(count, state, player) * weights.aggression
+            }
+        return value >= KEEP_THRESHOLD
     }
 
     /**
-     * A completed set scores, so it is always kept. A pair is kept only when it is the best pair
-     * on the table, because keeping two pairs would leave too few dice to complete either.
+     * A completed set scores, so it is worth keeping twice over. A pair is only worth it when it
+     * is the best pair on the table, because keeping two pairs leaves too few dice to complete
+     * either.
      */
-    private fun keepNumbers(
+    private fun numberValue(
         face: DiceFace,
         count: Int,
         state: GameState,
-    ): Boolean {
-        if (weights.mandateHunger <= 0) return false
-        if (count >= 3) return true
-        if (count < 2) return false
+    ): Float {
+        if (count >= 3) return SET_VALUE
+        if (count < 2) return 0f
         val numbers = listOf(DiceFace.ONE, DiceFace.TWO, DiceFace.THREE)
         val best =
             numbers
                 .map { candidate -> candidate to state.dice.count { it.face == candidate } }
                 .filter { it.second >= 2 }
                 .maxWithOrNull(compareBy({ it.second }, { numbers.indexOf(it.first) }))
-        return best?.first == face
+        return if (best?.first == face) KEEP_THRESHOLD else 0f
     }
+
+    /** Likes are wasted on Xitter and above the follower maximum (ROADMAP §1). */
+    private fun likeValue(
+        count: Int,
+        state: GameState,
+        player: PlayerState,
+    ): Float {
+        if (state.xitterPlayerId == player.id) return 0f
+        val missing = player.maxFollowers - player.followers
+        if (missing <= 0) return 0f
+        return KEEP_THRESHOLD + (minOf(count, missing) - 1) * EXTRA_DIE_VALUE
+    }
+
+    private fun charactersValue(
+        count: Int,
+        state: GameState,
+        player: PlayerState,
+    ): Float = if (wantsCharacters(state, player)) KEEP_THRESHOLD + (count - 1) * EXTRA_DIE_VALUE else 0f
+
+    private fun tweetValue(
+        count: Int,
+        state: GameState,
+        player: PlayerState,
+    ): Float = if (hasSomeoneToHit(state, player)) KEEP_THRESHOLD + (count - 1) * EXTRA_DIE_VALUE else 0f
 
     /** Characters are only worth hoarding while the shop holds something out of reach. */
     private fun wantsCharacters(
@@ -271,6 +299,9 @@ class ReplyGuyBot(
     private fun worth(card: CardAppraisal): Float = card.cost * (if (card.isPolicy) POLICY_WORTH else ORDER_WORTH)
 
     private companion object {
+        const val KEEP_THRESHOLD = 1f
+        const val SET_VALUE = 2f
+        const val EXTRA_DIE_VALUE = 0.25f
         const val POLICY_WORTH = 1f
         const val ORDER_WORTH = 0.8f
     }

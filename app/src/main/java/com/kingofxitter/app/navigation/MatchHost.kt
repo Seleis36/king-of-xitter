@@ -9,8 +9,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
 import com.kingofxitter.bots.BotDifficulty
+import com.kingofxitter.bots.LeaderBots
 import com.kingofxitter.bots.asBotAction
-import com.kingofxitter.bots.botBrainFor
 import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
@@ -110,7 +110,8 @@ class MatchHost(
                 saveFile = MatchSaveFile(saveFile.toPath()),
                 // The deck is still empty, so the bots play base rules with CardMarket.Unknown
                 // until C2 wires the shop in.
-                botAction = botBrainFor(options.difficulty).asBotAction(),
+                // V6 gives each seat its own leader's personality at the chosen difficulty.
+                botAction = LeaderBots(options.difficulty).asBotAction(),
                 botDelayMillis = options.botDelayMillis,
             )
         // A restored save is a different match, so it has no roll-off for the Versus screen.

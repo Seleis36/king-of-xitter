@@ -92,7 +92,9 @@ class SimulatorTest {
 
     @Test
     fun `every difficulty maps to the brain that implements it`() {
-        BotDifficulty.entries.forEach { difficulty -> assertEquals(difficulty, botBrainFor(difficulty).difficulty) }
+        BotDifficulty.entries.forEach { difficulty ->
+            assertEquals(difficulty, LeaderBots(difficulty).brain(DEFAULT_LEADERS.first()).difficulty)
+        }
     }
 
     @Test

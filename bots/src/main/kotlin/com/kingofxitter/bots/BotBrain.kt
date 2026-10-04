@@ -48,17 +48,3 @@ fun BotBrain.asBotAction(): (GameState) -> Action? =
     { state ->
         decide(state, state.pendingDecisions.firstOrNull(), botRandom(state))
     }
-
-/**
- * The brain behind a difficulty. The app's match host and the simulator pick opponents the same
- * way, so what the player faces is what the balance numbers measured.
- */
-fun botBrainFor(
-    difficulty: BotDifficulty,
-    market: CardMarket = CardMarket.Unknown,
-): BotBrain =
-    when (difficulty) {
-        BotDifficulty.INTERN -> InternBot(market)
-        BotDifficulty.REPLY_GUY -> ReplyGuyBot(market)
-        BotDifficulty.TROLL_FARM -> TrollFarmBot(market)
-    }

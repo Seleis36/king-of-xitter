@@ -81,7 +81,8 @@ object Simulator {
         config: SimulationConfig,
         reducer: () -> GameReducer = { DefaultGameReducer() },
     ): SimulationReport {
-        val brains = config.difficulties.map { it to botBrainFor(it, config.market) }
+        // V6: each seat plays its leader's personality, so the numbers measure what the player faces.
+        val brains = config.difficulties.map { it to LeaderBots(it, config.market) }
         val winsByDifficulty = mutableMapOf<BotDifficulty, Int>()
         val seatsByDifficulty = mutableMapOf<BotDifficulty, Int>()
         val winsByLeader = mutableMapOf<LeaderId, Int>()
