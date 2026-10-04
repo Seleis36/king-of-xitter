@@ -357,12 +357,14 @@ class DefaultGameReducer(
         if (nextState.xitterPlayerId != playerId && likes > 0) {
             val actual = minOf(likes, actor.maxFollowers - actor.followers)
             if (actual > 0) {
+                val healingBonus =
+                    invokeNumericHooks(nextState, playerId, CardHookWindow.HEALING, random) { effect, ctx -> effect.modifyHealing(ctx) }
                 val changed =
                     changeResource(
                         nextState,
                         playerId,
                         PlayerResource.FOLLOWERS,
-                        actual,
+                        actual + healingBonus,
                         ResourceChangeReason.LIKE,
                     )
                 nextState = changed.first
@@ -372,12 +374,19 @@ class DefaultGameReducer(
 
         val characterFaces = nextState.dice.count { it.face == DiceFace.CHARACTERS }
         if (characterFaces > 0) {
+            val charBonus =
+                invokeNumericHooks(
+                    nextState,
+                    playerId,
+                    CardHookWindow.GAIN_CHARACTERS,
+                    random,
+                ) { effect, ctx -> effect.modifyGainCharacters(ctx) }
             val changed =
                 changeResource(
                     nextState,
                     playerId,
                     PlayerResource.CHARACTERS,
-                    characterFaces * CHARACTERS_PER_FACE,
+                    characterFaces * CHARACTERS_PER_FACE + charBonus,
                     ResourceChangeReason.CHARACTERS_FACE,
                 )
             nextState = changed.first
@@ -468,75 +477,56 @@ class DefaultGameReducer(
             }
         val targetDamage =
             targets.associateWith { targetId ->
-                val incoming =
-                    invokeOwnerDamageHooks(
-                        state,
-                        targetId,
-                        CardHookWindow.INCOMING_DAMAGE,
-                        random,
-                        targetIds = setOf(targetId),
-                        damage = rawDamage,
-                        outgoing = false,
-                    )
-                if (incoming.any { it.preventDamage }) {
+                val perTarget = outgoing.sumOf { it.perTargetBonus[targetId] ?: 0 }
+                val baseDamage = rawDamage + perTarget
+                if (baseDamage <= 0) {
                     0
                 } else {
-                    (rawDamage - incoming.sumOf { it.damageReduction }).coerceAtLeast(0)
+                    val incoming =
+                        invokeOwnerDamageHooks(
+                            state,
+                            targetId,
+                            CardHookWindow.INCOMING_DAMAGE,
+                            random,
+                            targetIds = setOf(targetId),
+                            damage = baseDamage,
+                            outgoing = false,
+                        )
+                    if (incoming.any { it.preventDamage }) {
+                        0
+                    } else {
+                        (baseDamage - incoming.sumOf { it.damageReduction }).coerceAtLeast(0)
+                    }
                 }
             }
 
         var nextState = state.copy(randomState = random.state)
         val events = mutableListOf<GameEvent>()
         var totalUnfollows = 0
-        val newlySuspended = mutableListOf<PlayerId>()
         for ((targetId, damageToDeal) in targetDamage) {
             val target = nextState.players.firstOrNull { it.id == targetId } ?: continue
             val damage = minOf(damageToDeal, target.followers)
             if (damage > 0) {
-                val changed =
-                    changeResource(
-                        nextState,
-                        targetId,
-                        PlayerResource.FOLLOWERS,
-                        -damage,
-                        ResourceChangeReason.TWEET,
-                    )
-                nextState = changed.first
-                events += changed.second
                 totalUnfollows += damage
-                if (target.followers > 0 && target.followers - damage == 0) {
-                    newlySuspended += targetId
-                }
-            }
-        }
+                val intent = CardEffectIntent.ChangeResource(targetId, PlayerResource.FOLLOWERS, -damage, ResourceChangeReason.TWEET)
+                val damageApplied = applyCardIntents(nextState, listOf(intent), random, attackerId, transferMainCharacter = false)
+                nextState = damageApplied.first
+                events += damageApplied.second
 
-        if (newlySuspended.isNotEmpty()) {
-            val intents =
-                invokeOwnerSetHooks(
-                    nextState,
-                    newlySuspended,
-                    CardHookWindow.ELIMINATED,
-                    random,
-                ) { effect, hookContext -> effect.onEliminated(hookContext) }
-            val applied =
-                applyCardIntents(
-                    nextState,
-                    intents,
-                    random,
-                    attackerId,
-                    previouslyEliminated = newlySuspended.toSet(),
-                    transferMainCharacter = false,
-                )
-            nextState = applied.first
-            events += applied.second
-            newlySuspended
-                .filter { id -> nextState.players.any { it.id == id && it.isSuspended } }
-                .forEach { events += GameEvent.PlayerSuspended(it) }
+                val reactIntents =
+                    invokeOwnerHooks(nextState, targetId, CardHookWindow.ON_DAMAGE_RECEIVED, random, damage = damage) { effect, ctx ->
+                        effect.onDamageReceived(ctx)
+                    }
+                val reactApplied = applyCardIntents(nextState, reactIntents, random, attackerId, transferMainCharacter = false)
+                nextState = reactApplied.first
+                events += reactApplied.second
+            }
         }
 
         val currentStats = nextState.matchStats[attackerId] ?: MatchStats()
         nextState =
             nextState.copy(
+                turnUnfollowsDealt = nextState.turnUnfollowsDealt + totalUnfollows,
                 matchStats =
                     nextState.matchStats + (
                         attackerId to
@@ -595,6 +585,9 @@ class DefaultGameReducer(
         random: SplitMix64,
         purchasedCardId: CardId? = null,
         actingPlayerId: PlayerId? = null,
+        targetPlayerId: PlayerId? = null,
+        damage: Int = 0,
+        eliminatedPlayerId: PlayerId? = null,
         invoke: (CardEffect, CardHookContext) -> List<CardEffectIntent>,
     ): List<CardEffectIntent> {
         val owner = state.players.firstOrNull { it.id == ownerId } ?: return emptyList()
@@ -609,6 +602,9 @@ class DefaultGameReducer(
                     random,
                     purchasedCardId = purchasedCardId,
                     actingPlayerId = actingPlayerId,
+                    targetPlayerId = targetPlayerId,
+                    damage = damage,
+                    eliminatedPlayerId = eliminatedPlayerId,
                 ),
             )
         }
@@ -621,16 +617,21 @@ class DefaultGameReducer(
         random: SplitMix64,
         invoke: (CardEffect, CardHookContext) -> List<CardEffectIntent>,
     ): List<CardEffectIntent> {
-        val ordered =
-            ownerIds
-                .distinct()
-                .flatMap { ownerId ->
-                    val owner = state.players.firstOrNull { it.id == ownerId } ?: return@flatMap emptyList()
-                    cardEffects.ordered(owner.policyIds).map { effect -> ownerId to effect }
-                }.sortedWith(compareBy({ it.second.cardId.value }, { it.first.value }))
-        return ordered.flatMap { (ownerId, effect) ->
-            invoke(effect, hookContext(state, ownerId, effect, window, random, eliminatedPlayerId = ownerId))
+        val intents = mutableListOf<CardEffectIntent>()
+        for (eliminatedId in ownerIds.distinct()) {
+            for (observer in state.players) {
+                intents +=
+                    invokeOwnerHooks(
+                        state,
+                        observer.id,
+                        window,
+                        random,
+                        eliminatedPlayerId = eliminatedId,
+                        invoke = invoke,
+                    )
+            }
         }
+        return intents
     }
 
     private fun invokeNumericHooks(
@@ -743,7 +744,7 @@ class DefaultGameReducer(
         previouslyEliminated: Set<PlayerId> = emptySet(),
         transferMainCharacter: Boolean = true,
     ): Pair<GameState, List<GameEvent>> {
-        val applied = applyIntents(initialState, intents)
+        val applied = applyIntents(initialState, intents, random)
         var state = applied.first
         val events = applied.second.toMutableList()
         val handled = previouslyEliminated.toMutableSet()
@@ -849,6 +850,7 @@ class DefaultGameReducer(
     private fun applyIntents(
         initialState: GameState,
         intents: List<CardEffectIntent>,
+        random: SplitMix64? = null,
     ): Pair<GameState, List<GameEvent>> {
         var state = initialState
         val events = mutableListOf<GameEvent>()
@@ -856,7 +858,26 @@ class DefaultGameReducer(
             when (intent) {
                 is CardEffectIntent.ChangeResource -> {
                     if (state.players.any { it.id == intent.playerId }) {
-                        val changed = changeResource(state, intent.playerId, intent.resource, intent.amount, intent.reason)
+                        var amount = intent.amount
+                        if (intent.resource == PlayerResource.FOLLOWERS && amount > 0 && random != null) {
+                            amount +=
+                                invokeNumericHooks(
+                                    state,
+                                    intent.playerId,
+                                    CardHookWindow.HEALING,
+                                    random,
+                                ) { effect, ctx -> effect.modifyHealing(ctx) }
+                        }
+                        if (intent.resource == PlayerResource.CHARACTERS && amount > 0 && random != null) {
+                            amount +=
+                                invokeNumericHooks(
+                                    state,
+                                    intent.playerId,
+                                    CardHookWindow.GAIN_CHARACTERS,
+                                    random,
+                                ) { effect, ctx -> effect.modifyGainCharacters(ctx) }
+                        }
+                        val changed = changeResource(state, intent.playerId, intent.resource, amount, intent.reason)
                         state = changed.first
                         events += changed.second
                     }
@@ -1095,10 +1116,22 @@ class DefaultGameReducer(
         val attacker =
             state.players.firstOrNull { it.id == state.currentPlayerId && !it.isSuspended }
                 ?: return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
-        return GameTransition(
-            state.copy(xitterPlayerId = attacker.id),
-            listOf(GameEvent.MainCharacterChanged(action.playerId, attacker.id)),
-        )
+        val previousOwner = state.xitterPlayerId
+        var nextState = state.copy(xitterPlayerId = attacker.id)
+        val events = mutableListOf<GameEvent>(GameEvent.MainCharacterChanged(previousOwner, attacker.id))
+
+        val random = SplitMix64(state.randomState)
+        val intents =
+            invokeOwnerHooks(
+                nextState,
+                action.playerId,
+                CardHookWindow.ON_LOG_OFF,
+                random,
+                targetPlayerId = attacker.id,
+                actingPlayerId = action.playerId,
+            ) { effect, ctx -> effect.onLogOff(ctx) }
+        val applied = applyCardIntents(nextState, intents, random, action.playerId)
+        return GameTransition(applied.first.copy(randomState = random.state), events + applied.second)
     }
 
     private fun chooseDecisionOption(
@@ -1272,6 +1305,7 @@ class DefaultGameReducer(
                 resolveHooksAppliedForRoll = false,
                 turnDiceCount = null,
                 turnRollLimit = null,
+                turnUnfollowsDealt = 0,
             )
         return GameTransition(
             nextState,

@@ -204,3 +204,4 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
   S3, C1, and C2 remain yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
 - C3 (Executive Orders) is implemented with 16 card effects and matching tests. It remains yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
 - C4 (Passive policies) and C5 (Activated policies) are implemented with their card effects and tests. They remain yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
+- C4 (Passive policies) is implemented with 26 card effects. The implementation required adding missing hooks to E6 for healing, damage reactions, and logging off. It remains yellow until CI passes and a cross-track reviewer approves.
