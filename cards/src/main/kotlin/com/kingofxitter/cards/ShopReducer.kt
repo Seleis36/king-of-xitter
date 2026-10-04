@@ -150,14 +150,19 @@ class ShopReducer(
     private fun shopRejection(
         state: GameState,
         playerId: PlayerId,
-    ): ActionRejectionReason? =
-        when {
-            state.result != null || state.phase == TurnPhase.FINISHED -> ActionRejectionReason.MATCH_FINISHED
-            state.currentPlayerId != playerId -> ActionRejectionReason.WRONG_PLAYER
-            state.phase != TurnPhase.SHOP || state.pendingDecisions.isNotEmpty() -> ActionRejectionReason.WRONG_PHASE
-            state.players.none { it.id == playerId && !it.isSuspended } -> ActionRejectionReason.INVALID_SELECTION
-            else -> null
-        }
+    ): ActionRejectionReason? {
+        if (state.result != null || state.phase == TurnPhase.FINISHED) return ActionRejectionReason.MATCH_FINISHED
+        if (state.phase != TurnPhase.SHOP && state.phase != TurnPhase.DECISION) return ActionRejectionReason.WRONG_PHASE
+        if (state.players.none { it.id == playerId && !it.isSuspended }) return ActionRejectionReason.INVALID_SELECTION
+        
+        val isCurrent = state.currentPlayerId == playerId && state.pendingDecisions.isEmpty()
+        val isPendingDecision = state.pendingDecisions.firstOrNull()?.let { 
+            it.playerId == playerId && (it.kind == com.kingofxitter.engine.model.DecisionKind.BUY_POWER_UP || it.kind == com.kingofxitter.engine.model.DecisionKind.ACTIVATE_ABILITY)
+        } == true
+        
+        if (!isCurrent && !isPendingDecision) return ActionRejectionReason.WRONG_PLAYER
+        return null
+    }
 
     private fun payment(
         playerId: PlayerId,

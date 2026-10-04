@@ -151,6 +151,32 @@ sealed interface CardEffectIntent {
     data class QueueDecision(
         val decision: PendingDecision,
     ) : CardEffectIntent
+
+    /** Discards a kept policy. */
+    data class DiscardPolicy(
+        val playerId: PlayerId,
+        val policyId: CardId,
+    ) : CardEffectIntent
+
+    /** Transfers a kept policy from one player to another. */
+    data class TransferPolicy(
+        val fromPlayerId: PlayerId,
+        val toPlayerId: PlayerId,
+        val policyId: CardId,
+    ) : CardEffectIntent
+
+    /** Buys the top card from the draw pile. */
+    data class BuyTopCard(
+        val playerId: PlayerId,
+        val cost: Int,
+        val isExecutiveOrder: Boolean,
+    ) : CardEffectIntent
+
+    /** Consumes a die, removing it from the roll. */
+    data class ConsumeDie(
+        val playerId: PlayerId,
+        val dieId: DieId,
+    ) : CardEffectIntent
 }
 
 /** Registry of card effects injected by the app's card catalogue. */
