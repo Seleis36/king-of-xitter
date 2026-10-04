@@ -136,8 +136,7 @@ class MatchHostTest {
                         firstStartEntered.complete(Unit)
                         awaitCancellation()
                     }
-                    val setup = MatchSetup.create(options.leader, LeaderRoster.ids, 42)
-                    GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+                    startedMatch(options)
                 }
             host.resumeOrStart()
             runCurrent()
@@ -177,18 +176,21 @@ class MatchHostTest {
             }
         }
 
-    private fun host(
-        gameFactory: suspend (MatchOptions) -> GameViewModel = { options ->
-            val setup = MatchSetup.create(options.leader, LeaderRoster.ids, 42)
-            GameViewModel.restore(
-                setup.state.copy(characterCap = options.characterCap),
-                setup.humanPlayerId,
-                MatchSaveFile(saveFile.toPath()),
-            )
-        },
-    ): MatchHost {
+    private fun host(gameFactory: suspend (MatchOptions) -> StartedMatch = { options -> startedMatch(options) }): MatchHost {
         val store = ViewModelStore().also(stores::add)
         return ViewModelProvider(store, viewModelFactory { initializer { MatchHost(saveFile, gameFactory) } })[MatchHost::class.java]
+    }
+
+    /** A match on a fixed seed, with the roll-off the Versus screen would show. */
+    private suspend fun startedMatch(options: MatchOptions): StartedMatch {
+        val setup = MatchSetup.create(options.leader, LeaderRoster.ids, 42)
+        val initial = setup.state.copy(characterCap = options.characterCap)
+        val game = GameViewModel.restore(initial, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+        val fresh = game.humanPlayerId == setup.humanPlayerId && game.state.value == initial
+        return StartedMatch(
+            game,
+            if (fresh) MatchIntro(setup.humanPlayerId, setup.state.currentPlayerId, setup.state.players, setup.rollOff, 42) else null,
+        )
     }
 
     /** Waits for a live match accepted by [accept]; fails if the match can't start. */

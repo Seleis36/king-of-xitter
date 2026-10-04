@@ -11,6 +11,9 @@ import com.kingofxitter.app.R
 import com.kingofxitter.app.feedback.FeedbackPreferences
 import com.kingofxitter.app.feedback.FeedbackSettings
 import com.kingofxitter.app.ui.motion.MotionSettings
+import com.kingofxitter.bots.BotDifficulty
+import com.kingofxitter.content.LeaderRoster
+import com.kingofxitter.engine.model.LeaderId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +47,10 @@ data class GameSettings(
     val animationSpeed: SpeedChoice = SpeedChoice.NORMAL,
     val botSpeed: SpeedChoice = SpeedChoice.NORMAL,
     val characterCap: Boolean = false,
+    /** The last leader picked on Pick your leader. Remembered, not shown in Settings. */
+    val leader: LeaderId = LeaderRoster.macaron.id,
+    /** The last bot difficulty picked on Pick your leader. Remembered, not shown in Settings. */
+    val difficulty: BotDifficulty = BotDifficulty.REPLY_GUY,
 ) {
     /** Motion settings for [com.kingofxitter.app.ui.motion.LocalMotion]. */
     fun motion(systemAllowsMotion: Boolean): MotionSettings =
@@ -77,6 +84,8 @@ class GamePreferences(
             putString(ANIMATION_SPEED, settings.animationSpeed.name)
             putString(BOT_SPEED, settings.botSpeed.name)
             putBoolean(CHARACTER_CAP_KEY, settings.characterCap)
+            putString(LEADER, settings.leader.value)
+            putString(DIFFICULTY, settings.difficulty.name)
         }
         mutableSettings.value = settings
     }
@@ -89,8 +98,17 @@ class GamePreferences(
             animationSpeed = speed(ANIMATION_SPEED, defaults.animationSpeed),
             botSpeed = speed(BOT_SPEED, defaults.botSpeed),
             characterCap = preferences.getBoolean(CHARACTER_CAP_KEY, defaults.characterCap),
+            leader = leader(defaults.leader),
+            difficulty = difficulty(defaults.difficulty),
         )
     }
+
+    // A leader or difficulty that no longer exists falls back instead of crashing.
+    private fun leader(default: LeaderId) =
+        preferences.getString(LEADER, null)?.let { value -> LeaderRoster.byId(LeaderId(value))?.id } ?: default
+
+    private fun difficulty(default: BotDifficulty) =
+        preferences.getString(DIFFICULTY, null)?.let { name -> BotDifficulty.entries.firstOrNull { it.name == name } } ?: default
 
     // A stored name that no longer exists (a renamed choice) falls back instead of crashing.
     private fun speed(
@@ -104,6 +122,8 @@ class GamePreferences(
         const val ANIMATION_SPEED = "animation-speed"
         const val BOT_SPEED = "bot-speed"
         const val CHARACTER_CAP_KEY = "character-cap"
+        const val LEADER = "leader"
+        const val DIFFICULTY = "difficulty"
     }
 }
 

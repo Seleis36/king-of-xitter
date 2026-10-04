@@ -39,4 +39,44 @@
     <string name="settings_next_match">Rules changes apply to your next match.</string>
     <string name="settings_done">DONE</string>
     <string name="settings_speed_choice">%1$s: %2$s</string>
+    <!-- V4: Title, Pick your leader, Versus intro. -->
+    <string name="title_king_of">KING OF</string>
+    <string name="title_x" translatable="false">X</string>
+    <string name="title_itter">ITTER</string>
+    <string name="title_tagline">the shitposting board game</string>
+    <string name="title_main_character">Main character</string>
+    <string name="title_play_solo">PLAY SOLO</string>
+    <string name="title_play_solo_subtitle">You vs 3 bots · first to 20 mandates</string>
+    <string name="title_rules">RULES</string>
+    <string name="title_settings">SETTINGS</string>
+    <string name="title_trending">Trending:</string>
+    <string name="title_trending_marquee">Trending now: %1$s</string>
+    <string name="title_disclaimer">Parody. Not endorsed by any head of state, platform or billionaire.</string>
+
+    <string name="pick_title">PICK YOUR LEADER</string>
+    <string name="pick_subtitle">1 human · 3 bots · first to 20 mandates wins</string>
+    <string name="pick_you">YOU</string>
+    <string name="pick_difficulty">BOT DIFFICULTY</string>
+    <string name="pick_random_opponents">Opponents drawn at random</string>
+    <string name="pick_go">LET\'S GO</string>
+    <string name="pick_leader_selected">%1$s selected</string>
+    <string name="difficulty_intern">INTERN</string>
+    <string name="difficulty_reply_guy">REPLY GUY</string>
+    <string name="difficulty_troll_farm">TROLL FARM</string>
+    <string name="difficulty_intern_help">Intern: rolls at random and keeps whatever lands.</string>
+    <string name="difficulty_reply_guy_help">Reply Guy: buys power-ups, rarely logs off, tweets at whoever is weakest.</string>
+    <string name="difficulty_troll_farm_help">Troll Farm: plays your turn out in its head before taking its own.</string>
+
+    <string name="versus_match_number">MATCH #%1$04d</string>
+    <string name="versus_headline">4 LEADERS. 1 XITTER.</string>
+    <string name="versus_you">YOU</string>
+    <string name="versus_bot">BOT</string>
+    <string name="versus_vs">VS</string>
+    <string name="versus_roll_off">ROLL-OFF</string>
+    <string name="versus_roll_off_rule">Most tweets goes first</string>
+    <string name="versus_round">ROUND %1$d</string>
+    <string name="versus_starts">%1$s STARTS</string>
+    <string name="versus_tweets">%1$d tweets</string>
+    <string name="versus_begin">TWEET FIRST</string>
+    <string name="versus_skip">Skip</string>
 </resources>

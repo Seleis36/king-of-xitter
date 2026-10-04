@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -33,7 +34,11 @@ import com.kingofxitter.app.ui.endgame.DefeatScreen
 import com.kingofxitter.app.ui.endgame.StandingsScreen
 import com.kingofxitter.app.ui.endgame.VictoryScreen
 import com.kingofxitter.app.ui.front.HowToPlayScreen
+import com.kingofxitter.app.ui.front.PickLeaderScreen
 import com.kingofxitter.app.ui.front.SettingsScreen
+import com.kingofxitter.app.ui.front.TitleScreen
+import com.kingofxitter.app.ui.front.VersusLineUp
+import com.kingofxitter.app.ui.front.VersusScreen
 import com.kingofxitter.app.ui.front.rememberGamePreferences
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.engine.model.GameState
@@ -87,7 +92,13 @@ fun XitterNavHost(
     val context = LocalContext.current
     val preferences = rememberGamePreferences()
     val settings by preferences.settings.collectAsState()
-    val options = MatchOptions(botDelayMillis = settings.botSpeed.botDelayMillis, characterCap = settings.characterCapValue)
+    val options =
+        MatchOptions(
+            leader = settings.leader,
+            difficulty = settings.difficulty,
+            botDelayMillis = settings.botSpeed.botDelayMillis,
+            characterCap = settings.characterCapValue,
+        )
     val session by host.session.collectAsState()
     val game = (session as? MatchSession.Ready)?.game
     // Effects and sounds follow the live match, above navigation so no screen misses them.
@@ -98,9 +109,42 @@ fun XitterNavHost(
     val screen = Modifier.fillMaxSize().nightBackground().safeDrawingPadding()
 
     NavHost(navController = navController, startDestination = XitterRoute.Title, modifier = modifier) {
-        placeholder<XitterRoute.Title>(XitterRoute.Title, navigate)
-        placeholder<XitterRoute.PickLeader>(XitterRoute.PickLeader, navigate)
-        placeholder<XitterRoute.Versus>(XitterRoute.Versus, navigate)
+        composable<XitterRoute.Title> {
+            TitleScreen(
+                onPlay = { navigate(XitterRoute.PickLeader) },
+                onRules = { navigate(XitterRoute.HowToPlay) },
+                onSettings = { navigate(XitterRoute.Settings) },
+                modifier = screen,
+            )
+        }
+        composable<XitterRoute.PickLeader> {
+            PickLeaderScreen(
+                onStart = { leader, difficulty ->
+                    // The pick is remembered, so a replay or a restart uses the same opponents.
+                    preferences.update(settings.copy(leader = leader, difficulty = difficulty))
+                    host.startNew(options.copy(leader = leader, difficulty = difficulty))
+                    navigate(XitterRoute.Versus)
+                },
+                onBack = { navController.navigateUp() },
+                modifier = screen,
+                initialLeader = settings.leader,
+                initialDifficulty = settings.difficulty,
+            )
+        }
+        composable<XitterRoute.Versus> {
+            val intro by host.intro.collectAsState()
+            val lineUp = intro
+            // A resumed save has no roll-off to show, so the intro is skipped entirely.
+            if (lineUp == null) {
+                LaunchedEffect(Unit) { navigate(XitterRoute.Board) }
+            } else {
+                VersusScreen(
+                    VersusLineUp(lineUp.humanPlayerId, lineUp.firstPlayerId, lineUp.players, lineUp.rollOff, lineUp.matchNumber),
+                    onBegin = { navigate(XitterRoute.Board) },
+                    modifier = screen,
+                )
+            }
+        }
         composable<XitterRoute.Board> {
             MatchGate(host, options, screen) { live ->
                 Column(screen) {

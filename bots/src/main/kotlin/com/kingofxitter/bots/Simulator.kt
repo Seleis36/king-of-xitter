@@ -81,7 +81,7 @@ object Simulator {
         config: SimulationConfig,
         reducer: () -> GameReducer = { DefaultGameReducer() },
     ): SimulationReport {
-        val brains = config.difficulties.map { it to brainFor(it, config.market) }
+        val brains = config.difficulties.map { it to botBrainFor(it, config.market) }
         val winsByDifficulty = mutableMapOf<BotDifficulty, Int>()
         val seatsByDifficulty = mutableMapOf<BotDifficulty, Int>()
         val winsByLeader = mutableMapOf<LeaderId, Int>()
@@ -130,17 +130,6 @@ object Simulator {
             failures = failures,
         )
     }
-
-    /** The brain behind a difficulty. The simulator and the app pick opponents the same way. */
-    fun brainFor(
-        difficulty: BotDifficulty,
-        market: CardMarket = CardMarket.Unknown,
-    ): BotBrain =
-        when (difficulty) {
-            BotDifficulty.INTERN -> InternBot(market)
-            BotDifficulty.REPLY_GUY -> ReplyGuyBot(market)
-            BotDifficulty.TROLL_FARM -> TrollFarmBot(market)
-        }
 
     private fun play(
         initial: GameState,
