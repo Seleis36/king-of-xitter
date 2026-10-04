@@ -426,11 +426,12 @@ class DefaultGameReducer(
         nextState = ended.first
         events += ended.second
         if (nextState.result == null) {
-            val offers = nextState.players
-                .filter { !it.isSuspended }
-                .flatMap { player ->
-                    collectAbilityDecisions(nextState, player.id, CardHookWindow.AFTER_RESOLVE, random)
-                }
+            val offers =
+                nextState.players
+                    .filter { !it.isSuspended }
+                    .flatMap { player ->
+                        collectAbilityDecisions(nextState, player.id, CardHookWindow.AFTER_RESOLVE, random)
+                    }
             if (offers.isNotEmpty()) {
                 nextState =
                     nextState.copy(
@@ -716,7 +717,7 @@ class DefaultGameReducer(
                         action != null &&
                             action.playerId == ownerId &&
                             action.cardId == effect.cardId &&
-                            action.abilityId == offer.abilityId
+                            (action.abilityId == offer.abilityId || action.abilityId.startsWith("${offer.abilityId}:"))
                     }
                 if (validOptions.isEmpty() || validOptions.size != offer.options.size) continue
                 val decision =
@@ -832,7 +833,7 @@ class DefaultGameReducer(
         val rerolls =
             intents
                 .filterIsInstance<CardEffectIntent.ChangeRerollCount>()
-                .groupBy { it.playerId }
+                .groupBy { it.playerId to it.thisTurnOnly }
                 .values
                 .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
         val turns =
@@ -843,7 +844,10 @@ class DefaultGameReducer(
                 .map { group -> group.first().copy(amount = sum(group.map { it.amount })) }
         return limits + resources + counters + dice + rerolls + turns +
             intents.filter {
-                it is CardEffectIntent.ChangeDie || it is CardEffectIntent.ChangeMainCharacter || it is CardEffectIntent.QueueDecision || it is CardEffectIntent.DiscardPolicy
+                it is CardEffectIntent.ChangeDie ||
+                    it is CardEffectIntent.ChangeMainCharacter ||
+                    it is CardEffectIntent.QueueDecision ||
+                    it is CardEffectIntent.DiscardPolicy
             }
     }
 
@@ -957,7 +961,15 @@ class DefaultGameReducer(
 
                 is CardEffectIntent.ChangeRerollCount -> {
                     val index = state.players.indexOfFirst { it.id == intent.playerId }
-                    if (index >= 0) {
+                    if (index >= 0 && intent.thisTurnOnly) {
+                        if (intent.playerId == state.currentPlayerId) {
+                            state =
+                                state.copy(
+                                    turnRollLimit =
+                                        state.turnRollLimit?.let { (it + intent.amount).coerceAtLeast(state.rollNumber) },
+                                )
+                        }
+                    } else if (index >= 0) {
                         val player = state.players[index]
                         val value =
                             (player.extraRerolls.toLong() + intent.amount)
@@ -1019,12 +1031,14 @@ class DefaultGameReducer(
                     if (index >= 0) {
                         val player = state.players[index]
                         if (intent.cardId in player.policyIds) {
-                            state = state.copy(
-                                players = state.players.toMutableList().also {
-                                    it[index] = player.copy(policyIds = player.policyIds - intent.cardId)
-                                },
-                                discardPileCardIds = state.discardPileCardIds + intent.cardId
-                            )
+                            state =
+                                state.copy(
+                                    players =
+                                        state.players.toMutableList().also {
+                                            it[index] = player.copy(policyIds = player.policyIds - intent.cardId)
+                                        },
+                                    discardPileCardIds = state.discardPileCardIds + intent.cardId,
+                                )
                         }
                     }
                 }
