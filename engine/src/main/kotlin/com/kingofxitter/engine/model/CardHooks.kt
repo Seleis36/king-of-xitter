@@ -185,6 +185,32 @@ sealed interface CardEffectIntent {
         val playerId: PlayerId,
         val cardId: CardId,
     ) : CardEffectIntent
+
+    /** Transfers a kept policy from one player to another. */
+    data class TransferPolicy(
+        val fromPlayerId: PlayerId,
+        val toPlayerId: PlayerId,
+        val policyId: CardId,
+    ) : CardEffectIntent
+
+    /** Sets which policy the player's Copycat copies; null stops copying. */
+    data class SetCopiedPolicy(
+        val playerId: PlayerId,
+        val policyId: CardId?,
+    ) : CardEffectIntent
+
+    /** Buys the top card from the draw pile. */
+    data class BuyTopCard(
+        val playerId: PlayerId,
+        val cost: Int,
+        val isExecutiveOrder: Boolean,
+    ) : CardEffectIntent
+
+    /** Consumes a die, removing it from the roll. */
+    data class ConsumeDie(
+        val playerId: PlayerId,
+        val dieId: DieId,
+    ) : CardEffectIntent
 }
 
 /** Registry of card effects injected by the app's card catalogue. */

@@ -27,6 +27,7 @@ import com.kingofxitter.engine.model.PlayerResource
 import com.kingofxitter.engine.model.ResourceChangeReason
 import com.kingofxitter.engine.model.TurnPhase
 import com.kingofxitter.engine.model.VictoryReason
+import com.kingofxitter.engine.model.effectivePolicyIds
 
 /**
  * Pure rules seam: identical state and action inputs produce the same transition.
@@ -212,7 +213,7 @@ class DefaultGameReducer(
             return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         }
 
-        if (!isFirstRoll && workingState.dice.size != diceCount) {
+        if (!isFirstRoll && workingState.dice.size > diceCount) {
             return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         }
         if (isFirstRoll && diceCount <= 0) {
@@ -645,7 +646,7 @@ class DefaultGameReducer(
         invoke: (CardEffect, CardHookContext) -> List<CardEffectIntent>,
     ): List<CardEffectIntent> {
         val owner = state.players.firstOrNull { it.id == ownerId } ?: return emptyList()
-        return cardEffects.ordered(owner.policyIds).flatMap { effect ->
+        return cardEffects.ordered(state.effectivePolicyIds(owner)).flatMap { effect ->
             invoke(
                 effect,
                 hookContext(
@@ -697,7 +698,7 @@ class DefaultGameReducer(
         invoke: (CardEffect, CardHookContext) -> Int,
     ): Int {
         val owner = state.players.firstOrNull { it.id == ownerId } ?: return 0
-        return cardEffects.ordered(owner.policyIds).sumOf { effect ->
+        return cardEffects.ordered(state.effectivePolicyIds(owner)).sumOf { effect ->
             invoke(effect, hookContext(state, ownerId, effect, window, random)).coerceAtLeast(0)
         }
     }
@@ -712,7 +713,7 @@ class DefaultGameReducer(
         outgoing: Boolean,
     ): List<com.kingofxitter.engine.model.DamageAdjustment> {
         val owner = state.players.firstOrNull { it.id == ownerId } ?: return emptyList()
-        return cardEffects.ordered(owner.policyIds).map { effect ->
+        return cardEffects.ordered(state.effectivePolicyIds(owner)).map { effect ->
             val context =
                 hookContext(
                     state,
@@ -762,7 +763,7 @@ class DefaultGameReducer(
     ): List<PendingDecision> {
         val owner = state.players.firstOrNull { it.id == ownerId } ?: return emptyList()
         val decisions = mutableListOf<PendingDecision>()
-        for (effect in cardEffects.ordered(owner.policyIds)) {
+        for (effect in cardEffects.ordered(state.effectivePolicyIds(owner))) {
             val offers = effect.activatedAbilities(hookContext(state, ownerId, effect, window, random))
             for (offer in offers) {
                 val validOptions =
@@ -901,7 +902,11 @@ class DefaultGameReducer(
                 it is CardEffectIntent.ChangeDie ||
                     it is CardEffectIntent.ChangeMainCharacter ||
                     it is CardEffectIntent.QueueDecision ||
-                    it is CardEffectIntent.DiscardPolicy
+                    it is CardEffectIntent.DiscardPolicy ||
+                    it is CardEffectIntent.SetCopiedPolicy ||
+                    it is CardEffectIntent.TransferPolicy ||
+                    it is CardEffectIntent.BuyTopCard ||
+                    it is CardEffectIntent.ConsumeDie
             }
     }
 
@@ -975,6 +980,16 @@ class DefaultGameReducer(
                                     state.dice.map { die ->
                                         if (die.id == intent.dieId) die.copy(face = intent.face) else die
                                     },
+                            )
+                        events += GameEvent.DiceChanged(intent.playerId, state.dice)
+                    }
+                }
+
+                is CardEffectIntent.ConsumeDie -> {
+                    if (intent.playerId == state.currentPlayerId && state.dice.any { it.id == intent.dieId }) {
+                        state =
+                            state.copy(
+                                dice = state.dice.filter { it.id != intent.dieId },
                             )
                         events += GameEvent.DiceChanged(intent.playerId, state.dice)
                     }
@@ -1096,6 +1111,75 @@ class DefaultGameReducer(
                         }
                     }
                 }
+
+                is CardEffectIntent.SetCopiedPolicy -> {
+                    val index = state.players.indexOfFirst { it.id == intent.playerId }
+                    if (index >= 0) {
+                        state =
+                            state.copy(
+                                players =
+                                    state.players.toMutableList().also {
+                                        it[index] =
+                                            state.players[index].copy(copiedPolicyId = intent.policyId)
+                                    },
+                            )
+                    }
+                }
+
+                is CardEffectIntent.TransferPolicy -> {
+                    val fromIndex = state.players.indexOfFirst { it.id == intent.fromPlayerId }
+                    val toIndex = state.players.indexOfFirst { it.id == intent.toPlayerId }
+                    if (fromIndex >= 0 && toIndex >= 0) {
+                        val fromPlayer = state.players[fromIndex]
+                        val toPlayer = state.players[toIndex]
+                        if (intent.policyId in fromPlayer.policyIds) {
+                            val updatedFrom = fromPlayer.copy(policyIds = fromPlayer.policyIds - intent.policyId)
+                            val updatedTo = toPlayer.copy(policyIds = toPlayer.policyIds + intent.policyId)
+                            state =
+                                state.copy(
+                                    players =
+                                        state.players.toMutableList().also {
+                                            it[fromIndex] = updatedFrom
+                                            it[toIndex] = updatedTo
+                                        },
+                                )
+                        }
+                    }
+                }
+
+                is CardEffectIntent.BuyTopCard -> {
+                    val index = state.players.indexOfFirst { it.id == intent.playerId }
+                    if (index >= 0 && state.drawPileCardIds.isNotEmpty()) {
+                        val player = state.players[index]
+                        if (player.characters >= intent.cost) {
+                            val cardId = state.drawPileCardIds.first()
+                            val drawPile = state.drawPileCardIds.drop(1)
+                            val paidPlayer = player.copy(characters = player.characters - intent.cost)
+                            val updatedPolicyIds = if (!intent.isExecutiveOrder) paidPlayer.policyIds + cardId else paidPlayer.policyIds
+                            val fullyUpdatedPlayer = paidPlayer.copy(policyIds = updatedPolicyIds)
+                            state =
+                                state.copy(
+                                    players = state.players.toMutableList().also { it[index] = fullyUpdatedPlayer },
+                                    drawPileCardIds = drawPile,
+                                    discardPileCardIds =
+                                        if (intent.isExecutiveOrder) state.discardPileCardIds + cardId else state.discardPileCardIds,
+                                )
+                            events +=
+                                GameEvent.ResourceChanged(
+                                    playerId = intent.playerId,
+                                    resource = PlayerResource.CHARACTERS,
+                                    amount = -intent.cost,
+                                    totalAfter = paidPlayer.characters,
+                                    reason = ResourceChangeReason.POWER_UP,
+                                )
+                            events += GameEvent.PowerUpBought(intent.playerId, cardId)
+
+                            val purchased = this.dispatchOnBuy(state, intent.playerId, cardId)
+                            state = purchased.state
+                            events += purchased.events
+                        }
+                    }
+                }
             }
         }
         return state to events
@@ -1112,7 +1196,7 @@ class DefaultGameReducer(
         val player =
             state.players.firstOrNull { it.id == action.playerId }
                 ?: return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
-        if (action.cardId !in player.policyIds) {
+        if (action.cardId !in state.effectivePolicyIds(player)) {
             return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         }
         val effect =

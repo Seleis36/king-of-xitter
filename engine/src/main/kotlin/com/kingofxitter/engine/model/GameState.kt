@@ -72,6 +72,8 @@ data class PlayerState(
     val extraTurns: Int = 0,
     val policyIds: List<CardId> = emptyList(),
     val counters: Map<CounterId, Int> = emptyMap(),
+    /** The policy this player's Copycat is currently copying, if any. */
+    val copiedPolicyId: CardId? = null,
 ) {
     /** Whether this player has been eliminated from the match. */
     val isSuspended: Boolean
@@ -125,4 +127,14 @@ sealed interface MatchResult {
     /** Every remaining player was eliminated at the same time. */
     @Serializable
     data object NoWinner : MatchResult
+}
+
+/**
+ * Policies whose effects apply to [player]: the ones they hold, plus the copied one while
+ * another active leader still holds it.
+ */
+fun GameState.effectivePolicyIds(player: PlayerState): List<CardId> {
+    val copied = player.copiedPolicyId ?: return player.policyIds
+    val stillHeld = players.any { it.id != player.id && !it.isSuspended && copied in it.policyIds }
+    return if (stillHeld) player.policyIds + copied else player.policyIds
 }
