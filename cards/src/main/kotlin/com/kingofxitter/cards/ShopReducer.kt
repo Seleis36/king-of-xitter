@@ -64,7 +64,13 @@ class ShopReducer(
             CardCatalog.byId[action.cardId]
                 ?: return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         val player = state.players.first { it.id == action.playerId }
-        if (action.cardId !in state.shopCardIds || player.characters < definition.cost) {
+        val cost = if (player.policyIds.contains(CardId("c02_lobbyist"))) {
+            maxOf(0, definition.cost - 10)
+        } else {
+            definition.cost
+        }
+        
+        if (action.cardId !in state.shopCardIds || player.characters < cost) {
             return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         }
 
@@ -76,7 +82,7 @@ class ShopReducer(
                     state.players.map {
                         if (it.id == player.id) {
                             it.copy(
-                                characters = it.characters - definition.cost,
+                                characters = it.characters - cost,
                                 policyIds = if (definition.type == CardType.POLICY) it.policyIds + action.cardId else it.policyIds,
                             )
                         } else {
@@ -95,7 +101,7 @@ class ShopReducer(
         val refilled = refillShop(discarded)
         return GameTransition(
             refilled,
-            listOf(payment(action.playerId, definition.cost, player.characters), GameEvent.PowerUpBought(action.playerId, action.cardId)) +
+            listOf(payment(action.playerId, cost, player.characters), GameEvent.PowerUpBought(action.playerId, action.cardId)) +
                 purchased.events + GameEvent.ShopChanged(refilled.shopCardIds),
         )
     }

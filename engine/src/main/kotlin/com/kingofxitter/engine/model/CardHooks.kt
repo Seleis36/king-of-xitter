@@ -40,6 +40,18 @@ interface CardEffect {
         context: CardHookContext,
         action: Action.ActivateAbility,
     ): List<CardEffectIntent> = emptyList()
+
+    /** Effects triggered when the Main Character logs off. */
+    fun onLogOff(context: CardHookContext): List<CardEffectIntent> = emptyList()
+
+    /** Modifies the amount of healing received. */
+    fun modifyHealing(context: CardHookContext): Int = 0
+
+    /** Effects triggered after this card owner receives damage. */
+    fun onDamageReceived(context: CardHookContext): List<CardEffectIntent> = emptyList()
+
+    /** Modifies characters gained. */
+    fun modifyGainCharacters(context: CardHookContext): Int = 0
 }
 
 /** Immutable rule snapshot and trigger details passed to one card hook. */
@@ -71,6 +83,10 @@ enum class CardHookWindow {
     TURN_END,
     ELIMINATED,
     ACTIVATED_ABILITY,
+    ON_LOG_OFF,
+    HEALING,
+    ON_DAMAGE_RECEIVED,
+    GAIN_CHARACTERS,
 }
 
 /** Deterministic random stream owned by one reducer invocation. */
@@ -85,6 +101,7 @@ data class DamageAdjustment(
     val damageReduction: Int = 0,
     val preventDamage: Boolean = false,
     val hitsAllOpponents: Boolean = false,
+    val perTargetBonus: Map<PlayerId, Int> = emptyMap(),
 )
 
 /** Optional player-facing ability offered by an active card. */
