@@ -1,5 +1,8 @@
 package com.kingofxitter.engine.model
 
+/** Counter that removes one die per point from a player's next turn in a chain of extra turns. */
+const val EXTRA_TURN_DICE_PENALTY = "extra_turn_dice_penalty"
+
 /** Card implementation boundary called by the engine at rule-defined windows. */
 interface CardEffect {
     /** Stable card identity used to bind the effect to a definition. */
@@ -22,6 +25,9 @@ interface CardEffect {
 
     /** Modifies damage received by this card owner. */
     fun modifyIncomingDamage(context: CardHookContext): DamageAdjustment = DamageAdjustment()
+
+    /** Effects triggered when this card owner successfully deals damage. Context targetPlayerIds contains the players who took damage. */
+    fun onDamageDealt(context: CardHookContext): List<CardEffectIntent> = emptyList()
 
     /** Effects triggered after start-of-turn Xitter scoring. */
     fun onTurnStart(context: CardHookContext): List<CardEffectIntent> = emptyList()
@@ -79,6 +85,7 @@ enum class CardHookWindow {
     AFTER_RESOLVE,
     OUTGOING_DAMAGE,
     INCOMING_DAMAGE,
+    DAMAGE_DEALT,
     ON_BUY,
     TURN_END,
     ELIMINATED,

@@ -90,6 +90,12 @@ class ExecutiveOrdersTest {
     }
 
     @Test
+    fun `All-Nighter gives an extra turn`() {
+        val players = testBuy("c57_all_nighter")
+        assertEquals(1, players.first { it.id == TestGame.HUMAN }.extraTurns)
+    }
+
+    @Test
     fun `State Media Blitz gives 2 mandates and deals 3 unfollows to others`() {
         val players =
             testBuy("c58_state_media_blitz") {
