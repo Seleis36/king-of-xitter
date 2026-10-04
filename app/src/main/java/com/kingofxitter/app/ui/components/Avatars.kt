@@ -1,5 +1,6 @@
 package com.kingofxitter.app.ui.components
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -26,50 +28,139 @@ import com.kingofxitter.app.R
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
 import com.kingofxitter.app.ui.theme.sticker
+import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.model.LeaderId
 
 /**
- * Presentation data for a leader. **Stand-in** until S5's `Leader` roster lands in `:content`;
- * then this lookup should read from it. Values follow the README's leader table.
+ * Presentation data for a leader, taken from S5's `LeaderRoster` in `:content`. The roster is the
+ * single source of identity, colour and portrait; this type only turns its `strings.xml` keys into
+ * the resource IDs Compose needs.
  */
 data class LeaderVisual(
     val color: Color,
+    @param:StringRes val firstName: Int,
     @param:StringRes val shortName: Int,
     @param:StringRes val fullName: Int,
     @param:StringRes val handle: Int,
+    @param:StringRes val voice: Int,
+    @param:DrawableRes val portrait: Int?,
 )
 
-/** Leader IDs used by the engine fixtures and `MatchSetup`. */
-private val leaderVisuals =
+/**
+ * The roster's string and drawable IDs. Resource IDs can't be named from a pure-Kotlin module, so
+ * they are listed here once per leader; `LeaderVisualTest` fails if the roster gains a leader this
+ * table doesn't cover.
+ */
+private val leaderResources =
     mapOf(
         "trumpet" to
-            LeaderVisual(Color(0xFFFF8A1F), R.string.leader_short_trumpet, R.string.leader_full_trumpet, R.string.leader_handle_trumpet),
+            LeaderResources(
+                R.string.leader_first_trumpet,
+                R.string.leader_short_trumpet,
+                R.string.leader_full_trumpet,
+                R.string.leader_handle_trumpet,
+                R.string.leader_voice_trumpet,
+                R.drawable.portrait_trumpet,
+            ),
         "poutine" to
-            LeaderVisual(Color(0xFF9C7BFF), R.string.leader_short_poutine, R.string.leader_full_poutine, R.string.leader_handle_poutine),
-        "kim" to LeaderVisual(Color(0xFFFF4F4F), R.string.leader_short_kim, R.string.leader_full_kim, R.string.leader_handle_kim),
+            LeaderResources(
+                R.string.leader_first_poutine,
+                R.string.leader_short_poutine,
+                R.string.leader_full_poutine,
+                R.string.leader_handle_poutine,
+                R.string.leader_voice_poutine,
+                R.drawable.portrait_poutine,
+            ),
+        "kim" to
+            LeaderResources(
+                R.string.leader_first_kim,
+                R.string.leader_short_kim,
+                R.string.leader_full_kim,
+                R.string.leader_handle_kim,
+                R.string.leader_voice_kim,
+                R.drawable.portrait_kim,
+            ),
         "macaron" to
-            LeaderVisual(Color(0xFFFF8FC8), R.string.leader_short_macaron, R.string.leader_full_macaron, R.string.leader_handle_macaron),
-        "xi" to LeaderVisual(Color(0xFF22C08A), R.string.leader_short_xi, R.string.leader_full_xi, R.string.leader_handle_xi),
+            LeaderResources(
+                R.string.leader_first_macaron,
+                R.string.leader_short_macaron,
+                R.string.leader_full_macaron,
+                R.string.leader_handle_macaron,
+                R.string.leader_voice_macaron,
+                R.drawable.portrait_macaron,
+            ),
+        "xi" to
+            LeaderResources(
+                R.string.leader_first_xi,
+                R.string.leader_short_xi,
+                R.string.leader_full_xi,
+                R.string.leader_handle_xi,
+                R.string.leader_voice_xi,
+                R.drawable.portrait_xi,
+            ),
         "mi-leon" to
-            LeaderVisual(Color(0xFF5FB4F0), R.string.leader_short_mileon, R.string.leader_full_mileon, R.string.leader_handle_mileon),
+            LeaderResources(
+                R.string.leader_first_mileon,
+                R.string.leader_short_mileon,
+                R.string.leader_full_mileon,
+                R.string.leader_handle_mileon,
+                R.string.leader_voice_mileon,
+                R.drawable.portrait_mileon,
+            ),
     )
 
+/** The resource IDs behind one roster entry. */
+private data class LeaderResources(
+    @param:StringRes val firstName: Int,
+    @param:StringRes val shortName: Int,
+    @param:StringRes val fullName: Int,
+    @param:StringRes val handle: Int,
+    @param:StringRes val voice: Int,
+    @param:DrawableRes val portrait: Int,
+)
+
+private val leaderVisuals =
+    LeaderRoster.all
+        .mapNotNull { leader ->
+            leaderResources[leader.id.value]?.let { resources ->
+                leader.id.value to
+                    LeaderVisual(
+                        color = Color(leader.colorArgb),
+                        firstName = resources.firstName,
+                        shortName = resources.shortName,
+                        fullName = resources.fullName,
+                        handle = resources.handle,
+                        voice = resources.voice,
+                        portrait = resources.portrait,
+                    )
+            }
+        }.toMap()
+
 private val unknownLeader =
-    LeaderVisual(XColors.Muted, R.string.leader_short_unknown, R.string.leader_full_unknown, R.string.leader_handle_unknown)
+    LeaderVisual(
+        color = XColors.Muted,
+        firstName = R.string.leader_first_unknown,
+        shortName = R.string.leader_short_unknown,
+        fullName = R.string.leader_full_unknown,
+        handle = R.string.leader_handle_unknown,
+        voice = R.string.leader_voice_unknown,
+        portrait = null,
+    )
 
 /** Colours and names for [leaderId]; unknown IDs get a neutral fallback rather than crashing. */
 fun leaderVisual(leaderId: LeaderId): LeaderVisual = leaderVisuals[leaderId.value] ?: unknownLeader
 
 /**
  * Round leader avatar (`.avc`): leader-coloured disc with ink outline, paper halo and hard shadow.
- * Shows [portrait] when given (S5 supplies them), otherwise the leader's initial.
+ * Shows the leader's S5 portrait, or the leader's initial for an unknown ID. Pass [portrait] to
+ * override it (previews of a leader that has no portrait yet).
  */
 @Composable
 fun XAvatar(
     leaderId: LeaderId,
     modifier: Modifier = Modifier,
     size: Dp = 44.dp,
-    portrait: Painter? = null,
+    portrait: Painter? = leaderVisual(leaderId).portrait?.let { painterResource(it) },
 ) {
     val visual = leaderVisual(leaderId)
     val name = stringResource(visual.fullName)

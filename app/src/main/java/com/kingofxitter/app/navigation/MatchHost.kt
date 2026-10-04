@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
+import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
 import com.kingofxitter.engine.model.GameEvent
@@ -27,11 +28,8 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.random.Random
 
-/** The six leaders `MatchSetup` draws from. Stand-in for S5's roster. */
-val LeaderRoster = listOf("trumpet", "poutine", "kim", "macaron", "xi", "mi-leon").map(::LeaderId)
-
 /** Your leader until V4's Pick your leader screen supplies one: the design's Macaron. */
-val DefaultLeader = LeaderId("macaron")
+val DefaultLeader = LeaderRoster.macaron.id
 
 /** The current match, or why there isn't one. */
 sealed interface MatchSession {
@@ -58,7 +56,7 @@ sealed interface MatchSession {
 class MatchHost(
     private val saveFile: File,
     private val gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
-        val setup = MatchSetup.create(leader, LeaderRoster, Random.nextLong())
+        val setup = MatchSetup.create(leader, LeaderRoster.ids, Random.nextLong())
         GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
     },
 ) : ViewModel() {

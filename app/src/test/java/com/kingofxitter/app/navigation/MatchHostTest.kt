@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
+import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
 import com.kingofxitter.engine.model.LeaderId
@@ -62,7 +63,7 @@ class MatchHostTest {
             )
             assertTrue(
                 game.state.value.players
-                    .all { it.leaderId in LeaderRoster },
+                    .all { it.leaderId in LeaderRoster.ids },
             )
         }
 
@@ -119,7 +120,7 @@ class MatchHostTest {
                         firstStartEntered.complete(Unit)
                         awaitCancellation()
                     }
-                    val setup = MatchSetup.create(leader, LeaderRoster, 42)
+                    val setup = MatchSetup.create(leader, LeaderRoster.ids, 42)
                     GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
                 }
             host.resumeOrStart()
@@ -162,7 +163,7 @@ class MatchHostTest {
 
     private fun host(
         gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
-            val setup = MatchSetup.create(leader, LeaderRoster, 42)
+            val setup = MatchSetup.create(leader, LeaderRoster.ids, 42)
             GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
         },
     ): MatchHost {
