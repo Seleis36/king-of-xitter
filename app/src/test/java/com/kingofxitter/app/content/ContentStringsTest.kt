@@ -2,7 +2,9 @@ package com.kingofxitter.app.content
 
 import com.kingofxitter.app.R
 import com.kingofxitter.content.LeaderRoster
+import com.kingofxitter.content.TrendingTags
 import com.kingofxitter.content.TweetVoices
+import com.kingofxitter.content.ZingerBook
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -24,6 +26,19 @@ class ContentStringsTest {
         val missing = TweetVoices.all.filterNot { it in declared }
         assertEquals(emptyList(), missing, "missing ${missing.size} voice lines")
         assertEquals(6 * 10 * 5, TweetVoices.all.size)
+    }
+
+    @Test
+    fun `every zinger exists`() {
+        val missing = ZingerBook.all.filterNot { it in declared }
+        assertEquals(emptyList(), missing, "missing ${missing.size} zingers")
+        // Six attackers, five targets plus the whole timeline, three lines each.
+        assertEquals(6 * 6 * 3, ZingerBook.all.size)
+    }
+
+    @Test
+    fun `every trending tag exists`() {
+        assertEquals(emptyList(), TrendingTags.all.filterNot { it in declared })
     }
 
     @Test

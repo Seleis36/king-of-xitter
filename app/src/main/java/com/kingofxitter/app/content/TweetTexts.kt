@@ -23,7 +23,8 @@ import com.kingofxitter.engine.model.LeaderId
  */
 class TweetTexts(
     private val strings: ContentStrings,
-    private val everyoneHandle: String,
+    /** The handle a line uses when it is aimed at the whole timeline rather than one leader. */
+    val everyoneHandle: String,
     private val writer: TweetWriter = TemplateTweetWriter(),
 ) {
     /** [tweet]'s text with its mention filled in, or an empty string for an unwritten tweet. */
@@ -31,6 +32,12 @@ class TweetTexts(
         if (tweet.textKey.isEmpty()) return ""
         return strings.text(tweet.textKey, tweet.mentions.firstOrNull()?.let(::handle) ?: everyoneHandle)
     }
+
+    /** [key]'s text with [handle] as its one argument. */
+    fun text(
+        key: String,
+        handle: String,
+    ): String = if (key.isEmpty()) "" else strings.text(key, handle)
 
     /** Writes [event] in [leaderId]'s voice and renders it in one step. */
     fun write(
