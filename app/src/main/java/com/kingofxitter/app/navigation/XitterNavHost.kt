@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kingofxitter.app.R
+import com.kingofxitter.app.content.rememberVoiceLog
 import com.kingofxitter.app.feedback.FeedbackPreferences
 import com.kingofxitter.app.feedback.FeedbackSettingsSection
 import com.kingofxitter.app.feedback.GameFeedback
@@ -89,6 +90,8 @@ fun XitterNavHost(
     val game = (session as? MatchSession.Ready)?.game
     // Effects and sounds follow the live match, above navigation so no screen misses them.
     val effects = game?.let { rememberEffectQueue(it) }
+    // V1 lines follow the match next to the effects, so the board and the incoming screen agree.
+    val voices = game?.let { rememberVoiceLog(it) }
     if (game != null) GameFeedback(game, game.humanPlayerId, feedback)
     val screen = Modifier.fillMaxSize().nightBackground().safeDrawingPadding()
 
@@ -114,6 +117,7 @@ fun XitterNavHost(
                             ),
                         modifier = Modifier.weight(1f),
                         effects = effects,
+                        voices = voices,
                     )
                 }
             }
@@ -132,6 +136,7 @@ fun XitterNavHost(
                     onDone = { navigate(XitterRoute.Board) },
                     modifier = screen,
                     hit = lastHit?.let { (attacker, damage) -> IncomingHit(attacker, damage) },
+                    voices = voices,
                 )
             }
         }
