@@ -101,6 +101,7 @@ fun BoardScreen(
                 .toSet(),
         )
     }
+    var decisionDieId by remember(mode) { mutableStateOf<DieId?>(null) }
     Column(modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(top = 16.dp, bottom = 12.dp),
@@ -130,6 +131,8 @@ fun BoardScreen(
                 selected =
                     if (mode is BoardMode.Rolling) {
                         selected
+                    } else if (mode is BoardMode.Deciding && mode.decision.options.any { (it.action as? Action.ActivateAbility)?.dieIds?.isNotEmpty() == true }) {
+                        decisionDieId?.let { setOf(it) } ?: emptySet()
                     } else {
                         state.dice
                             .filter { it.isKept }
@@ -139,6 +142,8 @@ fun BoardScreen(
                 onToggle =
                     if (mode is BoardMode.Rolling && mode.canReroll) {
                         { id, keep -> selected = if (keep) selected + id else selected - id }
+                    } else if (mode is BoardMode.Deciding && mode.decision.options.any { (it.action as? Action.ActivateAbility)?.dieIds?.isNotEmpty() == true }) {
+                        { id, keep -> decisionDieId = if (keep) id else null }
                     } else {
                         null
                     },
@@ -375,7 +380,7 @@ private fun Controls(
                 style = XButtonStyle.Hot,
                 textStyle = buttonText,
             )
-        is BoardMode.Deciding -> DecisionControls(mode, onAction, modifier)
+        is BoardMode.Deciding -> DecisionControls(mode, state, decisionDieId, onAction, modifier)
         is BoardMode.Watching -> {
             val actor = state.players.first { it.id == mode.actorId }
             val name = stringResource(leaderVisual(actor.leaderId).shortName)
@@ -406,25 +411,89 @@ private fun Controls(
  * Generic prompt for decisions other than stay/log off, such as optional power-up abilities.
  * C9 replaces this with card-specific prompts.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DecisionControls(
     mode: BoardMode.Deciding,
+    state: GameState,
+    decisionDieId: DieId?,
     onAction: (Action) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     XPanel(modifier.fillMaxWidth(), accent = XColors.Mandates) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(decisionPrompt(mode.decision), style = XType.DisplaySmall, color = XColors.Paper)
+            
             Column(
                 modifier = Modifier.heightIn(max = 280.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                mode.decision.options.forEach { option ->
+                val activeOptions = mode.decision.options.filter { it.action !is Action.DeclineAbility }
+                val declineOption = mode.decision.options.find { it.action is Action.DeclineAbility }
+
+                val requiresDie = activeOptions.any { (it.action as? Action.ActivateAbility)?.dieIds?.isNotEmpty() == true }
+                
+                val availableOptions = if (requiresDie) {
+                    activeOptions.filter { (it.action as? Action.ActivateAbility)?.dieIds?.contains(decisionDieId) == true }
+                } else {
+                    activeOptions
+                }
+
+                if (requiresDie && decisionDieId == null) {
+                    Text(stringResource(R.string.board_decision_pick_die), style = XType.DisplaySmall.copy(fontSize = 15.sp), color = XColors.Muted)
+                } else if (availableOptions.isNotEmpty()) {
+                    val isFacePick = availableOptions.all { 
+                        val abilityId = (it.action as? Action.ActivateAbility)?.abilityId ?: ""
+                        abilityId.contains(":") && com.kingofxitter.engine.model.DiceFace.entries.any { face -> abilityId.endsWith(face.name) } 
+                    }
+                    val isTargetPick = availableOptions.all { 
+                        (it.action as? Action.ActivateAbility)?.targetPlayerId != null 
+                    }
+                    
+                    if (isFacePick) {
+                        Text(stringResource(R.string.board_decision_pick_face), style = XType.DisplaySmall.copy(fontSize = 15.sp), color = XColors.Muted)
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            availableOptions.forEach { option ->
+                                val action = option.action as Action.ActivateAbility
+                                val faceName = action.abilityId.substringAfterLast(":")
+                                val face = com.kingofxitter.engine.model.DiceFace.valueOf(faceName)
+                                Box(modifier = Modifier.clickable { onAction(Action.ChooseDecisionOption(mode.decision.playerId, mode.decision.id, option.id)) }) {
+                                    com.kingofxitter.app.ui.components.Die(face = face, size = com.kingofxitter.app.ui.components.DieSize.Compact)
+                                }
+                            }
+                        }
+                    } else if (isTargetPick) {
+                        Text(stringResource(R.string.board_decision_pick_target), style = XType.DisplaySmall.copy(fontSize = 15.sp), color = XColors.Muted)
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            availableOptions.forEach { option ->
+                                val action = option.action as Action.ActivateAbility
+                                val targetId = action.targetPlayerId!!
+                                val leaderId = state.players.first { it.id == targetId }.leaderId
+                                Box(modifier = Modifier.clickable { onAction(Action.ChooseDecisionOption(mode.decision.playerId, mode.decision.id, option.id)) }) {
+                                    com.kingofxitter.app.ui.components.XAvatar(leaderId, size = 54.dp)
+                                }
+                            }
+                        }
+                    } else {
+                        availableOptions.forEach { option ->
+                            XButton(
+                                decisionOptionLabel(option),
+                                onClick = { onAction(Action.ChooseDecisionOption(mode.decision.playerId, mode.decision.id, option.id)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                style = XButtonStyle.Primary,
+                                minHeight = 48.dp,
+                                textStyle = XType.DisplaySmall,
+                            )
+                        }
+                    }
+                }
+
+                if (declineOption != null) {
                     XButton(
-                        decisionOptionLabel(option),
-                        onClick = { onAction(Action.ChooseDecisionOption(mode.decision.playerId, mode.decision.id, option.id)) },
+                        decisionOptionLabel(declineOption),
+                        onClick = { onAction(Action.ChooseDecisionOption(mode.decision.playerId, mode.decision.id, declineOption.id)) },
                         modifier = Modifier.fillMaxWidth(),
-                        style = if (option.action is Action.DeclineAbility) XButtonStyle.Secondary else XButtonStyle.Primary,
+                        style = XButtonStyle.Secondary,
                         minHeight = 48.dp,
                         textStyle = XType.DisplaySmall,
                     )

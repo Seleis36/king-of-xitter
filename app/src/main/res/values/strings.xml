@@ -620,5 +620,34 @@
     <string name="shop_sweep">SWEEP (%1$d)</string>
     <string name="card_type_policy">POLICY</string>
     <string name="card_type_order">ORDER</string>
-    <string name="card_rules_missing">Rules missing</string>
+    <!-- Card Ability Prompts -->
+    <string name="card_c05_prompt">Lurker: Pick a 3 to reroll</string>
+    <string name="card_c22_prompt">Poll Rigger: Change a die to a 1?</string>
+    <string name="card_c33_prompt">October Surprise: Pick a die and face</string>
+    <string name="card_c36_prompt">Phone Tap: Pick another leader\'s die to reroll</string>
+    <string name="card_c43_prompt">Paid Promotion: Buy 1M followers for 20 chars?</string>
+    <string name="card_c44_prompt">Spin Doctor: Pick a die and face (costs 20 chars)</string>
+    <string name="card_c45_prompt">Focus Group: Buy a reroll for 10 chars?</string>
+    <string name="card_c46_prompt">Touch Grass: Negate unfollows for 20 chars?</string>
+    
+    <string name="ability_sell_like_prompt">Retweet for Retweet: Sell a like for 20 chars</string>
+    <string name="ability_buy_top_card_prompt">Leaked Memo: Buy the top card?</string>
+    <string name="ability_discard_policy_prompt">Pivot: Discard a policy for chars</string>
+    <string name="ability_hostile_takeover_prompt">Hostile Takeover: Buy another leader\'s policy</string>
+    <string name="ability_copycat_prompt">Copycat Policy: Copy another leader\'s policy</string>
+    <string name="ability_breaking_news_prompt">Breaking News: Buy newly revealed cards?</string>
+    <string name="prompt_spend_smoke_cloud">Smoke Cloud: Spend 1 counter for a reroll?</string>
+
+    <string name="card_c05_option">Reroll this die</string>
+    <string name="card_c22_option">Change to 1</string>
+    <string name="card_c33_option">Change to this face</string>
+    <string name="card_c36_option">Reroll this die</string>
+    <string name="card_c43_option">Buy followers</string>
+    <string name="card_c44_option">Change to this face</string>
+    <string name="card_c45_option">Buy reroll</string>
+    <string name="card_c46_option">Negate unfollows</string>
+
+    <string name="board_decision_pick_die">Pick a die</string>
+    <string name="board_decision_pick_face">Pick a face</string>
+    <string name="board_decision_pick_target">Pick a target leader</string>
 </resources>
