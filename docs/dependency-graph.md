@@ -146,7 +146,7 @@ flowchart LR
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class M0D,HDEC done
   class S1,S2,S3,S6,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
-  class C1,C2 active
+  class C1,C2,C3 active
   class S5,B1,B2,B3,B4,V1,V2,V3,V4,V5,V6 active
   class S4,U1,U2,U3,U4,U5,U6,U7,U8,U9,U10 done
 ```
@@ -202,3 +202,4 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
   applies costs, and delegates hooks to the base reducer.
   18 unit tests cover structure for C1/S3, and tests exist for C2 logic.
   S3, C1, and C2 remain yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
+- C3 (Executive Orders) is implemented with 16 card effects and matching tests. It remains yellow until CI passes and a cross-track reviewer approves per ROADMAP §7.
