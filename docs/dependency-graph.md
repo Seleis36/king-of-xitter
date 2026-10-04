@@ -146,7 +146,7 @@ flowchart LR
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class M0D,HDEC done
   class S1,S2,S3,S6,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
-  class C1,C2,C3 active
+  class C1,C2,C3,C8 active
   class S5,B1,B2,B3,B4,V1,V2,V3,V4,V5,V6 active
   class S4,U1,U2,U3,U4,U5,U6,U7,U8,U9,U10 done
 ```

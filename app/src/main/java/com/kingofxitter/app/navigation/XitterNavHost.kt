@@ -40,6 +40,7 @@ import com.kingofxitter.app.ui.front.TitleScreen
 import com.kingofxitter.app.ui.front.VersusLineUp
 import com.kingofxitter.app.ui.front.VersusScreen
 import com.kingofxitter.app.ui.front.rememberGamePreferences
+import com.kingofxitter.app.ui.shop.ShopScreen
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.app.ui.timeline.TimelineScreen
 import com.kingofxitter.engine.model.GameState
@@ -187,7 +188,12 @@ fun XitterNavHost(
                 )
             }
         }
-        placeholder<XitterRoute.Shop>(XitterRoute.Shop, navigate)
+        composable<XitterRoute.Shop> {
+            MatchGate(host, options, screen) { live ->
+                val state by live.state.collectAsState()
+                ShopScreen(state, live.humanPlayerId, live::submit, onClose = { navigate(XitterRoute.Board) }, modifier = screen)
+            }
+        }
         composable<XitterRoute.Timeline> {
             MatchGate(host, options, screen) { live ->
                 val state by live.state.collectAsState()

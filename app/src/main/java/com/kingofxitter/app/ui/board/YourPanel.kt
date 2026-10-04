@@ -32,6 +32,8 @@ import com.kingofxitter.app.ui.components.XTag
 import com.kingofxitter.app.ui.components.leaderVisual
 import com.kingofxitter.app.ui.theme.XColors
 import com.kingofxitter.app.ui.theme.XType
+import com.kingofxitter.app.ui.components.PowerUpCard
+import com.kingofxitter.cards.CardCatalog
 import com.kingofxitter.engine.model.CardId
 import com.kingofxitter.engine.model.PlayerState
 
@@ -87,7 +89,7 @@ fun YourPanel(
             if (player.policyIds.isNotEmpty()) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     player.policyIds.forEach { card ->
-                        XChip(policyName(card), textStyle = XType.Chip.copy(fontSize = 11.sp), minHeight = 26.dp)
+                        PowerUpCard(card = CardCatalog[card], compact = true)
                     }
                 }
             }
