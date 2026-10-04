@@ -7,7 +7,10 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.kingofxitter.app.navigation.XitterNavHost
+import com.kingofxitter.app.ui.front.rememberGamePreferences
 import com.kingofxitter.app.ui.motion.LocalMotion
 import com.kingofxitter.app.ui.motion.rememberSystemMotion
 import com.kingofxitter.app.ui.theme.XitterTheme
@@ -20,7 +23,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             XitterTheme {
-                CompositionLocalProvider(LocalMotion provides rememberSystemMotion()) {
+                // V5's animation settings, narrowed by the system's "Remove animations".
+                val settings by rememberGamePreferences().settings.collectAsState()
+                val system = rememberSystemMotion()
+                CompositionLocalProvider(LocalMotion provides settings.motion(system.enabled)) {
                     XitterNavHost()
                 }
             }

@@ -32,19 +32,21 @@ import com.kingofxitter.app.ui.theme.nightBackground
 
 /**
  * Shows [content] for the live match. Starts or resumes one if there is none, shows progress
- * while it loads, and offers a fresh match when the save can't be used.
+ * while it loads, and offers a fresh match when the save can't be used. [options] are the
+ * player's current settings, used for any match this gate has to start.
  */
 @Composable
 fun MatchGate(
     host: MatchHost,
+    options: MatchOptions = MatchOptions(),
     modifier: Modifier = Modifier,
     content: @Composable (GameViewModel) -> Unit,
 ) {
     val session by host.session.collectAsState()
-    LaunchedEffect(session == null) { if (session == null) host.resumeOrStart() }
+    LaunchedEffect(session == null) { if (session == null) host.resumeOrStart(options) }
     when (val current = session) {
         is MatchSession.Ready -> content(current.game)
-        is MatchSession.Failed -> MatchMessage(modifier, R.string.match_failed_title, R.string.match_failed_body) { host.startNew() }
+        is MatchSession.Failed -> MatchMessage(modifier, R.string.match_failed_title, R.string.match_failed_body) { host.startNew(options) }
         MatchSession.Loading, null -> MatchMessage(modifier, R.string.match_loading, null, null)
     }
 }

@@ -110,17 +110,33 @@ class MatchHostTest {
         }
 
     @Test
+    fun `match options choose the leader and the rules a new match starts with`() =
+        matchTest {
+            val host = host()
+            host.startNew(MatchOptions(leader = LeaderId("kim"), characterCap = 280))
+            val game = host.awaitGame()
+
+            assertEquals(
+                LeaderId("kim"),
+                game.state.value.players
+                    .first { it.id == game.humanPlayerId }
+                    .leaderId,
+            )
+            assertEquals(280, game.state.value.characterCap)
+        }
+
+    @Test
     fun `canceling an old startup cannot replace a newer match session`() =
         matchTest {
             val firstStartEntered = CompletableDeferred<Unit>()
             var starts = 0
             val host =
-                host { leader ->
+                host { options ->
                     if (starts++ == 0) {
                         firstStartEntered.complete(Unit)
                         awaitCancellation()
                     }
-                    val setup = MatchSetup.create(leader, LeaderRoster.ids, 42)
+                    val setup = MatchSetup.create(options.leader, LeaderRoster.ids, 42)
                     GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
                 }
             host.resumeOrStart()
@@ -162,9 +178,13 @@ class MatchHostTest {
         }
 
     private fun host(
-        gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
-            val setup = MatchSetup.create(leader, LeaderRoster.ids, 42)
-            GameViewModel.restore(setup.state, setup.humanPlayerId, MatchSaveFile(saveFile.toPath()))
+        gameFactory: suspend (MatchOptions) -> GameViewModel = { options ->
+            val setup = MatchSetup.create(options.leader, LeaderRoster.ids, 42)
+            GameViewModel.restore(
+                setup.state.copy(characterCap = options.characterCap),
+                setup.humanPlayerId,
+                MatchSaveFile(saveFile.toPath()),
+            )
         },
     ): MatchHost {
         val store = ViewModelStore().also(stores::add)

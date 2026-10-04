@@ -1,0 +1,42 @@
+<resources>
+    <!-- V5: How to play and Settings. -->
+    <string name="how_to_title_lead">HOW TO</string>
+    <string name="how_to_title_x" translatable="false">X</string>
+    <string name="how_to_title_tail">ITTER</string>
+    <string name="how_to_subtitle">Same rules as the monster classic, worse manners</string>
+    <string name="how_to_dice_count" translatable="false">6</string>
+    <string name="how_to_dice">Roll 6 dice. Keep any, reroll the rest, up to twice. Then everything on the table resolves.</string>
+    <string name="how_to_mandates_title">MANDATES</string>
+    <string name="how_to_mandates">Three of a kind scores its number. Each extra match: +1.</string>
+    <string name="how_to_tweet_title">TWEET</string>
+    <string name="how_to_tweet">1 unfollow each. The Main Character hits everyone; everyone else hits the Main Character.</string>
+    <string name="how_to_like_title">LIKE</string>
+    <string name="how_to_like">+1M followers, up to 10M. The Main Character gets no likes.</string>
+    <string name="how_to_characters_title">CHARACTERS</string>
+    <string name="how_to_characters">+10 chars each. Spend them on power-ups. The 280 cap is a Settings toggle.</string>
+    <string name="how_to_main_character_title">BEING THE MAIN CHARACTER</string>
+    <string name="how_to_main_character">Xitter empty? You take it: +1 mandate. Start your turn there: +2 mandates. Tweeted at while on Xitter? You may log off, and the attacker takes your spot.</string>
+    <string name="how_to_win_title">HOW YOU WIN</string>
+    <string name="how_to_win">Reach 20 mandates, or be the last account standing. 0 followers means suspended.</string>
+    <string name="how_to_check_none">0–5</string>
+    <string name="how_to_check_blue">6–14 blue</string>
+    <string name="how_to_check_gold">15+ gold</string>
+    <string name="how_to_got_it">GOT IT</string>
+    <string name="how_to_dice_faces">The six dice faces</string>
+
+    <string name="settings_title">SETTINGS</string>
+    <string name="settings_feedback_section">SOUND AND FEEL</string>
+    <string name="settings_speed_section">SPEED</string>
+    <string name="settings_rules_section">RULES</string>
+    <string name="settings_animations">ANIMATIONS</string>
+    <string name="settings_animation_speed">ANIMATION SPEED</string>
+    <string name="settings_bot_speed">BOT SPEED</string>
+    <string name="settings_speed_slow">SLOW</string>
+    <string name="settings_speed_normal">NORMAL</string>
+    <string name="settings_speed_fast">FAST</string>
+    <string name="settings_character_cap">280-CHARACTER CAP</string>
+    <string name="settings_character_cap_help">The base game banks characters without a limit. Turn this on to cap them at 280.</string>
+    <string name="settings_next_match">Rules changes apply to your next match.</string>
+    <string name="settings_done">DONE</string>
+    <string name="settings_speed_choice">%1$s: %2$s</string>
+</resources>

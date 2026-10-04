@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -21,8 +20,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kingofxitter.app.R
 import com.kingofxitter.app.content.rememberVoiceLog
-import com.kingofxitter.app.feedback.FeedbackPreferences
-import com.kingofxitter.app.feedback.FeedbackSettingsSection
 import com.kingofxitter.app.feedback.GameFeedback
 import com.kingofxitter.app.game.GameViewModel
 import com.kingofxitter.app.ui.board.BoardCallbacks
@@ -35,6 +32,9 @@ import com.kingofxitter.app.ui.components.leaderVisual
 import com.kingofxitter.app.ui.endgame.DefeatScreen
 import com.kingofxitter.app.ui.endgame.StandingsScreen
 import com.kingofxitter.app.ui.endgame.VictoryScreen
+import com.kingofxitter.app.ui.front.HowToPlayScreen
+import com.kingofxitter.app.ui.front.SettingsScreen
+import com.kingofxitter.app.ui.front.rememberGamePreferences
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.MatchResult
@@ -85,14 +85,16 @@ fun XitterNavHost(
         }
     }
     val context = LocalContext.current
-    val feedback = remember(context) { FeedbackPreferences(context) }
+    val preferences = rememberGamePreferences()
+    val settings by preferences.settings.collectAsState()
+    val options = MatchOptions(botDelayMillis = settings.botSpeed.botDelayMillis, characterCap = settings.characterCapValue)
     val session by host.session.collectAsState()
     val game = (session as? MatchSession.Ready)?.game
     // Effects and sounds follow the live match, above navigation so no screen misses them.
     val effects = game?.let { rememberEffectQueue(it) }
     // V1 lines follow the match next to the effects, so the board and the incoming screen agree.
     val voices = game?.let { rememberVoiceLog(it) }
-    if (game != null) GameFeedback(game, game.humanPlayerId, feedback)
+    if (game != null) GameFeedback(game, game.humanPlayerId, preferences.feedback)
     val screen = Modifier.fillMaxSize().nightBackground().safeDrawingPadding()
 
     NavHost(navController = navController, startDestination = XitterRoute.Title, modifier = modifier) {
@@ -100,7 +102,7 @@ fun XitterNavHost(
         placeholder<XitterRoute.PickLeader>(XitterRoute.PickLeader, navigate)
         placeholder<XitterRoute.Versus>(XitterRoute.Versus, navigate)
         composable<XitterRoute.Board> {
-            MatchGate(host, screen) { live ->
+            MatchGate(host, options, screen) { live ->
                 Column(screen) {
                     MatchFailureBanner(live, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     BoardRoute(
@@ -123,12 +125,12 @@ fun XitterNavHost(
             }
         }
         composable<XitterRoute.ComposeTweet> {
-            MatchGate(host, screen) { live ->
+            MatchGate(host, options, screen) { live ->
                 ComposeTweetRoute(live, live.humanPlayerId, onDone = { navigate(XitterRoute.Board) }, modifier = screen)
             }
         }
         composable<XitterRoute.IncomingTweet> {
-            MatchGate(host, screen) { live ->
+            MatchGate(host, options, screen) { live ->
                 val lastHit by host.lastHitOnHuman.collectAsState()
                 IncomingTweetRoute(
                     live,
@@ -143,41 +145,38 @@ fun XitterNavHost(
         placeholder<XitterRoute.Shop>(XitterRoute.Shop, navigate)
         placeholder<XitterRoute.Timeline>(XitterRoute.Timeline, navigate)
         composable<XitterRoute.Standings> {
-            MatchGate(host, screen) { live ->
+            MatchGate(host, options, screen) { live ->
                 val state by live.state.collectAsState()
                 StandingsScreen(state, onBack = { navigate(if (state.result == null) XitterRoute.Board else resultRoute(state, live)) })
             }
         }
         composable<XitterRoute.Victory> {
-            MatchGate(host, screen) { live ->
+            MatchGate(host, options, screen) { live ->
                 val state by live.state.collectAsState()
                 VictoryScreen(
                     state,
-                    onPlayAgain = { playAgain(host, navigate) },
+                    onPlayAgain = { playAgain(host, options, navigate) },
                     onShare = { shareWin(context, state) },
                     onMainMenu = { navigate(XitterRoute.Title) },
                 )
             }
         }
         composable<XitterRoute.Defeat> {
-            MatchGate(host, screen) { live ->
+            MatchGate(host, options, screen) { live ->
                 val state by live.state.collectAsState()
                 DefeatScreen(
                     state,
                     live.humanPlayerId,
-                    onPlayAgain = { playAgain(host, navigate) },
+                    onPlayAgain = { playAgain(host, options, navigate) },
                     onMainMenu = { navigate(XitterRoute.Title) },
                 )
             }
         }
-        placeholder<XitterRoute.HowToPlay>(XitterRoute.HowToPlay, navigate)
+        composable<XitterRoute.HowToPlay> {
+            HowToPlayScreen(onDone = { navController.navigateUp() }, modifier = screen)
+        }
         composable<XitterRoute.Settings> {
-            // V5 owns the Settings screen; until then it hosts the sound and haptics toggles.
-            val settings by feedback.settings.collectAsState()
-            Column(screen) {
-                PlaceholderScreen(XitterRoute.Settings, placeholderLinks[XitterRoute.Settings].orEmpty(), navigate, Modifier.weight(1f))
-                FeedbackSettingsSection(settings, feedback::update, Modifier.padding(16.dp))
-            }
+            SettingsScreen(settings, preferences::update, onDone = { navController.navigateUp() }, modifier = screen)
         }
     }
 }
@@ -190,9 +189,10 @@ private fun resultRoute(
 
 private fun playAgain(
     host: MatchHost,
+    options: MatchOptions,
     navigate: (XitterRoute) -> Unit,
 ) {
-    host.startNew()
+    host.startNew(options)
     navigate(XitterRoute.Board)
 }
 

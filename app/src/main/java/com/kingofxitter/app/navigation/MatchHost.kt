@@ -33,6 +33,22 @@ import kotlin.random.Random
 /** Your leader until V4's Pick your leader screen supplies one: the design's Macaron. */
 val DefaultLeader = LeaderRoster.macaron.id
 
+/**
+ * What a new match is set up with. The defaults are the base rules at the controller's own
+ * pacing; V5's Settings screen and V4's Pick your leader screen replace them.
+ *
+ * [characterCap] only reaches a new match: a resumed one keeps the cap it was started with, which
+ * is why the Settings screen says rules changes apply next match.
+ */
+data class MatchOptions(
+    val leader: LeaderId = DefaultLeader,
+    val botDelayMillis: Long = DEFAULT_BOT_DELAY_MILLIS,
+    val characterCap: Int? = null,
+)
+
+/** `RealGameController`'s own default pause between bot moves. */
+const val DEFAULT_BOT_DELAY_MILLIS = 400L
+
 /** The current match, or why there isn't one. */
 sealed interface MatchSession {
     /** Restoring the save or setting up a new match. */
@@ -57,15 +73,16 @@ sealed interface MatchSession {
  */
 class MatchHost(
     private val saveFile: File,
-    private val gameFactory: suspend (LeaderId) -> GameViewModel = { leader ->
-        val setup = MatchSetup.create(leader, LeaderRoster.ids, Random.nextLong())
+    private val gameFactory: suspend (MatchOptions) -> GameViewModel = { options ->
+        val setup = MatchSetup.create(options.leader, LeaderRoster.ids, Random.nextLong())
         GameViewModel.restore(
-            initialState = setup.state,
+            initialState = setup.state.copy(characterCap = options.characterCap),
             humanPlayerId = setup.humanPlayerId,
             saveFile = MatchSaveFile(saveFile.toPath()),
             // B1 replaces the engine's always-first-option stand-in. The deck is still empty, so
             // the bots play base rules with CardMarket.Unknown until C2 wires the shop in.
             botAction = InternBot().asBotAction(),
+            botDelayMillis = options.botDelayMillis,
         )
     },
 ) : ViewModel() {
@@ -85,16 +102,16 @@ class MatchHost(
     val lastHitOnHuman: StateFlow<Pair<PlayerId, Int>?> = mutableLastHit.asStateFlow()
 
     /** Continues the saved match, or starts a new one when there is no save. */
-    fun resumeOrStart(leader: LeaderId = DefaultLeader) {
+    fun resumeOrStart(options: MatchOptions = MatchOptions()) {
         if (mutableSession.value is MatchSession.Ready || starting?.isActive == true) return
-        start(leader, discardSave = false)
+        start(options, discardSave = false)
     }
 
     /** Throws away any saved match and starts a fresh one. */
-    fun startNew(leader: LeaderId = DefaultLeader) = start(leader, discardSave = true)
+    fun startNew(options: MatchOptions = MatchOptions()) = start(options, discardSave = true)
 
     private fun start(
-        leader: LeaderId,
+        options: MatchOptions,
         discardSave: Boolean,
     ) {
         starting?.cancel()
@@ -108,7 +125,7 @@ class MatchHost(
                 var unregisteredGame: GameViewModel? = null
                 try {
                     if (discardSave) saveFile.delete()
-                    val game = gameFactory(leader)
+                    val game = gameFactory(options)
                     unregisteredGame = game
                     currentCoroutineContext().ensureActive()
                     if (starting !== startupJob) {
