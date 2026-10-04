@@ -79,4 +79,28 @@
     <string name="versus_tweets">%1$d tweets</string>
     <string name="versus_begin">TWEET FIRST</string>
     <string name="versus_skip">Skip</string>
+    <!-- V3: Match timeline. -->
+    <string name="timeline_title_x" translatable="false">X</string>
+    <string name="timeline_title">ITTER TIMELINE</string>
+    <string name="timeline_subtitle">Everything said this match, newest first</string>
+    <string name="timeline_filter_for_you">FOR YOU</string>
+    <string name="timeline_filter_beef">BEEF ONLY</string>
+    <string name="timeline_filter_mine">MY RATIOS</string>
+    <string name="timeline_empty">Nothing has been said yet. Roll some dice.</string>
+    <string name="timeline_empty_beef">No beef yet. Give it a turn.</string>
+    <string name="timeline_empty_mine">You haven\'t ratio\'d anybody yet.</string>
+    <string name="timeline_back">BACK TO GAME</string>
+    <string name="timeline_time">%1$d:%2$02d AM</string>
+    <string name="timeline_turn">Turn %1$d</string>
+    <string name="timeline_unfollows_to">−%1$dM to %2$s</string>
+    <string name="timeline_unfollows_from">−%1$dM from %2$s</string>
+    <string name="timeline_took_xitter">Took Xitter · +1 mandate</string>
+    <string name="timeline_logged_off">Logged off Xitter</string>
+    <string name="timeline_bought">Bought %1$s</string>
+    <string name="timeline_bought_unknown">Bought a power-up</string>
+    <string name="timeline_suspended">Account suspended</string>
+    <string name="timeline_won">Won the match</string>
+    <string name="timeline_lost">Lost the match</string>
+    <string name="timeline_burner">Back on a burner account</string>
+    <string name="timeline_filter_selected">%1$s filter</string>
 </resources>

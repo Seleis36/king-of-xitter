@@ -41,6 +41,7 @@ import com.kingofxitter.app.ui.front.VersusLineUp
 import com.kingofxitter.app.ui.front.VersusScreen
 import com.kingofxitter.app.ui.front.rememberGamePreferences
 import com.kingofxitter.app.ui.theme.nightBackground
+import com.kingofxitter.app.ui.timeline.TimelineScreen
 import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.MatchResult
 
@@ -187,7 +188,18 @@ fun XitterNavHost(
             }
         }
         placeholder<XitterRoute.Shop>(XitterRoute.Shop, navigate)
-        placeholder<XitterRoute.Timeline>(XitterRoute.Timeline, navigate)
+        composable<XitterRoute.Timeline> {
+            MatchGate(host, options, screen) { live ->
+                val state by live.state.collectAsState()
+                val tweets =
+                    voices
+                        ?.entries
+                        ?.collectAsState()
+                        ?.value
+                        .orEmpty()
+                TimelineScreen(state, live.humanPlayerId, tweets, onBack = { navigate(XitterRoute.Board) }, modifier = screen)
+            }
+        }
         composable<XitterRoute.Standings> {
             MatchGate(host, options, screen) { live ->
                 val state by live.state.collectAsState()

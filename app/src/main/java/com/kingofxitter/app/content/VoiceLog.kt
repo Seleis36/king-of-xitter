@@ -8,6 +8,7 @@ import com.kingofxitter.content.TweetMoment
 import com.kingofxitter.content.TweetMoments
 import com.kingofxitter.engine.GameController
 import com.kingofxitter.engine.SplitMix64
+import com.kingofxitter.engine.model.CardId
 import com.kingofxitter.engine.model.GameEvent
 import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.HookRandom
@@ -26,6 +27,10 @@ data class VoiceEntry(
     val targetId: PlayerId?,
     val text: String,
     val turnNumber: Int,
+    /** Followers the tweet cost, for the timeline's outcome tag. Zero when the moment has none. */
+    val unfollows: Int = 0,
+    /** The power-up that was bought, for [TweetMoment.BOUGHT_POWER_UP]. */
+    val cardId: CardId? = null,
 )
 
 /**
@@ -57,10 +62,12 @@ class VoiceLog(
     ) {
         val triggers = TweetMoments.of(event, state)
         if (triggers.isEmpty()) return
+        val unfollows = (event as? GameEvent.ResourceChanged)?.takeIf { it.amount < 0 }?.let { -it.amount } ?: 0
+        val cardId = (event as? GameEvent.PowerUpBought)?.cardId
         val added =
             triggers.mapNotNull { trigger ->
                 val player = state.players.firstOrNull { it.id == trigger.playerId } ?: return@mapNotNull null
-                entry(player.id, player.leaderId, trigger.event, state)
+                entry(player.id, player.leaderId, trigger.event, state, unfollows, cardId)
             }
         if (added.isEmpty()) return
         mutableEntries.value = (mutableEntries.value + added).takeLast(LIMIT)
@@ -71,6 +78,8 @@ class VoiceLog(
         leaderId: LeaderId,
         event: TweetEvent,
         state: GameState,
+        unfollows: Int,
+        cardId: CardId?,
     ): VoiceEntry? {
         // The seed mixes the position and a counter, so two lines in the same batch still differ.
         val random = SplitMix64(state.randomState + state.turnNumber * TURN_MIX + sequence++)
@@ -83,6 +92,8 @@ class VoiceLog(
             targetId = event.target?.let { target -> state.players.firstOrNull { it.leaderId == target }?.id },
             text = text,
             turnNumber = state.turnNumber,
+            unfollows = unfollows,
+            cardId = cardId,
         )
     }
 
