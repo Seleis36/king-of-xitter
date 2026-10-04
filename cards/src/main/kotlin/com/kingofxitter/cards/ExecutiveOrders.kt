@@ -67,6 +67,14 @@ object ExecutiveOrders {
                         .map { CardEffectIntent.ChangeResource(it.id, PlayerResource.FOLLOWERS, -2) }
             },
             object : CardEffect {
+                override val cardId = CardId("c57_all_nighter")
+
+                override fun onBuy(context: CardHookContext) =
+                    listOf(
+                        CardEffectIntent.ChangeExtraTurns(context.ownerId, 1)
+                    )
+            },
+            object : CardEffect {
                 override val cardId = CardId("c58_state_media_blitz")
 
                 override fun onBuy(context: CardHookContext) =

@@ -23,6 +23,9 @@ interface CardEffect {
     /** Modifies damage received by this card owner. */
     fun modifyIncomingDamage(context: CardHookContext): DamageAdjustment = DamageAdjustment()
 
+    /** Effects triggered when this card owner successfully deals damage. Context targetPlayerIds contains the players who took damage. */
+    fun onDamageDealt(context: CardHookContext): List<CardEffectIntent> = emptyList()
+
     /** Effects triggered after start-of-turn Xitter scoring. */
     fun onTurnStart(context: CardHookContext): List<CardEffectIntent> = emptyList()
 
@@ -67,6 +70,7 @@ enum class CardHookWindow {
     AFTER_RESOLVE,
     OUTGOING_DAMAGE,
     INCOMING_DAMAGE,
+    DAMAGE_DEALT,
     ON_BUY,
     TURN_END,
     ELIMINATED,
@@ -150,6 +154,12 @@ sealed interface CardEffectIntent {
     /** Adds a decision to the ordered queue. */
     data class QueueDecision(
         val decision: PendingDecision,
+    ) : CardEffectIntent
+
+    /** Discards a policy card from a player's active policies. */
+    data class DiscardPolicy(
+        val playerId: PlayerId,
+        val cardId: CardId,
     ) : CardEffectIntent
 }
 
