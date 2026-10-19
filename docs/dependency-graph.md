@@ -208,3 +208,19 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
 - C4 (Passive policies) is implemented with 26 card effects. The implementation required adding missing hooks to E6 for healing, damage reactions, and logging off. It remains yellow until CI passes and a cross-track reviewer approves.
 - C7 (Complex cards) is implemented with 8 cards including Hostile Takeover and Retweet for Retweet. It remains yellow until CI passes and a cross-track reviewer approves.
 - C9 (Ability prompts) is implemented. It added support for selecting dice, faces, and targets directly from the GameBoard UI. It remains yellow until CI passes and a cross-track reviewer approves.
+- 2026-10-19 emulator QA pass and fixes (#70–#82, self-merged at @Seleis36's request with green CI
+  but no cross-track review, so no node changed colour):
+  - Engine: a decision that suspends the current player ends their turn instead of freezing the
+    match (#70). Taking Xitter when the Main Character logs off or is suspended scores its mandate (#81).
+  - Cards: dice-changing abilities are only offered on their owner's roll, and Paid Promotion,
+    Touch Grass and Smoke and Mirrors only when they can help (#72). The shop charges and shows the
+    Lobbyist price (#73). `TestGame.withPlayer` seats a third leader (#82).
+  - Bots: the Troll Farm searches with the match's reducer and buys power-ups, and the full-deck
+    simulation deals every match (#71).
+  - UI: C9's ability prompts on the dice (#74, which includes #69). CONTINUE on the title, and Back
+    from the board goes home (#75). New takes and the posted zinger (#76). Victory, Defeat and
+    Standings in the design system, and SEE RESULTS once you're suspended (#77). Portrait on phones,
+    and a centred column on large screens (#78). The shop and policy tray from the design (#80).
+  - S6: `GameFixtures.Design` holds one state per design screen, checked in
+    [the S6 fixture review](s6-fixture-review.md) (#79).
+  - Issues #3, #6, #9 and #27 are closed. They still need a human cross-track review before their nodes turn green.
