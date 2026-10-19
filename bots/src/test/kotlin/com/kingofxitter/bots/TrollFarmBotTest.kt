@@ -83,6 +83,14 @@ class TrollFarmBotTest {
     }
 
     @Test
+    fun `it cannot see the dice the next roll will give`() {
+        // The reducer rolls from randomState, so a search that reads it would know the reroll in advance.
+        val state = GameFixtures.yourRoll
+        val moves = (0L until 20L).map { seed -> bot.decide(state.copy(randomState = seed), null, SplitMix64(31)) }
+        assertEquals(1, moves.toSet().size, "the move changed with the hidden dice: $moves")
+    }
+
+    @Test
     fun `a finished match gives it nothing to do`() {
         assertNull(bot.decide(GameFixtures.victory, null, SplitMix64(1)))
     }
