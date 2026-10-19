@@ -90,10 +90,10 @@ data class ResumableMatch(
     val leader: LeaderId,
 )
 
-/** What CONTINUE would bring back for [humanPlayerId], or null once the match is over. */
+/** What CONTINUE would bring back for [humanPlayerId], or null once the match is over for them. */
 internal fun GameState.resumableFor(humanPlayerId: PlayerId?): ResumableMatch? {
     if (result != null || phase == TurnPhase.FINISHED) return null
-    val you = players.firstOrNull { it.id == humanPlayerId } ?: return null
+    val you = players.firstOrNull { it.id == humanPlayerId }?.takeUnless { it.isSuspended } ?: return null
     return ResumableMatch(turnNumber, you.leaderId)
 }
 

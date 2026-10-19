@@ -189,6 +189,26 @@ class MatchHostTest {
 
             assertEquals(LeaderId("kim"), host.resumable.first { it != null }?.leader)
             assertNull(GameFixtures.victory.resumableFor(game.humanPlayerId))
+            // Suspended while the bots play on: nothing left for you to continue.
+            val you =
+                GameFixtures.opponentTurn.players
+                    .first()
+                    .id
+            assertNull(
+                GameFixtures.opponentTurn
+                    .copy(
+                        players =
+                            GameFixtures.opponentTurn.players.map {
+                                if (it.id ==
+                                    you
+                                ) {
+                                    it.copy(followers = 0)
+                                } else {
+                                    it
+                                }
+                            },
+                    ).resumableFor(you),
+            )
         }
 
     @Test

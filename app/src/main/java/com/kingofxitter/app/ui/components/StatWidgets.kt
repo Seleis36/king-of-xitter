@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
@@ -124,6 +125,7 @@ fun MandateCounter(
     iconSize: Dp = 26.dp,
     valueStyle: TextStyle = XType.DisplayLarge,
     showGoal: Boolean = false,
+    color: Color = XColors.Paper,
 ) {
     val description = pluralStringResource(R.plurals.stat_mandates, mandates, mandates)
     Row(
@@ -132,7 +134,7 @@ fun MandateCounter(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         XIconImage(XIcon.Mandates, contentDescription = null, size = iconSize)
-        Text(mandates.toString(), style = valueStyle, color = XColors.Paper, modifier = Modifier.padding(top = 3.dp))
+        Text(mandates.toString(), style = valueStyle, color = color, modifier = Modifier.padding(top = 3.dp))
         if (showGoal) Text(stringResource(R.string.stat_of_twenty), style = XType.Caption, color = XColors.Muted)
     }
 }
@@ -191,6 +193,7 @@ fun StatValue(
     modifier: Modifier = Modifier,
     iconSize: Dp = 16.dp,
     style: TextStyle = XType.Stat,
+    color: Color = XColors.Paper,
 ) {
     Row(
         modifier = modifier.clearAndSetSemantics { this.contentDescription = contentDescription },
@@ -198,6 +201,6 @@ fun StatValue(
         horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         XIconImage(icon, contentDescription = null, size = iconSize)
-        Text(value, style = style, color = XColors.Paper, maxLines = 1, softWrap = false)
+        Text(value, style = style, color = color, maxLines = 1, softWrap = false)
     }
 }
