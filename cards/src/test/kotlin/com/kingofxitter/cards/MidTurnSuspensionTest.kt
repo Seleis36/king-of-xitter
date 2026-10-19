@@ -53,6 +53,18 @@ class MidTurnSuspensionTest {
     }
 
     @Test
+    fun `nobody takes Xitter when Home Turf suspends the attacker who took it`() {
+        val attacked = reducer.reduce(attackOnHomeTurf(), Action.ResolveRoll(TestGame.HUMAN)).state
+        val decision = attacked.pendingDecisions.single()
+        val logOff = decision.options.first { it.action is Action.LogOffXitter }
+
+        val after = reducer.reduce(attacked, Action.ChooseDecisionOption(TestGame.BOT, decision.id, logOff.id)).state
+
+        // ROADMAP §1: if the attacker is eliminated at the same moment, nobody takes the spot.
+        assertNull(after.xitterPlayerId)
+    }
+
+    @Test
     fun `staying on Xitter leaves the attacker's turn alone`() {
         val attacked = reducer.reduce(attackOnHomeTurf(), Action.ResolveRoll(TestGame.HUMAN)).state
         val decision = attacked.pendingDecisions.single()

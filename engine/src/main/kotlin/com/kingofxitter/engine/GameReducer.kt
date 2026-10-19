@@ -1298,8 +1298,15 @@ class DefaultGameReducer(
                 targetPlayerId = attacker.id,
                 actingPlayerId = action.playerId,
             ) { effect, ctx -> effect.onLogOff(ctx) }
-        val applied = applyCardIntents(nextState, intents, random, action.playerId)
-        return GameTransition(applied.first.copy(randomState = random.state), events + applied.second)
+        val applied = applyCardIntents(nextState, intents, random, action.playerId, transferMainCharacter = false)
+        var finalState = applied.first
+        var finalEvents = events + applied.second
+        // If a log-off hook suspends the attacker who took the spot, nobody takes it (ROADMAP §1).
+        if (finalState.players.any { it.id == attacker.id && it.isSuspended } && finalState.xitterPlayerId == attacker.id) {
+            finalState = finalState.copy(xitterPlayerId = null)
+            finalEvents += GameEvent.MainCharacterChanged(attacker.id, null)
+        }
+        return GameTransition(finalState.copy(randomState = random.state), finalEvents)
     }
 
     private fun chooseDecisionOption(
