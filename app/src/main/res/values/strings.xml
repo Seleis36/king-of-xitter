@@ -636,14 +636,20 @@
     <string name="card_c66_flavour">This is fine. Everything is fine. Please hold.</string>
 
     <!-- C8: power-up shop and card. -->
-    <string name="shop_title">POWER-UP SHOP</string>
-    <string name="shop_close">Close shop</string>
-    <string name="shop_characters">%1$d CHARACTERS</string>
+    <string name="shop_title">POWER-UPS</string>
+    <string name="shop_subtitle">Spend characters. Policies stay. Orders fire once.</string>
+    <string name="shop_subtitle_browsing">Window shopping. You can buy after you resolve your roll.</string>
+    <string name="shop_close">Back to the board</string>
     <string name="shop_empty">The shop is empty.</string>
-    <string name="shop_buy">BUY FOR %1$d</string>
-    <string name="shop_sweep">SWEEP (%1$d)</string>
+    <string name="shop_buy_short">BUY</string>
+    <string name="shop_short">%1$d SHORT</string>
+    <string name="shop_sweep_timeline">SWEEP THE TIMELINE</string>
+    <string name="shop_sweep_cost">%1$d characters for three new cards</string>
+    <string name="shop_your_policies">YOUR POLICIES</string>
+    <string name="shop_done">DONE SHOPPING</string>
+    <string name="shop_back">BACK TO GAME</string>
     <string name="card_type_policy">POLICY</string>
-    <string name="card_type_order">ORDER</string>
+    <string name="card_type_order">EXECUTIVE ORDER</string>
     <string name="card_rules_missing">Rules missing</string>
 
     <!-- C9: what each power-up asks, keyed by the promptKey and labelKey the cards set. -->

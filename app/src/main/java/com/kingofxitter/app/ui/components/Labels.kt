@@ -71,6 +71,7 @@ fun XTag(
     icon: XIcon? = null,
     textStyle: TextStyle = XType.Tag,
     maxLines: Int = 1,
+    textColor: Color = XColors.Ink,
 ) {
     Row(
         modifier =
@@ -81,6 +82,6 @@ fun XTag(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (icon != null) XIconImage(icon, contentDescription = null, size = 14.dp, tint = XColors.Ink)
-        Text(text.uppercase(), style = textStyle, color = XColors.Ink, maxLines = maxLines)
+        Text(text.uppercase(), style = textStyle, color = textColor, maxLines = maxLines)
     }
 }
