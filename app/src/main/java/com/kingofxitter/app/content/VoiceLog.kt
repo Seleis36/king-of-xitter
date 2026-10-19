@@ -31,6 +31,11 @@ data class VoiceEntry(
     val unfollows: Int = 0,
     /** The power-up that was bought, for [TweetMoment.BOUGHT_POWER_UP]. */
     val cardId: CardId? = null,
+    /**
+     * Unique within one [VoiceLog], in posting order. Two leaders can post the same line on the
+     * same turn (a buy line has no target), so the timeline keys its rows on this.
+     */
+    val id: Long = 0,
 )
 
 /**
@@ -51,6 +56,7 @@ class VoiceLog(
 ) {
     private val mutableEntries = MutableStateFlow<List<VoiceEntry>>(emptyList())
     private var sequence = 0L
+    private var nextId = 1L
     private var draft: Draft? = null
 
     /** Every tweet so far, oldest first. */
@@ -120,6 +126,7 @@ class VoiceLog(
             turnNumber = state.turnNumber,
             unfollows = unfollows,
             cardId = cardId,
+            id = nextId++,
         )
     }
 
