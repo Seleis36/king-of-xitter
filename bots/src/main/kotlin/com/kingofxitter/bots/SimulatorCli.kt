@@ -39,6 +39,7 @@ internal fun format(
         appendLine("  games        ${report.games} of ${config.games} completed, seed ${config.seed}")
         appendLine("  turns        %.1f average".format(report.averageTurns))
         appendLine("  no winner    ${report.noWinner}")
+        appendLine("  power-ups    %.1f bought per match".format(report.averagePowerUpsBought))
         appendLine("  time         %.1fs".format(seconds))
         appendLine("  bots")
         config.difficulties.forEach { difficulty ->

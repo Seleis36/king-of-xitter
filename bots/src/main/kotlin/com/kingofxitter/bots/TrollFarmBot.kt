@@ -4,6 +4,7 @@ import com.kingofxitter.engine.DefaultGameReducer
 import com.kingofxitter.engine.GameReducer
 import com.kingofxitter.engine.SplitMix64
 import com.kingofxitter.engine.model.Action
+import com.kingofxitter.engine.model.CardId
 import com.kingofxitter.engine.model.GameEvent
 import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.HookRandom
@@ -37,6 +38,9 @@ data class TrollFarmSearch(
  * Everything is driven by the stream it is given, so a seed replays a whole match, including the
  * search. When the search can't separate two moves it falls back to [ReplyGuyBot]'s heuristic,
  * so it is never worse than the difficulty below it.
+ *
+ * [reducer] must be the match's own: the search only finds moves the reducer accepts, so with a
+ * reducer that has no shop it never buys a power-up.
  */
 class TrollFarmBot(
     private val market: CardMarket = CardMarket.Unknown,
@@ -132,8 +136,10 @@ class TrollFarmBot(
 
     /**
      * How good [state] is for [actor]. Mandates are the win condition, so they dominate;
-     * followers keep it alive and characters buy power-ups later. Rivals' mandates count against
-     * it, because the match ends when any of them reaches twenty.
+     * followers keep it alive and characters buy power-ups later. A policy is worth more than the
+     * characters it cost, since it keeps paying out after the playout ends, which is what lets the
+     * search prefer buying one to sitting on the money. Rivals' mandates count against it, because
+     * the match ends when any of them reaches twenty.
      */
     internal fun score(
         state: GameState,
@@ -152,11 +158,15 @@ class TrollFarmBot(
         return me.mandates * MANDATE_WEIGHT * weights.mandateHunger +
             me.followers * FOLLOWER_WEIGHT * weights.selfPreservation +
             me.characters * CHARACTER_WEIGHT * weights.shopAppetite +
-            me.policyIds.size * POLICY_WEIGHT +
+            me.policyIds.sumOf(::policyWorth) +
             onXitter -
             leadingRival * RIVAL_WEIGHT * weights.aggression -
             rivals.size * SURVIVOR_WEIGHT
     }
+
+    /** A policy at [POLICY_PREMIUM] times its price, or a flat [POLICY_WEIGHT] when the market can't price it. */
+    private fun policyWorth(cardId: CardId): Double =
+        market.appraise(cardId)?.let { it.cost * CHARACTER_WEIGHT * POLICY_PREMIUM } ?: POLICY_WEIGHT
 
     private companion object {
         const val WIN = 1_000.0
@@ -165,6 +175,9 @@ class TrollFarmBot(
         const val FOLLOWER_WEIGHT = 4.0
         const val CHARACTER_WEIGHT = 0.3
         const val POLICY_WEIGHT = 3.0
+
+        /** Above the hungriest leader's character appetite (1.3), so holding cash never beats a policy. */
+        const val POLICY_PREMIUM = 1.5
         const val RIVAL_WEIGHT = 6.0
         const val SURVIVOR_WEIGHT = 2.0
         const val XITTER_BONUS = 6.0

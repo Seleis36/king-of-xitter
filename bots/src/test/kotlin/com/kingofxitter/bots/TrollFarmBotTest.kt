@@ -2,11 +2,16 @@ package com.kingofxitter.bots
 
 import com.kingofxitter.engine.DefaultGameReducer
 import com.kingofxitter.engine.GameFixtures
+import com.kingofxitter.engine.GameReducer
+import com.kingofxitter.engine.GameTransition
 import com.kingofxitter.engine.MatchSetup
 import com.kingofxitter.engine.SplitMix64
 import com.kingofxitter.engine.model.Action
+import com.kingofxitter.engine.model.CardId
 import com.kingofxitter.engine.model.GameEvent
+import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.MatchResult
+import com.kingofxitter.engine.model.TurnPhase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -17,6 +22,49 @@ class TrollFarmBotTest {
     private val roster = DEFAULT_LEADERS
     private val quick = TrollFarmSearch(playouts = 2, depth = 12, candidates = 4)
     private val bot = TrollFarmBot(search = quick)
+    private val market =
+        CardMarket { id ->
+            when (id.value) {
+                "cheap-policy" -> CardAppraisal(cost = 30, isPolicy = true)
+                "dear-policy" -> CardAppraisal(cost = 50, isPolicy = true)
+                else -> null
+            }
+        }
+
+    /** The smallest shop the search can buy from: it charges [market]'s price and hands over the card. */
+    private val pricedShop =
+        object : GameReducer {
+            private val base = DefaultGameReducer()
+
+            override fun reduce(
+                state: GameState,
+                action: Action,
+            ): GameTransition {
+                val price = (action as? Action.BuyPowerUp)?.let { market.appraise(it.cardId)?.cost } ?: return base.reduce(state, action)
+                val buyer = state.players.first { it.id == action.playerId }
+                if (state.phase != TurnPhase.SHOP || buyer.characters < price) return base.reduce(state, action)
+                val next =
+                    state.copy(
+                        players =
+                            state.players.map {
+                                if (it.id ==
+                                    buyer.id
+                                ) {
+                                    it.copy(characters = it.characters - price, policyIds = it.policyIds + action.cardId)
+                                } else {
+                                    it
+                                }
+                            },
+                        shopCardIds = state.shopCardIds - action.cardId,
+                    )
+                return GameTransition(next, listOf(GameEvent.PowerUpBought(buyer.id, action.cardId)))
+            }
+        }
+
+    private fun richShop(characters: Int): GameState {
+        val state = GameFixtures.shop.copy(shopCardIds = listOf("cheap-policy", "dear-policy").map(::CardId))
+        return state.copy(players = state.players.map { if (it.id == state.currentPlayerId) it.copy(characters = characters) else it })
+    }
 
     @Test
     fun `it only ever picks a legal move`() {
@@ -92,6 +140,34 @@ class TrollFarmBotTest {
         // A rival closing on twenty mandates is bad news.
         val rival = base.players.first { it.id != you }.id
         assertTrue(bot.score(base.copy(players = base.players.map { if (it.id == rival) it.copy(mandates = 19) else it }), you) < reference)
+    }
+
+    @Test
+    fun `it buys a policy when the reducer it searches with has a shop`() {
+        val shopper = TrollFarmBot(market, search = quick, reducer = pricedShop)
+        val state = richShop(characters = 60)
+        repeat(5) { seed ->
+            val action = shopper.decide(state, null, SplitMix64(seed.toLong()))
+            assertTrue(action is Action.BuyPowerUp, "seed $seed ended the turn with 60 characters: $action")
+        }
+    }
+
+    @Test
+    fun `a reducer without a shop means it never tries to buy`() {
+        // The base reducer rejects BuyPowerUp, so the search must settle for ending the turn.
+        val noShop = TrollFarmBot(market, search = quick)
+        val state = richShop(characters = 60)
+        repeat(5) { seed -> assertTrue(noShop.decide(state, null, SplitMix64(seed.toLong())) !is Action.BuyPowerUp) }
+    }
+
+    @Test
+    fun `a policy scores above the characters it cost`() {
+        val shopper = TrollFarmBot(market, search = quick, reducer = pricedShop)
+        val before = richShop(characters = 30)
+        val you = before.currentPlayerId
+        val after = pricedShop.reduce(before, Action.BuyPowerUp(you, CardId("cheap-policy"))).state
+        assertTrue(after.players.first { it.id == you }.characters == 0)
+        assertTrue(shopper.score(after, you) > shopper.score(before, you))
     }
 
     @Test

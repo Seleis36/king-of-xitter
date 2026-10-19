@@ -49,6 +49,8 @@ data class SimulationReport(
     val noWinner: Int,
     val totalTurns: Long,
     val failures: List<SimulationFailure>,
+    /** Power-ups bought across every completed match, so a run shows whether the bots shop at all. */
+    val powerUpsBought: Int = 0,
 ) {
     /** Share of the matches a difficulty was seated in that it won. */
     fun winRate(difficulty: BotDifficulty): Double {
@@ -65,6 +67,10 @@ data class SimulationReport(
     /** Average turns per completed match. */
     val averageTurns: Double
         get() = if (games == 0) 0.0 else totalTurns.toDouble() / games
+
+    /** Average power-ups bought per completed match. */
+    val averagePowerUpsBought: Double
+        get() = if (games == 0) 0.0 else powerUpsBought.toDouble() / games
 }
 
 /**
@@ -76,13 +82,18 @@ data class SimulationReport(
  * failure instead of ending the run, so one bad seed can't hide the other 9,999.
  */
 object Simulator {
-    /** Plays [config]'s matches and returns what happened. */
+    /**
+     * Plays [config]'s matches and returns what happened. [setup] prepares each match's opening
+     * position, for example to deal a power-up deck, and [reducer] plays it. The Troll Farm
+     * searches with the same reducer, so it can only buy what the match would sell.
+     */
     fun run(
         config: SimulationConfig,
+        setup: (GameState) -> GameState = { it },
         reducer: () -> GameReducer = { DefaultGameReducer() },
     ): SimulationReport {
         // V6: each seat plays its leader's personality, so the numbers measure what the player faces.
-        val brains = config.difficulties.map { it to LeaderBots(it, config.market) }
+        val brains = config.difficulties.map { it to LeaderBots(it, config.market, reducer = reducer()) }
         val winsByDifficulty = mutableMapOf<BotDifficulty, Int>()
         val seatsByDifficulty = mutableMapOf<BotDifficulty, Int>()
         val winsByLeader = mutableMapOf<LeaderId, Int>()
@@ -91,6 +102,7 @@ object Simulator {
         var noWinner = 0
         var totalTurns = 0L
         var completed = 0
+        var powerUpsBought = 0
 
         for (game in 0 until config.games) {
             val seed = config.seed + game
@@ -104,12 +116,13 @@ object Simulator {
                 seatsByDifficulty.increment(brains[index % brains.size].first)
                 seatsByLeader.increment(player.leaderId)
             }
-            val outcome = play(start.state, seats, reducer(), config.actionLimit)
+            val outcome = play(setup(start.state), seats, reducer(), config.actionLimit)
             when (outcome) {
                 is Outcome.Failed -> failures += SimulationFailure(seed, outcome.reason)
                 is Outcome.Finished -> {
                     completed++
                     totalTurns += outcome.turns
+                    powerUpsBought += outcome.powerUpsBought
                     val winner = outcome.winner
                     if (winner == null) {
                         noWinner++
@@ -129,6 +142,7 @@ object Simulator {
             noWinner = noWinner,
             totalTurns = totalTurns,
             failures = failures,
+            powerUpsBought = powerUpsBought,
         )
     }
 
@@ -141,6 +155,7 @@ object Simulator {
         val leaders = initial.players.associate { it.id to it.leaderId }
         var state = initial
         var actions = 0
+        var bought = 0
         while (state.result == null) {
             if (actions++ >= actionLimit) return Outcome.Failed("stuck after $actionLimit actions in ${state.phase}")
             val actor = BotMoves.actingPlayerId(state) ?: return Outcome.Failed("nobody to act in ${state.phase}")
@@ -157,12 +172,14 @@ object Simulator {
             val rejected = transition.events.filterIsInstance<GameEvent.ActionRejected>()
             if (rejected.isNotEmpty()) return Outcome.Failed("rejected: ${rejected.map { it.reason }}")
             if (transition.state == state) return Outcome.Failed("no progress in ${state.phase}")
+            bought += transition.events.count { it is GameEvent.PowerUpBought }
             state = transition.state
         }
         return Outcome.Finished(
             winner = (state.result as? MatchResult.Victory)?.playerId,
             turns = state.turnNumber,
             leaders = leaders,
+            powerUpsBought = bought,
         )
     }
 
@@ -175,6 +192,7 @@ object Simulator {
             val winner: PlayerId?,
             val turns: Int,
             val leaders: Map<PlayerId, LeaderId>,
+            val powerUpsBought: Int,
         ) : Outcome
 
         data class Failed(
