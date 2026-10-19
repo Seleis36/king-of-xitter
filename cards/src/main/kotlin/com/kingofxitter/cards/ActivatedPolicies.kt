@@ -63,8 +63,12 @@ object ActivatedPolicies {
                     context: CardHookContext,
                     action: Action.ActivateAbility,
                 ): List<CardEffectIntent> {
-                    val dieId = action.dieIds.firstOrNull() ?: return emptyList()
-                    return listOf(CardEffectIntent.ChangeDie(context.ownerId, dieId, DiceFace.entries[context.random.nextInt(6)]))
+                    // The engine offers abilities once per roll, so one use rerolls every 3 the owner holds.
+                    // The chosen die only selects the option; all unkept 3s are rerolled in dice order.
+                    if (action.dieIds.isEmpty()) return emptyList()
+                    return context.state.dice
+                        .filter { it.face == DiceFace.THREE && !it.isKept }
+                        .map { die -> CardEffectIntent.ChangeDie(context.ownerId, die.id, DiceFace.entries[context.random.nextInt(6)]) }
                 }
             },
             // c22_poll_rigger
