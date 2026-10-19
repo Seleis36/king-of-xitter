@@ -98,10 +98,14 @@ class TrollFarmBot(
         actor: PlayerId,
         seed: Long,
     ): Double {
-        val opening = apply(state, move) ?: return Double.NEGATIVE_INFINITY
         var total = 0.0
         repeat(search.playouts) { playout ->
-            total += playOut(opening, actor, SplitMix64(seed * PLAYOUT_MIX + playout))
+            val random = SplitMix64(seed * PLAYOUT_MIX + playout)
+            // The reducer rolls from randomState, so each playout samples its own dice instead of
+            // reading the ones the real roll will give.
+            val sampled = state.copy(randomState = random.nextInt(Int.MAX_VALUE).toLong() * PLAYOUT_MIX)
+            val opening = apply(sampled, move) ?: return Double.NEGATIVE_INFINITY
+            total += playOut(opening, actor, random)
         }
         return total / search.playouts
     }
