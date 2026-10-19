@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kingofxitter.app.R
 import com.kingofxitter.app.ui.components.Die
+import com.kingofxitter.app.ui.components.DiePick
 import com.kingofxitter.app.ui.components.DieSize
 import com.kingofxitter.app.ui.components.MIN_TOUCH_TARGET
 import com.kingofxitter.app.ui.components.XChip
@@ -73,6 +75,9 @@ fun RollCounter(
  * The six (or more) dice. Before the first roll, empty slots stand in. [selected] dice are shown
  * kept; [onToggle] makes them tappable. Dice rerolled on the latest roll tumble. The dice take the
  * largest size that fits the width: 54dp, then 44dp (six dice on a 320dp phone), then 36dp.
+ *
+ * When a power-up asks for a die, [pickable] limits the taps to the dice it can use (the others
+ * fade) and the selected die reads "PICKED" instead of "KEPT".
  */
 @Composable
 fun DiceTray(
@@ -80,7 +85,18 @@ fun DiceTray(
     selected: Set<DieId>,
     modifier: Modifier = Modifier,
     onToggle: ((DieId, Boolean) -> Unit)? = null,
+    pickable: Set<DieId>? = null,
 ) {
+    val pick =
+        if (pickable != null) {
+            DiePick(
+                label = stringResource(R.string.die_picked),
+                pickedState = stringResource(R.string.die_picked_state),
+                unpickedState = stringResource(R.string.die_unpicked_state),
+            )
+        } else {
+            null
+        }
     BoxWithConstraints(modifier.fillMaxWidth().padding(top = 8.dp, bottom = 22.dp)) {
         val count = if (state.dice.isEmpty()) state.turnDiceCount ?: BASE_DICE else state.dice.size
         val size = dieSizeFor(count, maxWidth)
@@ -95,13 +111,16 @@ fun DiceTray(
                 repeat(count) { EmptyDieSlot(size) }
             } else {
                 state.dice.forEach { die ->
+                    val canTap = pickable == null || die.id in pickable
                     Die(
                         face = die.face,
+                        modifier = if (canTap) Modifier else Modifier.alpha(UNPICKABLE_ALPHA),
                         size = size,
                         kept = die.id in selected,
                         tumbleKey = if (die.isKept) null else state.rollNumber,
-                        onToggleKept = onToggle?.let { toggle -> { keep -> toggle(die.id, keep) } },
+                        onToggleKept = onToggle?.takeIf { canTap }?.let { toggle -> { keep -> toggle(die.id, keep) } },
                         touchTarget = touchTarget,
+                        pick = pick,
                     )
                 }
             }
@@ -119,6 +138,9 @@ internal fun dieSizeFor(
     } ?: DieSize.ExtraSmall
 
 private val MIN_DIE_GAP = 4.dp
+
+/** A die a power-up can't use stays visible but steps back. */
+private const val UNPICKABLE_ALPHA = 0.4f
 
 @Composable
 private fun EmptyDieSlot(size: DieSize) {

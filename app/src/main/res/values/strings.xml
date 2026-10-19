@@ -71,6 +71,9 @@
     <string name="die_kept">KEPT</string>
     <string name="die_kept_state">Kept</string>
     <string name="die_rerolled_state">Will be rerolled</string>
+    <string name="die_picked">PICKED</string>
+    <string name="die_picked_state">Picked</string>
+    <string name="die_unpicked_state">Not picked</string>
     <string name="kit_dice_caption">Default 54 · kept: yellow, lifted, tilted · small 36 · XS 28</string>
     <string name="kit_dice_roll">Tap a die to keep it, then roll</string>
     <string name="board_xitter_x">X</string>
@@ -621,4 +624,38 @@
     <string name="card_type_policy">POLICY</string>
     <string name="card_type_order">ORDER</string>
     <string name="card_rules_missing">Rules missing</string>
+
+    <!-- C9: what each power-up asks, keyed by the promptKey and labelKey the cards set. -->
+    <string name="card_c05_prompt">Reroll one of your 3s?</string>
+    <string name="card_c22_prompt">Turn one of your dice into a 1?</string>
+    <string name="card_c33_prompt">Change one die to any face? The card is used up.</string>
+    <string name="card_c36_prompt">Reroll one of their dice? If it lands on a like, Phone Tap is discarded.</string>
+    <string name="card_c37_prompt">Pay 20 characters for 1M followers?</string>
+    <string name="card_c44_prompt">Pay 20 characters to change one die to any face?</string>
+    <string name="card_c45_prompt">Pay 10 characters for one more reroll this turn?</string>
+    <string name="card_c48_prompt">Pay 20 characters to ignore every unfollow this turn?</string>
+    <string name="ability_sell_like_prompt">Sell your like: who pays you 20 characters for 1M followers?</string>
+    <string name="ability_buy_top_card_prompt">Peek at the top card of the deck and buy it?</string>
+    <string name="ability_discard_policy_prompt">Discard a policy for its full cost in characters?</string>
+    <string name="ability_hostile_takeover_prompt">Buy another leader\'s policy? You pay them what it cost.</string>
+    <string name="ability_copycat_prompt">Copy another leader\'s policy?</string>
+    <string name="ability_breaking_news_prompt">New cards just hit the shelf. Buy one before anyone else?</string>
+    <string name="prompt_spend_smoke_cloud">Spend a Smoke and Mirrors counter for one more reroll?</string>
+
+    <string name="card_c05_option">REROLL IT</string>
+    <string name="card_c22_option">MAKE IT A 1</string>
+    <string name="card_c33_option">CHANGE IT</string>
+    <string name="card_c36_option">REROLL IT</string>
+    <string name="card_c37_option">BUY 1M</string>
+    <string name="card_c44_option">CHANGE IT</string>
+    <string name="card_c45_option">BUY A REROLL</string>
+    <string name="card_c48_option">TOUCH GRASS</string>
+
+    <string name="board_decision_pick_die">Tap a die:</string>
+    <string name="board_decision_pick_die_then_face">Tap a die, then pick its new face:</string>
+    <string name="board_decision_pick_face">New face for that die:</string>
+    <string name="board_decision_face">Make it %1$s</string>
+    <string name="board_decision_pick_leader">Pick a leader:</string>
+    <string name="board_decision_buy_cost">BUY %1$s · %2$d</string>
+    <string name="board_decision_takeover">%1$s from %2$s · %3$d</string>
 </resources>
