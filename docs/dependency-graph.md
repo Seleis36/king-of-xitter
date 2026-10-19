@@ -146,7 +146,8 @@ flowchart LR
   classDef active fill:#fff3cd,stroke:#bd8500,color:#3d2e00,stroke-width:2px
   class M0D,HDEC done
   class S1,S2,S3,S6,E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12 active
-  class C1,C2,C3,C4,C5,C6,C8 active
+  class C2,C3,C4,C5,C6,C8 active
+  class C1 done
   class S5,B1,B2,B3,B4,V1,V2,V3,V4,V5,V6 active
   class S4,U1,U2,U3,U4,U5,U6,U7,U8,U9,U10 done
 ```
@@ -224,3 +225,4 @@ Implementation and verification details: [Track A review and handoff](track-a-ha
   - S6: `GameFixtures.Design` holds one state per design screen, checked in
     [the S6 fixture review](s6-fixture-review.md) (#79).
   - Issues #3, #6, #9 and #27 are closed. They still need a human cross-track review before their nodes turn green.
+- C1 is green: Samylay (Track A) approved PR #60 on 2026-10-01, and its Build passed at `86eacd7`.
