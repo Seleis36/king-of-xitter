@@ -9,6 +9,7 @@ import com.kingofxitter.engine.model.CounterId
 import com.kingofxitter.engine.model.DecisionKind
 import com.kingofxitter.engine.model.DecisionOptionId
 import com.kingofxitter.engine.model.DiceFace
+import com.kingofxitter.engine.model.PlayerId
 import com.kingofxitter.engine.model.PlayerState
 import com.kingofxitter.engine.model.TurnPhase
 import kotlin.test.Test
@@ -89,29 +90,109 @@ class ActivatedPoliciesTest {
 
     private fun human(transition: GameTransition): PlayerState = transition.state.players.first { it.id == TestGame.HUMAN }
 
+    /** The first offered way to use the ability, so a test doesn't depend on what one seed rolled. */
+    private fun firstUse(rolled: GameTransition): Action.ActivateAbility =
+        rolled.state.pendingDecisions
+            .first()
+            .options
+            .first { it.action is Action.ActivateAbility }
+            .action as Action.ActivateAbility
+
+    private fun optionFor(
+        rolled: GameTransition,
+        use: Action.ActivateAbility,
+    ): String =
+        rolled.state.pendingDecisions
+            .first()
+            .options
+            .first { it.action == use }
+            .id.value
+
+    /** The bot rolls while the human holds [card], until a seed shows a tweet. */
+    private fun botRollsATweet(
+        card: String,
+        xitter: PlayerId? = TestGame.BOT,
+    ): GameTransition {
+        for (seed in 0L..200L) {
+            val state =
+                TestGame()
+                    .withCurrentPlayer(TestGame.BOT)
+                    .withPhase(TurnPhase.ROLLING)
+                    .withRollNumber(0)
+                    .withXitter(xitter)
+                    .withPolicy(TestGame.HUMAN, CardId(card))
+                    .withCharacters(TestGame.HUMAN, 50)
+                    .withFollowers(TestGame.HUMAN, 5)
+                    .withSeed(seed)
+                    .build()
+            val result = reducer.reduce(state, Action.RollDice(TestGame.BOT, emptySet()))
+            if (result.state.dice.any { it.face == DiceFace.TWEET }) return result
+        }
+        error("no seed in 0..200 rolled a tweet")
+    }
+
+    /** The bot rolls while the human holds [card]. */
+    private fun botRolls(card: String): GameTransition {
+        val state =
+            TestGame()
+                .withCurrentPlayer(TestGame.BOT)
+                .withPhase(TurnPhase.ROLLING)
+                .withRollNumber(0)
+                .withPolicy(TestGame.HUMAN, CardId(card))
+                .withCharacters(TestGame.HUMAN, 50)
+                .withFollowers(TestGame.HUMAN, 5)
+                .build()
+        return reducer.reduce(state, Action.RollDice(TestGame.BOT, emptySet()))
+    }
+
     @Test
     fun `Poll Rigger turns a die into a 1 and can be used once per turn`() {
         val rolled = rollWith("c22_poll_rigger")
-        val result = choose(rolled, "2")
+        val use = firstUse(rolled)
+        val result = choose(rolled, optionFor(rolled, use))
 
         assertEquals(
             DiceFace.ONE,
             result.state.dice
-                .first { it.id.value == 2 }
+                .first { it.id == use.dieIds.single() }
                 .face,
         )
         assertEquals(1, human(result).counters[CounterId("poll_rigger_${result.state.turnNumber}")])
     }
 
     @Test
+    fun `Poll Rigger only offers dice that are not already a 1`() {
+        val rolled = rollWith("c22_poll_rigger")
+        val offered =
+            rolled.state.pendingDecisions
+                .first()
+                .options
+                .mapNotNull { (it.action as? Action.ActivateAbility)?.dieIds?.single() }
+        val notOnes =
+            rolled.state.dice
+                .filter { it.face != DiceFace.ONE }
+                .map { it.id }
+
+        assertEquals(notOnes, offered)
+    }
+
+    @Test
+    fun `Poll Rigger, October Surprise and Spin Doctor are not offered on another leader's roll`() {
+        listOf("c22_poll_rigger", "c33_october_surprise", "c44_spin_doctor").forEach { card ->
+            assertTrue(botRolls(card).state.pendingDecisions.isEmpty(), "$card was offered on the bot's roll")
+        }
+    }
+
+    @Test
     fun `October Surprise sets the chosen face and discards itself`() {
         val rolled = rollWith("c33_october_surprise")
-        val result = choose(rolled, "3_LIKE")
+        val die = rolled.state.dice.first { it.face != DiceFace.LIKE }
+        val result = choose(rolled, "${die.id.value}_LIKE")
 
         assertEquals(
             DiceFace.LIKE,
             result.state.dice
-                .first { it.id.value == 3 }
+                .first { it.id == die.id }
                 .face,
         )
         assertTrue(CardId("c33_october_surprise") !in human(result).policyIds)
@@ -127,6 +208,25 @@ class ActivatedPoliciesTest {
     }
 
     @Test
+    fun `Paid Promotion is not offered at full followers`() {
+        val rolled = rollWith("c37_paid_promotion", characters = 50, followers = 10)
+
+        assertTrue(rolled.state.pendingDecisions.isEmpty())
+    }
+
+    @Test
+    fun `Paid Promotion can be used on another leader's roll`() {
+        val rolled = botRolls("c37_paid_promotion")
+
+        assertEquals(
+            TestGame.HUMAN,
+            rolled.state.pendingDecisions
+                .single()
+                .playerId,
+        )
+    }
+
+    @Test
     fun `Paid Promotion is not offered below 20 chars`() {
         val rolled = rollWith("c37_paid_promotion", characters = 10)
 
@@ -135,15 +235,32 @@ class ActivatedPoliciesTest {
 
     @Test
     fun `Spin Doctor pays 20 chars to set a die to any face`() {
-        val result = choose(rollWith("c44_spin_doctor"), "0_CHARACTERS")
+        val rolled = rollWith("c44_spin_doctor")
+        val die = rolled.state.dice.first { it.face != DiceFace.CHARACTERS }
+        val result = choose(rolled, "${die.id.value}_CHARACTERS")
 
         assertEquals(30, human(result).characters)
         assertEquals(
             DiceFace.CHARACTERS,
             result.state.dice
-                .first { it.id.value == 0 }
+                .first { it.id == die.id }
                 .face,
         )
+    }
+
+    @Test
+    fun `face changers never offer the face a die already shows`() {
+        listOf("c33_october_surprise", "c44_spin_doctor").forEach { card ->
+            val rolled = rollWith(card)
+            rolled.state.pendingDecisions.first().options.forEach { option ->
+                val use = option.action as? Action.ActivateAbility ?: return@forEach
+                val die = rolled.state.dice.first { it.id == use.dieIds.single() }
+                assertTrue(
+                    die.face.name != use.abilityId.substringAfter(":"),
+                    "$card offered ${use.abilityId} for a die showing ${die.face}",
+                )
+            }
+        }
     }
 
     @Test
@@ -159,10 +276,36 @@ class ActivatedPoliciesTest {
 
     @Test
     fun `Touch Grass pays 20 chars and marks the turn`() {
-        val result = choose(rollWith("c48_touch_grass"), "buy")
+        val rolled = botRollsATweet("c48_touch_grass")
+        val decision = rolled.state.pendingDecisions.single()
+        val result = reducer.reduce(rolled.state, Action.ChooseDecisionOption(TestGame.HUMAN, decision.id, DecisionOptionId("buy")))
 
         assertEquals(30, human(result).characters)
         assertEquals(1, human(result).counters[CounterId("touch_grass_${result.state.turnNumber}")])
+    }
+
+    @Test
+    fun `Touch Grass is only offered when the roll's tweets could reach you`() {
+        // Your own roll can't hit you.
+        assertTrue(rollWith("c48_touch_grass").state.pendingDecisions.isEmpty())
+        // Nobody on Xitter: tweets from outside hit nobody.
+        assertTrue(botRollsATweet("c48_touch_grass", xitter = null).state.pendingDecisions.isEmpty())
+        // The roller holds Xitter, so their tweets hit you.
+        assertEquals(
+            TestGame.HUMAN,
+            botRollsATweet("c48_touch_grass", xitter = TestGame.BOT)
+                .state.pendingDecisions
+                .single()
+                .playerId,
+        )
+        // You hold Xitter, so the roller's tweets hit you.
+        assertEquals(
+            TestGame.HUMAN,
+            botRollsATweet("c48_touch_grass", xitter = TestGame.HUMAN)
+                .state.pendingDecisions
+                .single()
+                .playerId,
+        )
     }
 
     @Test
