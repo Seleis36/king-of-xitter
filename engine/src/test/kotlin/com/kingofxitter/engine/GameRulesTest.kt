@@ -24,6 +24,7 @@ import com.kingofxitter.engine.model.VictoryReason
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GameRulesTest {
@@ -247,6 +248,65 @@ class GameRulesTest {
 
         assertEquals(second, loggedOff.state.xitterPlayerId)
         assertTrue(loggedOff.events.any { it == GameEvent.MainCharacterChanged(first, second) })
+        // Taking control of Xitter scores a mandate, as King of Tokyo does for taking Tokyo.
+        assertEquals(
+            hit.state.players
+                .first { it.id == second }
+                .mandates + 1,
+            loggedOff.state.players
+                .first { it.id == second }
+                .mandates,
+        )
+    }
+
+    @Test
+    fun `staying on Xitter after a hit gives the attacker nothing`() {
+        val initial =
+            game(
+                TurnPhase.ROLLING,
+                current = second,
+                xitter = first,
+                dice = listOf(DiceFace.TWEET, DiceFace.ONE, DiceFace.ONE, DiceFace.ONE, DiceFace.LIKE, DiceFace.LIKE),
+            )
+        val reducer = DefaultGameReducer()
+        val hit = reducer.reduce(initial, Action.ResolveRoll(second))
+        val decision = hit.state.pendingDecisions.single()
+
+        val stayed = reducer.reduce(hit.state, Action.ChooseDecisionOption(first, decision.id, DecisionOptionId("stay")))
+
+        assertEquals(first, stayed.state.xitterPlayerId)
+        assertEquals(
+            hit.state.players
+                .first { it.id == second }
+                .mandates,
+            stayed.state.players
+                .first { it.id == second }
+                .mandates,
+        )
+    }
+
+    @Test
+    fun `suspending the Main Character takes Xitter and its mandate`() {
+        val initial =
+            game(
+                TurnPhase.ROLLING,
+                current = second,
+                xitter = first,
+                firstFollowers = 1,
+                dice = listOf(DiceFace.TWEET, DiceFace.TWO, DiceFace.ONE, DiceFace.THREE, DiceFace.LIKE, DiceFace.LIKE),
+            )
+        val before = initial.players.first { it.id == second }.mandates
+
+        val transition = DefaultGameReducer().reduce(initial, Action.ResolveRoll(second))
+
+        assertEquals(second, transition.state.xitterPlayerId)
+        assertEquals(
+            before + 1,
+            transition.state.players
+                .first { it.id == second }
+                .mandates,
+        )
+        assertNull(transition.state.result)
     }
 
     @Test
@@ -383,11 +443,12 @@ class GameRulesTest {
         assertGoldenGame(
             thirdRun,
             MatchResult.Victory(third, VictoryReason.TWENTY_MANDATES),
-            44,
+            // Two turns sooner than before taking Xitter scored its mandate.
+            42,
             mapOf(
                 first to MatchStats(tweetsSent = 2, unfollowsDealt = 6, turnsAsMainCharacter = 3),
                 second to MatchStats(tweetsSent = 10, unfollowsDealt = 15, turnsAsMainCharacter = 4),
-                third to MatchStats(tweetsSent = 19, unfollowsDealt = 19, turnsAsMainCharacter = 9),
+                third to MatchStats(tweetsSent = 17, unfollowsDealt = 17, turnsAsMainCharacter = 8),
                 PlayerId("fourth") to MatchStats(tweetsSent = 13, unfollowsDealt = 13),
             ),
         )
