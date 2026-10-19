@@ -1,5 +1,7 @@
 package com.kingofxitter.bots
 
+import com.kingofxitter.engine.DefaultGameReducer
+import com.kingofxitter.engine.GameReducer
 import com.kingofxitter.engine.model.Action
 import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.HookRandom
@@ -90,11 +92,16 @@ object LeaderPersonalities {
  *
  * At [BotDifficulty.INTERN] the personality changes nothing, because the intern has no
  * preferences to tune, which is the right behaviour for the easiest setting.
+ *
+ * [reducer] is what [BotDifficulty.TROLL_FARM] searches with. Pass the match's own reducer: a
+ * plain [DefaultGameReducer] has no shop, so every purchase the search tries is rejected and the
+ * bot never buys a power-up.
  */
 class LeaderBots(
     override val difficulty: BotDifficulty,
     private val market: CardMarket = CardMarket.Unknown,
     private val personality: (LeaderId) -> ReplyGuyWeights = LeaderPersonalities::of,
+    private val reducer: GameReducer = DefaultGameReducer(),
 ) : BotBrain {
     private val brains = HashMap<String, BotBrain>()
 
@@ -115,7 +122,7 @@ class LeaderBots(
             when (difficulty) {
                 BotDifficulty.INTERN -> InternBot(market)
                 BotDifficulty.REPLY_GUY -> ReplyGuyBot(market, weights)
-                BotDifficulty.TROLL_FARM -> TrollFarmBot(market, weights)
+                BotDifficulty.TROLL_FARM -> TrollFarmBot(market, weights, reducer = reducer)
             }
         }
 }
