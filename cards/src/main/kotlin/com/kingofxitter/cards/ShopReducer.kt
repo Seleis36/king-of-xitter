@@ -18,11 +18,22 @@ import com.kingofxitter.engine.model.PlayerResource
 import com.kingofxitter.engine.model.PlayerState
 import com.kingofxitter.engine.model.ResourceChangeReason
 import com.kingofxitter.engine.model.TurnPhase
+import com.kingofxitter.engine.model.effectivePolicyIds
 
 /** Deterministic initialization of the draw pile and three-card shop. */
 object ShopLogic {
     const val SWEEP_COST = 20
     const val SHOP_SIZE = 3
+
+    /**
+     * What [player] pays for [definition]: its cost, 10 less with Lobbyist (held or copied with
+     * Copycat Policy), never below zero. The shop screen shows the same price the reducer charges.
+     */
+    fun costFor(
+        state: GameState,
+        player: PlayerState,
+        definition: CardDef,
+    ): Int = if (LOBBYIST in state.effectivePolicyIds(player)) maxOf(0, definition.cost - 10) else definition.cost
 
     /** Shuffles the supplied physical deck and deals up to three cards to the shop. */
     fun setupDeck(
@@ -112,7 +123,7 @@ class ShopReducer(
             CardCatalog.byId[action.cardId]
                 ?: return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         val player = state.players.first { it.id == action.playerId }
-        val cost = costFor(player, definition)
+        val cost = ShopLogic.costFor(state, player, definition)
 
         if (action.cardId !in state.shopCardIds || player.characters < cost) {
             return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
@@ -190,11 +201,6 @@ class ShopReducer(
         )
     }
 
-    private fun costFor(
-        player: PlayerState,
-        definition: CardDef,
-    ): Int = if (LOBBYIST in player.policyIds) maxOf(0, definition.cost - 10) else definition.cost
-
     /**
      * Queues an out-of-turn purchase for every other leader holding Breaking News Alerts who can
      * afford a card that [after] revealed and [before] did not show.
@@ -210,7 +216,14 @@ class ShopReducer(
             after.players
                 .filter { it.id != buyerId && !it.isSuspended && BREAKING_NEWS in it.policyIds }
                 .mapNotNull { owner ->
-                    val affordable = revealed.filter { id -> CardCatalog.byId[id]?.let { costFor(owner, it) <= owner.characters } == true }
+                    val affordable =
+                        revealed.filter { id ->
+                            CardCatalog.byId[id]?.let {
+                                ShopLogic.costFor(after, owner, it) <=
+                                    owner.characters
+                            } ==
+                                true
+                        }
                     if (affordable.isEmpty()) {
                         null
                     } else {
