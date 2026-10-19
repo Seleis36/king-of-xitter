@@ -17,6 +17,7 @@ import com.kingofxitter.cards.ShopLogic
 import com.kingofxitter.cards.ShopReducer
 import com.kingofxitter.content.LeaderRoster
 import com.kingofxitter.engine.DefaultGameReducer
+import com.kingofxitter.engine.GameReducer
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
 import com.kingofxitter.engine.RollOffRound
@@ -78,6 +79,9 @@ data class StartedMatch(
     val intro: MatchIntro?,
 )
 
+/** The rules a real match plays by: the base game, every card effect, and the shop. */
+fun matchReducer(): GameReducer = ShopReducer(DefaultGameReducer(CardEffectRegistry(CardEffects.all)))
+
 /** `RealGameController`'s own default pause between bot moves. */
 const val DEFAULT_BOT_DELAY_MILLIS = 400L
 
@@ -109,15 +113,17 @@ class MatchHost(
         val seed = options.seed ?: Random.nextLong()
         val setup = MatchSetup.create(options.leader, LeaderRoster.ids, seed)
         val initial = ShopLogic.setupDeck(setup.state.copy(characterCap = options.characterCap), CardCatalog.standardDeck, seed)
+        val reducer = matchReducer()
         val game =
             GameViewModel.restore(
                 initialState = initial,
                 humanPlayerId = setup.humanPlayerId,
                 saveFile = MatchSaveFile(saveFile.toPath()),
-                reducer = ShopReducer(DefaultGameReducer(CardEffectRegistry(CardEffects.all))),
+                reducer = reducer,
                 // V6 gives each seat its own leader's personality at the chosen difficulty,
-                // and the catalogue lets the bots price what is in the shop.
-                botAction = LeaderBots(options.difficulty, CatalogMarket).asBotAction(),
+                // and the catalogue lets the bots price what is in the shop. The Troll Farm
+                // searches with the match's own reducer, so its lookahead can buy power-ups too.
+                botAction = LeaderBots(options.difficulty, CatalogMarket, reducer = reducer).asBotAction(),
                 botDelayMillis = options.botDelayMillis,
             )
         // A restored save is a different match, so it has no roll-off for the Versus screen.
