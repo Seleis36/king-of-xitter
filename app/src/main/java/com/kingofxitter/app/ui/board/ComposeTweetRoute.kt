@@ -10,8 +10,8 @@ import com.kingofxitter.engine.model.PlayerId
 
 /**
  * Compose screen bound to a [GameController]. SEND IT resolves the human's roll, then [onDone]
- * returns to the board, which shows the result. [onSent] receives the chosen zinger (for the
- * timeline, once V3 wants it).
+ * returns to the board, which shows the result. [onSent] receives the chosen zinger before the
+ * roll resolves, so the voice log can post it as the attack.
  */
 @Composable
 fun ComposeTweetRoute(

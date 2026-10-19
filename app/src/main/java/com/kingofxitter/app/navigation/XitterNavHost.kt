@@ -185,7 +185,14 @@ fun XitterNavHost(
         }
         composable<XitterRoute.ComposeTweet> {
             MatchGate(host, options, screen) { live ->
-                ComposeTweetRoute(live, live.humanPlayerId, onDone = { navigate(XitterRoute.Board) }, modifier = screen)
+                ComposeTweetRoute(
+                    live,
+                    live.humanPlayerId,
+                    onDone = { navigate(XitterRoute.Board) },
+                    modifier = screen,
+                    // The zinger you picked is the tweet the timeline and the board show.
+                    onSent = { zinger -> voices?.draft(live.humanPlayerId, zinger, live.state.value.turnNumber) },
+                )
             }
         }
         composable<XitterRoute.IncomingTweet> {

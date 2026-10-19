@@ -78,4 +78,33 @@ class VoiceLogTest {
         repeat(500) { log.record(GameEvent.PowerUpBought(you, CardId("c12_bot_farm")), state) }
         assertTrue(log.entries.value.size <= 200, "${log.entries.value.size}")
     }
+
+    @Test
+    fun `the zinger you picked is the attack tweet, posted once however many it hits`() {
+        val macaron = state.players[2].id
+        val log = log()
+        log.draft(you, "My chosen zinger", state.turnNumber)
+        log.record(GameEvent.ResourceChanged(kim, PlayerResource.FOLLOWERS, -1, 9, ResourceChangeReason.TWEET), state)
+        log.record(GameEvent.ResourceChanged(macaron, PlayerResource.FOLLOWERS, -1, 9, ResourceChangeReason.TWEET), state)
+
+        val attacks = log.entries.value.filter { it.moment == TweetMoment.ATTACKED }
+        assertEquals(listOf("My chosen zinger"), attacks.map { it.text })
+        // Both victims still answer.
+        assertEquals(
+            listOf(kim, macaron),
+            log.entries.value
+                .filter { it.moment == TweetMoment.GOT_HIT }
+                .map { it.playerId },
+        )
+    }
+
+    @Test
+    fun `a draft from an earlier turn is never posted`() {
+        val log = log()
+        log.draft(you, "Stale zinger", state.turnNumber - 1)
+        log.record(GameEvent.ResourceChanged(kim, PlayerResource.FOLLOWERS, -1, 9, ResourceChangeReason.TWEET), state)
+
+        assertTrue(log.entries.value.none { it.text == "Stale zinger" })
+        assertEquals(1, log.entries.value.count { it.moment == TweetMoment.ATTACKED })
+    }
 }
