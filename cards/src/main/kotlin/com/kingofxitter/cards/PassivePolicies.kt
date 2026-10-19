@@ -4,6 +4,7 @@ import com.kingofxitter.engine.model.CardEffect
 import com.kingofxitter.engine.model.CardEffectIntent
 import com.kingofxitter.engine.model.CardHookContext
 import com.kingofxitter.engine.model.CardId
+import com.kingofxitter.engine.model.CounterId
 import com.kingofxitter.engine.model.DamageAdjustment
 import com.kingofxitter.engine.model.DiceFace
 import com.kingofxitter.engine.model.PlayerResource
@@ -112,11 +113,16 @@ object PassivePolicies {
             object : CardEffect {
                 override val cardId = CardId("c12_bot_farm")
 
+                // The engine runs onBuy for every held policy on each purchase; this is one-time.
                 override fun onBuy(context: CardHookContext): List<CardEffectIntent> =
-                    listOf(
-                        CardEffectIntent.ChangeFollowerLimit(context.ownerId, 2),
-                        CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.FOLLOWERS, 2),
-                    )
+                    if (context.purchasedCardId == cardId) {
+                        listOf(
+                            CardEffectIntent.ChangeFollowerLimit(context.ownerId, 2),
+                            CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.FOLLOWERS, 2),
+                        )
+                    } else {
+                        emptyList()
+                    }
             },
             // C13 Extra Head / Second Phone
             object : CardEffect {
@@ -183,7 +189,35 @@ object PassivePolicies {
             // C24 Jets / Private Jet
             object : CardEffect {
                 override val cardId = CardId("c24_private_jet")
-                // Not cleanly implementable as purely passive damage evasion during yield in this engine flow.
+
+                private val lastHit = CounterId("private_jet_last_hit")
+
+                private fun recorded(context: CardHookContext): Int =
+                    context.state.players
+                        .first { it.id == context.ownerId }
+                        .counters[lastHit] ?: 0
+
+                // The engine applies an attack's damage before it offers the log-off choice and the
+                // log-off hook does not carry that damage. Record the latest hit taken on Xitter as
+                // the counter's exact value, so a log-off can undo it and an earlier hit never adds up.
+                override fun onDamageReceived(context: CardHookContext): List<CardEffectIntent> =
+                    if (context.state.xitterPlayerId == context.ownerId && context.damage != recorded(context)) {
+                        listOf(CardEffectIntent.ChangeCounter(context.ownerId, lastHit, context.damage - recorded(context)))
+                    } else {
+                        emptyList()
+                    }
+
+                override fun onLogOff(context: CardHookContext): List<CardEffectIntent> {
+                    val lost = recorded(context)
+                    return if (lost > 0) {
+                        listOf(
+                            CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.FOLLOWERS, lost),
+                            CardEffectIntent.ChangeCounter(context.ownerId, lastHit, -lost),
+                        )
+                    } else {
+                        emptyList()
+                    }
+                }
             },
             // C29 Nova Breath / Going Viral
             object : CardEffect {
