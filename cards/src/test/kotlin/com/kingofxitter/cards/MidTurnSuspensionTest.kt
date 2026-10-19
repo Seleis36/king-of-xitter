@@ -24,16 +24,14 @@ class MidTurnSuspensionTest {
     private fun GameState.player(id: PlayerId) = players.first { it.id == id }
 
     /** The human, at 1M followers, tweets at the bot, who holds Xitter and Home Turf. A third leader keeps the match going. */
-    private fun attackOnHomeTurf(): GameState {
-        val state =
-            TestGame()
-                .withFollowers(TestGame.HUMAN, 1)
-                .withPolicy(TestGame.BOT, CardId("c06_home_turf"))
-                .withXitter(TestGame.BOT)
-                .withDice(DiceFace.TWEET, DiceFace.ONE, DiceFace.TWO, DiceFace.TWO, DiceFace.THREE, DiceFace.THREE)
-                .build()
-        return state.copy(players = state.players + PlayerState(id = third, leaderId = LeaderId("kim")))
-    }
+    private fun attackOnHomeTurf(): GameState =
+        TestGame()
+            .withPlayer(PlayerState(id = third, leaderId = LeaderId("kim")))
+            .withFollowers(TestGame.HUMAN, 1)
+            .withPolicy(TestGame.BOT, CardId("c06_home_turf"))
+            .withXitter(TestGame.BOT)
+            .withDice(DiceFace.TWEET, DiceFace.ONE, DiceFace.TWO, DiceFace.TWO, DiceFace.THREE, DiceFace.THREE)
+            .build()
 
     @Test
     fun `logging off onto Home Turf suspends the attacker and ends their turn`() {

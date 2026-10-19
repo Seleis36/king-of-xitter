@@ -14,7 +14,8 @@ import com.kingofxitter.engine.model.TurnPhase
  * Fluent builder for [GameState] snapshots used in unit tests and Compose previews.
  *
  * Defaults to a two-player match (human vs. one bot) in [TurnPhase.ROLLING]
- * with a seeded random state, so tests only need to override what matters.
+ * with a seeded random state, so tests only need to override what matters. [withPlayer] seats
+ * more leaders.
  *
  * ```kotlin
  * val state = TestGame()
@@ -74,6 +75,17 @@ class TestGame {
 
     /** Overrides the bot player's full state. */
     fun withBot(state: PlayerState): TestGame = apply { bot = state.copy(id = BOT) }
+
+    /**
+     * Adds a player after the human and the bot, or replaces the one with the same id. The other
+     * builders (`withPolicy`, `withFollowers`, …) then work for it too, so a test can seat three or
+     * four leaders, which some rules need (a suspension that doesn't end the match, say).
+     */
+    fun withPlayer(state: PlayerState): TestGame =
+        apply {
+            require(state.id != HUMAN && state.id != BOT) { "Use withHuman or withBot for ${state.id}" }
+            extraPlayers = extraPlayers.filterNot { it.id == state.id } + state
+        }
 
     /** Adds [policy] to the target player's policy list. */
     fun withPolicy(
