@@ -42,18 +42,35 @@ data class VoiceEntry(
  *
  * [LIMIT] caps the log: a long match can run thousands of turns, and the timeline only ever
  * shows the recent end of it.
+ *
+ * The human's attack tweet is the zinger they picked on the compose screen, not a generated line:
+ * [draft] holds it until the attack lands.
  */
 class VoiceLog(
     private val write: (TweetEvent, LeaderId, HookRandom) -> String,
 ) {
     private val mutableEntries = MutableStateFlow<List<VoiceEntry>>(emptyList())
     private var sequence = 0L
+    private var draft: Draft? = null
 
     /** Every tweet so far, oldest first. */
     val entries: StateFlow<List<VoiceEntry>> = mutableEntries.asStateFlow()
 
     /** The newest line by [playerId], or null when that leader hasn't posted yet. */
     fun latest(playerId: PlayerId?): VoiceEntry? = playerId?.let { id -> mutableEntries.value.lastOrNull { it.playerId == id } }
+
+    /**
+     * [playerId] picked [text] to tweet on turn [turnNumber]: their next attack line that turn
+     * is exactly that. A tweet that lands on several leaders is still one tweet, so any further
+     * attack lines from them that turn are left out; the victims still answer.
+     */
+    fun draft(
+        playerId: PlayerId,
+        text: String,
+        turnNumber: Int,
+    ) {
+        draft = Draft(playerId, text, turnNumber)
+    }
 
     /** Records whatever [event] makes the leaders say, against the state it produced. */
     fun record(
@@ -83,7 +100,16 @@ class VoiceLog(
     ): VoiceEntry? {
         // The seed mixes the position and a counter, so two lines in the same batch still differ.
         val random = SplitMix64(state.randomState + state.turnNumber * TURN_MIX + sequence++)
-        val text = write(event, leaderId, random)
+        val drafted = draft?.takeIf { it.turnNumber == state.turnNumber }
+        if (drafted == null) draft = null
+        val text =
+            if (event.moment == TweetMoment.ATTACKED && drafted?.playerId == playerId) {
+                if (drafted.posted) return null
+                drafted.posted = true
+                drafted.text
+            } else {
+                write(event, leaderId, random)
+            }
         if (text.isEmpty()) return null
         return VoiceEntry(
             playerId = playerId,
@@ -96,6 +122,13 @@ class VoiceLog(
             cardId = cardId,
         )
     }
+
+    private class Draft(
+        val playerId: PlayerId,
+        val text: String,
+        val turnNumber: Int,
+        var posted: Boolean = false,
+    )
 
     private companion object {
         const val LIMIT = 200
