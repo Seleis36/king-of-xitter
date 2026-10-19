@@ -51,8 +51,9 @@ object PassivePolicies {
             object : CardEffect {
                 override val cardId = CardId("c06_home_turf")
 
+                // Burrowing adds to a tweet from Xitter; it is not a hit on its own.
                 override fun modifyOutgoingDamage(context: CardHookContext) =
-                    if (context.state.xitterPlayerId == context.ownerId) {
+                    if (context.state.xitterPlayerId == context.ownerId && context.damage > 0) {
                         DamageAdjustment(bonusDamage = 1)
                     } else {
                         DamageAdjustment()
@@ -311,8 +312,9 @@ object PassivePolicies {
                         emptyList()
                     }
 
+                // Urbavore adds to a tweet from Xitter; it is not a hit on its own.
                 override fun modifyOutgoingDamage(context: CardHookContext): DamageAdjustment =
-                    if (context.state.xitterPlayerId == context.ownerId) {
+                    if (context.state.xitterPlayerId == context.ownerId && context.damage > 0) {
                         DamageAdjustment(bonusDamage = 1)
                     } else {
                         DamageAdjustment()
