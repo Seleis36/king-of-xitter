@@ -36,14 +36,17 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             XitterTheme {
+                // One instance for the whole app: the navigation graph's Settings screen writes
+                // to it, and the motion below must read from the same one to follow the change.
+                val preferences = rememberGamePreferences()
                 // V5's animation settings, narrowed by the system's "Remove animations".
-                val settings by rememberGamePreferences().settings.collectAsState()
+                val settings by preferences.settings.collectAsState()
                 val system = rememberSystemMotion()
                 CompositionLocalProvider(LocalMotion provides settings.motion(system.enabled)) {
                     // On a tablet the phone-shaped screens sit in a centred column instead of
                     // stretching their dice and buttons across the whole width.
                     Box(Modifier.fillMaxSize().nightBackground(), contentAlignment = Alignment.TopCenter) {
-                        XitterNavHost(Modifier.widthIn(max = MAX_CONTENT_WIDTH))
+                        XitterNavHost(preferences, Modifier.widthIn(max = MAX_CONTENT_WIDTH))
                     }
                 }
             }

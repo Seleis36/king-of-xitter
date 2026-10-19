@@ -35,13 +35,13 @@ import com.kingofxitter.app.ui.endgame.EndTweets
 import com.kingofxitter.app.ui.endgame.StandingsScreen
 import com.kingofxitter.app.ui.endgame.VictoryScreen
 import com.kingofxitter.app.ui.front.ContinueOffer
+import com.kingofxitter.app.ui.front.GamePreferences
 import com.kingofxitter.app.ui.front.HowToPlayScreen
 import com.kingofxitter.app.ui.front.PickLeaderScreen
 import com.kingofxitter.app.ui.front.SettingsScreen
 import com.kingofxitter.app.ui.front.TitleScreen
 import com.kingofxitter.app.ui.front.VersusLineUp
 import com.kingofxitter.app.ui.front.VersusScreen
-import com.kingofxitter.app.ui.front.rememberGamePreferences
 import com.kingofxitter.app.ui.shop.ShopScreen
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.app.ui.timeline.TimelineScreen
@@ -81,6 +81,7 @@ internal val placeholderLinks: Map<XitterRoute, List<XitterRoute>> =
  */
 @Composable
 fun XitterNavHost(
+    preferences: GamePreferences,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     host: MatchHost = viewModel(factory = MatchHost.Factory),
@@ -102,7 +103,6 @@ fun XitterNavHost(
         }
     }
     val context = LocalContext.current
-    val preferences = rememberGamePreferences()
     val settings by preferences.settings.collectAsState()
     val options =
         MatchOptions(

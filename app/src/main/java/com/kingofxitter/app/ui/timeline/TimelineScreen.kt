@@ -90,7 +90,7 @@ fun TimelineScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 12.dp),
             ) {
-                items(shown, key = { "${it.playerId.value}-${it.moment}-${it.turnNumber}-${it.text.hashCode()}" }) { entry ->
+                items(shown, key = { it.id }) { entry ->
                     TimelineTweet(state, entry)
                 }
             }
