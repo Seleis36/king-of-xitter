@@ -94,6 +94,13 @@ private const val TUMBLE_MILLIS = 700
 /** Size of the "KEPT" label under a kept die. */
 private val KEPT_LABEL = 10.dp
 
+/** How a die picked for a power-up is labelled: shown under it, and spoken as its state. */
+data class DiePick(
+    val label: String,
+    val pickedState: String,
+    val unpickedState: String,
+)
+
 /** Recommended touch target for a tappable die. */
 val MIN_TOUCH_TARGET = 48.dp
 
@@ -102,7 +109,8 @@ val MIN_TOUCH_TARGET = 48.dp
  * changes after the first composition, the die tumbles once (pass the roll number for dice that
  * were rerolled).
  * With [onToggleKept], the die is a toggle for keeping it, at least [touchTarget] square (pass less
- * only when dice would otherwise overlap).
+ * only when dice would otherwise overlap). [pick] relabels the toggle when it picks the die for a
+ * power-up instead of keeping it: its text is shown under the die and spoken as its state.
  */
 @Composable
 fun Die(
@@ -113,6 +121,7 @@ fun Die(
     tumbleKey: Any? = null,
     onToggleKept: ((Boolean) -> Unit)? = null,
     touchTarget: Dp = MIN_TOUCH_TARGET,
+    pick: DiePick? = null,
 ) {
     val lift by animateDpAsState(if (kept) (-12).dp else 0.dp, tween(180), label = "lift")
     val tilt by animateFloatAsState(if (kept) -7f else 0f, tween(180), label = "tilt")
@@ -131,7 +140,11 @@ fun Die(
     }
     val faceName = stringResource(face.label())
     val description = stringResource(R.string.die_description, faceName)
-    val keptState = stringResource(if (kept) R.string.die_kept_state else R.string.die_rerolled_state)
+    val keptState =
+        when {
+            pick != null -> if (kept) pick.pickedState else pick.unpickedState
+            else -> stringResource(if (kept) R.string.die_kept_state else R.string.die_rerolled_state)
+        }
     val numberStyle = XType.DisplayLarge.copy(fontSize = with(LocalDensity.current) { size.number.dp.toSp() })
     Box(
         modifier =
@@ -187,7 +200,7 @@ fun Die(
             // Sized with the die rather than the font scale, so labels of neighbouring dice don't
             // run together; the kept state is also spoken and shown by the die itself.
             Text(
-                stringResource(R.string.die_kept),
+                pick?.label ?: stringResource(R.string.die_kept),
                 style = XType.Label.copy(fontSize = with(LocalDensity.current) { KEPT_LABEL.toSp() }),
                 color = XColors.Mandates,
                 modifier =
