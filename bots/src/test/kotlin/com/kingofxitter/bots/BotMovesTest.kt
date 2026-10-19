@@ -13,8 +13,8 @@ class BotMovesTest {
     private val market =
         CardMarket { id ->
             when (id.value) {
-                "quote-tweet" -> CardAppraisal(cost = 40, isPolicy = true)
-                "home-turf" -> CardAppraisal(cost = 50, isPolicy = true)
+                "c15_quote_tweet" -> CardAppraisal(cost = 40, isPolicy = true)
+                "c06_home_turf" -> CardAppraisal(cost = 50, isPolicy = true)
                 else -> null
             }
         }
@@ -64,7 +64,7 @@ class BotMovesTest {
         // Quote Tweet costs 40 and Home Turf 50, so only the sweep and EndTurn are affordable.
         assertEquals(listOf(Action.SweepShop(you.id), Action.EndTurn(you.id)), actions)
         val rich = state.copy(players = state.players.map { if (it.id == you.id) it.copy(characters = 60) else it })
-        assertTrue(Action.BuyPowerUp(you.id, CardId("quote-tweet")) in BotMoves.legalActions(rich, market = market))
+        assertTrue(Action.BuyPowerUp(you.id, CardId("c15_quote_tweet")) in BotMoves.legalActions(rich, market = market))
     }
 
     @Test

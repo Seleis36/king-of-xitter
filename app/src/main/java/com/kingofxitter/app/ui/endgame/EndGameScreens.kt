@@ -641,3 +641,23 @@ private fun EmptyPreview() =
 @Preview(name = "Final standings", widthDp = 412, heightDp = 915)
 @Composable
 private fun FinalStandingsPreview() = XitterTheme { StandingsScreen(GameFixtures.standings, {}, Modifier.nightBackground()) }
+
+@Preview(name = "Design: victory.html", widthDp = 412, heightDp = 915)
+@Composable
+private fun VictoryDesignPreview() = XitterTheme { VictoryScreen(GameFixtures.Design.victory, {}, {}, {}, Modifier.nightBackground()) }
+
+@Preview(name = "Design: defeat-account-suspended.html", widthDp = 412, heightDp = 915)
+@Composable
+private fun DefeatDesignPreview() =
+    XitterTheme {
+        val state = GameFixtures.Design.defeat
+        DefeatScreen(state, state.players.first().id, {}, {}, Modifier.nightBackground())
+    }
+
+@Preview(name = "Design: standings.html", widthDp = 412, heightDp = 915)
+@Composable
+private fun StandingsDesignPreview() =
+    XitterTheme {
+        val state = GameFixtures.Design.standings
+        StandingsScreen(state, {}, Modifier.nightBackground(), state.players.first().id)
+    }

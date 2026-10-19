@@ -11,7 +11,7 @@ import com.kingofxitter.engine.model.GameState
 /** Compose-screen states for previews and the debug design gallery. */
 internal object ComposeSamples {
     /** `compose-your-attack-tweet.html`: three tweets at Trumpet, the Main Character. */
-    val design = BoardSamples.design
+    val design = GameFixtures.Design.compose
 
     /** You hold Xitter, so your tweet hits everyone. */
     val asMainCharacter = GameFixtures.yourRoll
