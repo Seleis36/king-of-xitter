@@ -47,6 +47,9 @@
     <string name="title_main_character">Main character</string>
     <string name="title_play_solo">PLAY SOLO</string>
     <string name="title_play_solo_subtitle">You vs 3 bots · first to 20 mandates</string>
+    <string name="title_play_solo_new_subtitle">Start a new match · this one is abandoned</string>
+    <string name="title_continue">CONTINUE</string>
+    <string name="title_continue_subtitle">Turn %1$d · as %2$s</string>
     <string name="title_rules">RULES</string>
     <string name="title_settings">SETTINGS</string>
     <string name="title_trending">Trending:</string>

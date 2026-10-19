@@ -23,20 +23,31 @@ import com.kingofxitter.engine.MatchSetup
 import com.kingofxitter.engine.RollOffRound
 import com.kingofxitter.engine.model.CardEffectRegistry
 import com.kingofxitter.engine.model.GameEvent
+import com.kingofxitter.engine.model.GameState
 import com.kingofxitter.engine.model.LeaderId
 import com.kingofxitter.engine.model.PlayerId
 import com.kingofxitter.engine.model.PlayerResource
 import com.kingofxitter.engine.model.PlayerState
 import com.kingofxitter.engine.model.ResourceChangeReason
+import com.kingofxitter.engine.model.TurnPhase
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.random.Random
 
@@ -72,6 +83,19 @@ data class MatchIntro(
     /** The number on the Versus screen's ticket, from the match's own seed. */
     val matchNumber: Int,
 )
+
+/** An unfinished match the title screen can offer to continue: whose turn number, and your leader. */
+data class ResumableMatch(
+    val turnNumber: Int,
+    val leader: LeaderId,
+)
+
+/** What CONTINUE would bring back for [humanPlayerId], or null once the match is over. */
+internal fun GameState.resumableFor(humanPlayerId: PlayerId?): ResumableMatch? {
+    if (result != null || phase == TurnPhase.FINISHED) return null
+    val you = players.firstOrNull { it.id == humanPlayerId } ?: return null
+    return ResumableMatch(turnNumber, you.leaderId)
+}
 
 /** A started match, plus the intro when it is a fresh one. */
 data class StartedMatch(
@@ -143,11 +167,14 @@ class MatchHost(
             },
         )
     },
+    /** Where the save is read for [resumable]; tests pass their own dispatcher. */
+    private val io: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
     private val store = ViewModelStore()
     private val mutableSession = MutableStateFlow<MatchSession?>(null)
     private val mutableLastHit = MutableStateFlow<Pair<PlayerId, Int>?>(null)
     private val mutableIntro = MutableStateFlow<MatchIntro?>(null)
+    private val savedOnDisk = MutableStateFlow<ResumableMatch?>(null)
     private var starting: Job? = null
     private var hitWatcher: Job? = null
 
@@ -162,6 +189,33 @@ class MatchHost(
 
     /** The roll-off of the current match, or null when it was resumed from a save. */
     val intro: StateFlow<MatchIntro?> = mutableIntro.asStateFlow()
+
+    /**
+     * The unfinished match CONTINUE returns to: the live one, or before any has started, the one
+     * saved on disk (read once, when the host is created). Null when there is nothing to continue,
+     * including a save that can't be read; starting a new match replaces that one.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val resumable: StateFlow<ResumableMatch?> =
+        mutableSession
+            .flatMapLatest { session ->
+                when (session) {
+                    is MatchSession.Ready -> session.game.state.map { it.resumableFor(session.game.humanPlayerId) }
+                    null -> savedOnDisk
+                    else -> flowOf(null)
+                }
+            }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    init {
+        viewModelScope.launch {
+            savedOnDisk.value =
+                withContext(io) {
+                    runCatching { MatchSaveFile(saveFile.toPath()).loadMatch() }
+                        .getOrNull()
+                        ?.let { saved -> saved.state.resumableFor(saved.humanPlayerId) }
+                }
+        }
+    }
 
     /** Continues the saved match, or starts a new one when there is no save. */
     fun resumeOrStart(options: MatchOptions = MatchOptions()) {
