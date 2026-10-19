@@ -38,6 +38,9 @@ class EndGamePreviewActivity : ComponentActivity() {
                 "scoredefeat" -> GameFixtures.scoreDefeat
                 "ties" -> GameFixtures.liveStandings.copy(players = GameFixtures.liveStandings.players.map { it.copy(mandates = 8) })
                 "empty" -> GameFixtures.liveStandings.copy(players = emptyList())
+                "design-victory" -> GameFixtures.Design.victory
+                "design-defeat" -> GameFixtures.Design.defeat
+                "design-standings" -> GameFixtures.Design.standings
                 else -> GameFixtures.victory
             }
         val you = state.players.firstOrNull()?.id
@@ -45,7 +48,7 @@ class EndGamePreviewActivity : ComponentActivity() {
             XitterTheme {
                 val modifier = Modifier.fillMaxSize().nightBackground().safeDrawingPadding()
                 when (fixture) {
-                    "defeat", "nowinner", "scoredefeat" ->
+                    "defeat", "nowinner", "scoredefeat", "design-defeat" ->
                         DefeatScreen(
                             state,
                             state.players.first().id,
@@ -53,15 +56,13 @@ class EndGamePreviewActivity : ComponentActivity() {
                             ::finish,
                             modifier,
                             finalTweet =
-                                if (fixture ==
-                                    "defeat"
-                                ) {
+                                if (fixture == "defeat" || fixture == "design-defeat") {
                                     fixtureTweet(state, getString(R.string.endgame_fixture_last_tweet))
                                 } else {
                                     null
                                 },
                         )
-                    "standings", "finalstandings", "ties", "empty" -> StandingsScreen(state, ::finish, modifier, you)
+                    "standings", "finalstandings", "ties", "empty", "design-standings" -> StandingsScreen(state, ::finish, modifier, you)
                     else ->
                         VictoryScreen(
                             state,

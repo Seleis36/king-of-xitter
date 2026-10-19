@@ -13,13 +13,10 @@ import com.kingofxitter.engine.model.DecisionKind
 import com.kingofxitter.engine.model.DecisionOption
 import com.kingofxitter.engine.model.DecisionOptionId
 import com.kingofxitter.engine.model.DiceFace
-import com.kingofxitter.engine.model.Die
 import com.kingofxitter.engine.model.DieId
 import com.kingofxitter.engine.model.GameState
-import com.kingofxitter.engine.model.LeaderId
 import com.kingofxitter.engine.model.PendingDecision
 import com.kingofxitter.engine.model.PlayerId
-import com.kingofxitter.engine.model.PlayerState
 import com.kingofxitter.engine.model.TurnPhase
 
 /** Board states for previews and the debug design gallery. */
@@ -27,35 +24,7 @@ internal object BoardSamples {
     val you = PlayerId("you")
 
     /** The exact situation drawn in `game-board-your-roll.html`. */
-    val design =
-        GameState(
-            players =
-                listOf(
-                    PlayerState(
-                        you,
-                        LeaderId("macaron"),
-                        followers = 7,
-                        characters = 60,
-                        mandates = 8,
-                        extraRerolls = 1,
-                        policyIds = listOf(CardId("speechwriter"), CardId("press-office")),
-                    ),
-                    PlayerState(PlayerId("trumpet"), LeaderId("trumpet"), followers = 5, characters = 30, mandates = 13),
-                    PlayerState(PlayerId("poutine"), LeaderId("poutine"), followers = 9, characters = 120, mandates = 4),
-                    PlayerState(PlayerId("kim"), LeaderId("kim"), followers = 3, characters = 20, mandates = 16),
-                ),
-            currentPlayerId = you,
-            phase = TurnPhase.ROLLING,
-            turnNumber = 7,
-            xitterPlayerId = PlayerId("trumpet"),
-            dice =
-                listOf(DiceFace.TWEET, DiceFace.TWEET, DiceFace.THREE, DiceFace.THREE, DiceFace.TWEET, DiceFace.CHARACTERS)
-                    .mapIndexed { index, face -> Die(DieId(index), face, isKept = index < 4) },
-            rollNumber = 2,
-            turnRollLimit = 4,
-            shopCardIds = listOf(CardId("quote-tweet"), CardId("home-turf"), CardId("press-office")),
-            randomState = 7L,
-        )
+    val design = GameFixtures.Design.board
 
     /** Start of your turn with an empty Xitter. */
     val turnStart =
