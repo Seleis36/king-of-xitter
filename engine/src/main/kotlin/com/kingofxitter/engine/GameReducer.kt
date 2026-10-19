@@ -1347,6 +1347,12 @@ class DefaultGameReducer(
         if (finished.first.pendingDecisions.isNotEmpty() || finished.first.result != null) {
             return GameTransition(awaitDecisions(finished.first), events)
         }
+        // A decision can suspend the player whose turn it is (logging off onto Home Turf, for
+        // one). Nobody could act for them, so their turn ends here as it does after a roll.
+        if (finished.first.players.any { it.id == state.currentPlayerId && it.isSuspended }) {
+            val completed = completeEndTurn(finished.first.copy(phaseAfterDecisions = null), state.currentPlayerId)
+            return GameTransition(completed.state, events + completed.events)
+        }
         if (finished.first.phase != resumePhase) return GameTransition(finished.first, events)
         val continuation = if (resumePhase == TurnPhase.DECISION) state.phaseAfterDecisions ?: TurnPhase.END_TURN else resumePhase
         val resumed = finished.first.copy(phase = continuation, phaseAfterDecisions = null)
