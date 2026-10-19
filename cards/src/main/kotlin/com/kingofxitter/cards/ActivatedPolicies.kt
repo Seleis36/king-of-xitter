@@ -15,6 +15,21 @@ import com.kingofxitter.engine.model.DiceFace
 import com.kingofxitter.engine.model.PlayerResource
 
 object ActivatedPolicies {
+    private val goingViral = CardId("c29_going_viral")
+
+    /**
+     * Whether the current roll's tweets could reach the owner: someone else is rolling, a tweet
+     * is showing, and the owner is in the line of fire (one of them holds Xitter, or the roller's
+     * tweets hit everyone).
+     */
+    private fun couldBeHit(context: CardHookContext): Boolean {
+        val state = context.state
+        val roller = state.players.firstOrNull { it.id == state.currentPlayerId } ?: return false
+        if (roller.id == context.ownerId || state.dice.none { it.face == DiceFace.TWEET }) return false
+        val xitter = state.xitterPlayerId
+        return xitter == roller.id || xitter == context.ownerId || goingViral in roller.policyIds || goingViral == roller.copiedPolicyId
+    }
+
     val effects: List<CardEffect> =
         listOf(
             // c05_lurker
@@ -58,16 +73,20 @@ object ActivatedPolicies {
 
                 override fun activatedAbilities(context: CardHookContext): List<AbilityOffer> {
                     if (context.window != CardHookWindow.AFTER_DICE_ROLL && context.window != CardHookWindow.ON_RESOLVE) return emptyList()
+                    // Herd Culler changes one of your own dice, so it only comes up on your turn.
+                    if (context.ownerId != context.state.currentPlayerId) return emptyList()
 
                     val owner = context.state.players.first { it.id == context.ownerId }
                     if (owner.counters[CounterId("poll_rigger_${context.state.turnNumber}")] == 1) return emptyList()
+                    val changeable = context.state.dice.filter { it.face != DiceFace.ONE }
+                    if (changeable.isEmpty()) return emptyList()
 
                     return listOf(
                         AbilityOffer(
                             abilityId = "use_poll_rigger",
                             promptKey = "card_c22_prompt",
                             options =
-                                context.state.dice.map { die ->
+                                changeable.map { die ->
                                     DecisionOption(
                                         id = DecisionOptionId(die.id.value.toString()),
                                         action = Action.ActivateAbility(context.ownerId, cardId, "use_poll_rigger", dieIds = setOf(die.id)),
@@ -95,6 +114,8 @@ object ActivatedPolicies {
 
                 override fun activatedAbilities(context: CardHookContext): List<AbilityOffer> {
                     if (context.window != CardHookWindow.AFTER_DICE_ROLL && context.window != CardHookWindow.ON_RESOLVE) return emptyList()
+                    // Plot Twist changes one of your own dice, so it only comes up on your turn.
+                    if (context.ownerId != context.state.currentPlayerId) return emptyList()
 
                     return listOf(
                         AbilityOffer(
@@ -102,7 +123,7 @@ object ActivatedPolicies {
                             promptKey = "card_c33_prompt",
                             options =
                                 context.state.dice.flatMap { die ->
-                                    DiceFace.entries.map { face ->
+                                    DiceFace.entries.filter { it != die.face }.map { face ->
                                         DecisionOption(
                                             id = DecisionOptionId("${die.id.value}_${face.name}"),
                                             action =
@@ -185,6 +206,8 @@ object ActivatedPolicies {
 
                     val owner = context.state.players.first { it.id == context.ownerId }
                     if (owner.characters < 20) return emptyList()
+                    // Usable at any time, but only worth asking about when a follower is missing.
+                    if (owner.followers >= owner.maxFollowers) return emptyList()
 
                     return listOf(
                         AbilityOffer(
@@ -218,6 +241,8 @@ object ActivatedPolicies {
                 override fun activatedAbilities(context: CardHookContext): List<AbilityOffer> {
                     if (context.window != CardHookWindow.AFTER_DICE_ROLL && context.window != CardHookWindow.ON_RESOLVE) return emptyList()
 
+                    // Stretchy changes one of your own dice before they resolve: your turn only.
+                    if (context.ownerId != context.state.currentPlayerId) return emptyList()
                     val owner = context.state.players.first { it.id == context.ownerId }
                     if (owner.characters < 20) return emptyList()
 
@@ -227,7 +252,7 @@ object ActivatedPolicies {
                             promptKey = "card_c44_prompt",
                             options =
                                 context.state.dice.flatMap { die ->
-                                    DiceFace.entries.map { face ->
+                                    DiceFace.entries.filter { it != die.face }.map { face ->
                                         DecisionOption(
                                             id = DecisionOptionId("${die.id.value}_${face.name}"),
                                             action =
@@ -303,6 +328,8 @@ object ActivatedPolicies {
                     val owner = context.state.players.first { it.id == context.ownerId }
                     if (owner.characters < 20) return emptyList()
                     if (owner.counters[CounterId("touch_grass_${context.state.turnNumber}")] == 1) return emptyList()
+                    // Wings negates hits, so it is only offered on a roll whose tweets could reach you.
+                    if (!couldBeHit(context)) return emptyList()
 
                     return listOf(
                         AbilityOffer(

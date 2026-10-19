@@ -216,4 +216,26 @@ class CountersAndTurnsTest {
         assertEquals(0, spent.player(TestGame.HUMAN).extraRerolls)
         assertNotNull(spent)
     }
+
+    @Test
+    fun `Smoke and Mirrors is not offered on another leader's roll`() {
+        val base =
+            TestGame()
+                .withCurrentPlayer(TestGame.BOT)
+                .withPhase(TurnPhase.ROLLING)
+                .withRollNumber(0)
+                .withPolicy(TestGame.HUMAN, CardId("c41_smoke_and_mirrors"))
+                .build()
+        val state =
+            base.copy(
+                players =
+                    base.players.map {
+                        if (it.id == TestGame.HUMAN) it.copy(counters = mapOf(CounterId("smoke_cloud") to 3)) else it
+                    },
+            )
+
+        val rolled = reducer.reduce(state, Action.RollDice(TestGame.BOT, emptySet())).state
+
+        assertTrue(rolled.pendingDecisions.isEmpty())
+    }
 }
