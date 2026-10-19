@@ -33,6 +33,7 @@ import com.kingofxitter.app.ui.components.leaderVisual
 import com.kingofxitter.app.ui.endgame.DefeatScreen
 import com.kingofxitter.app.ui.endgame.StandingsScreen
 import com.kingofxitter.app.ui.endgame.VictoryScreen
+import com.kingofxitter.app.ui.front.ContinueOffer
 import com.kingofxitter.app.ui.front.HowToPlayScreen
 import com.kingofxitter.app.ui.front.PickLeaderScreen
 import com.kingofxitter.app.ui.front.SettingsScreen
@@ -91,6 +92,14 @@ fun XitterNavHost(
             launchSingleTop = true
         }
     }
+    // Entering a match clears the way there (pick a leader, versus), so Back from the board
+    // returns to the title, where CONTINUE picks the match up again.
+    val enterMatch: () -> Unit = {
+        navController.navigate(XitterRoute.Board) {
+            popUpTo(XitterRoute.Title)
+            launchSingleTop = true
+        }
+    }
     val context = LocalContext.current
     val preferences = rememberGamePreferences()
     val settings by preferences.settings.collectAsState()
@@ -102,6 +111,7 @@ fun XitterNavHost(
             characterCap = settings.characterCapValue,
         )
     val session by host.session.collectAsState()
+    val resumable by host.resumable.collectAsState()
     val game = (session as? MatchSession.Ready)?.game
     // Effects and sounds follow the live match, above navigation so no screen misses them.
     val effects = game?.let { rememberEffectQueue(it) }
@@ -117,6 +127,8 @@ fun XitterNavHost(
                 onRules = { navigate(XitterRoute.HowToPlay) },
                 onSettings = { navigate(XitterRoute.Settings) },
                 modifier = screen,
+                resumable = resumable?.let { ContinueOffer(it.turnNumber, it.leader) },
+                onContinue = enterMatch,
             )
         }
         composable<XitterRoute.PickLeader> {
@@ -138,11 +150,11 @@ fun XitterNavHost(
             val lineUp = intro
             // A resumed save has no roll-off to show, so the intro is skipped entirely.
             if (lineUp == null) {
-                LaunchedEffect(Unit) { navigate(XitterRoute.Board) }
+                LaunchedEffect(Unit) { enterMatch() }
             } else {
                 VersusScreen(
                     VersusLineUp(lineUp.humanPlayerId, lineUp.firstPlayerId, lineUp.players, lineUp.rollOff, lineUp.matchNumber),
-                    onBegin = { navigate(XitterRoute.Board) },
+                    onBegin = enterMatch,
                     modifier = screen,
                 )
             }
@@ -217,7 +229,7 @@ fun XitterNavHost(
                 val state by live.state.collectAsState()
                 VictoryScreen(
                     state,
-                    onPlayAgain = { playAgain(host, options, navigate) },
+                    onPlayAgain = { playAgain(host, options, enterMatch) },
                     onShare = { shareWin(context, state) },
                     onMainMenu = { navigate(XitterRoute.Title) },
                 )
@@ -229,7 +241,7 @@ fun XitterNavHost(
                 DefeatScreen(
                     state,
                     live.humanPlayerId,
-                    onPlayAgain = { playAgain(host, options, navigate) },
+                    onPlayAgain = { playAgain(host, options, enterMatch) },
                     onMainMenu = { navigate(XitterRoute.Title) },
                 )
             }
@@ -252,10 +264,10 @@ private fun resultRoute(
 private fun playAgain(
     host: MatchHost,
     options: MatchOptions,
-    navigate: (XitterRoute) -> Unit,
+    enterMatch: () -> Unit,
 ) {
     host.startNew(options)
-    navigate(XitterRoute.Board)
+    enterMatch()
 }
 
 private fun shareWin(

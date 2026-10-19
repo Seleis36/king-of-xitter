@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kingofxitter.app.game.GameViewModel
 import com.kingofxitter.content.LeaderRoster
+import com.kingofxitter.engine.GameFixtures
 import com.kingofxitter.engine.MatchSaveFile
 import com.kingofxitter.engine.MatchSetup
 import com.kingofxitter.engine.model.LeaderId
@@ -29,6 +30,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
+import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
@@ -163,6 +165,45 @@ class MatchHostTest {
             assertNotNull(MatchSaveFile(saveFile.toPath()).loadMatch())
         }
 
+    @Test
+    fun `the title can continue a saved match before any match has started`() =
+        matchTest {
+            val first = host()
+            first.resumeOrStart()
+            first.awaitGame()
+            stores.removeFirst().clear()
+            val saved = assertNotNull(MatchSaveFile(saveFile.toPath()).loadMatch())
+
+            val second = host()
+            val offer = second.resumable.first { it != null }
+
+            assertEquals(ResumableMatch(saved.state.turnNumber, DefaultLeader), offer)
+        }
+
+    @Test
+    fun `a live match can be continued until it is over`() =
+        matchTest {
+            val host = host()
+            host.startNew(MatchOptions(leader = LeaderId("kim")))
+            val game = host.awaitGame()
+
+            assertEquals(LeaderId("kim"), host.resumable.first { it != null }?.leader)
+            assertNull(GameFixtures.victory.resumableFor(game.humanPlayerId))
+        }
+
+    @Test
+    fun `there is nothing to continue without a save or with a corrupt one`() =
+        matchTest {
+            val none = host()
+            runCurrent()
+            assertNull(none.resumable.value)
+
+            saveFile.writeText("{not a match")
+            val corrupt = host()
+            runCurrent()
+            assertNull(corrupt.resumable.value)
+        }
+
     /**
      * Runs [block], then stops every match before the test ends, so no bot moves or saves are left
      * running into the next test.
@@ -178,7 +219,10 @@ class MatchHostTest {
 
     private fun host(gameFactory: suspend (MatchOptions) -> StartedMatch = { options -> startedMatch(options) }): MatchHost {
         val store = ViewModelStore().also(stores::add)
-        return ViewModelProvider(store, viewModelFactory { initializer { MatchHost(saveFile, gameFactory) } })[MatchHost::class.java]
+        // The save is read on the test's own dispatcher, so runCurrent() finishes it.
+        return ViewModelProvider(store, viewModelFactory { initializer { MatchHost(saveFile, gameFactory, Dispatchers.Main) } })[
+            MatchHost::class.java,
+        ]
     }
 
     /** A match on a fixed seed, with the roll-off the Versus screen would show. */

@@ -44,6 +44,7 @@ import com.kingofxitter.app.ui.components.XIcon
 import com.kingofxitter.app.ui.components.XIconImage
 import com.kingofxitter.app.ui.components.XPanel
 import com.kingofxitter.app.ui.components.XTextSticker
+import com.kingofxitter.app.ui.components.leaderVisual
 import com.kingofxitter.app.ui.motion.LocalMotion
 import com.kingofxitter.app.ui.motion.bob
 import com.kingofxitter.app.ui.motion.wobble
@@ -52,7 +53,14 @@ import com.kingofxitter.app.ui.theme.XType
 import com.kingofxitter.app.ui.theme.XitterTheme
 import com.kingofxitter.app.ui.theme.nightBackground
 import com.kingofxitter.content.TrendingTags
+import com.kingofxitter.engine.model.LeaderId
 import kotlin.math.roundToInt
+
+/** A match in progress the title screen offers to continue: the turn it reached and your leader. */
+data class ContinueOffer(
+    val turnNumber: Int,
+    val leader: LeaderId,
+)
 
 /**
  * Title screen (`design/screens/title-screen.html`): sticker bomb, the logo, PLAY SOLO, and the
@@ -65,6 +73,8 @@ fun TitleScreen(
     onSettings: () -> Unit,
     modifier: Modifier = Modifier,
     tags: List<String> = rememberTrendingTags(),
+    resumable: ContinueOffer? = null,
+    onContinue: () -> Unit = {},
 ) {
     Column(modifier.fillMaxSize()) {
         Column(
@@ -84,13 +94,30 @@ fun TitleScreen(
                 textAlign = TextAlign.Center,
             )
             MainCharacterBadge()
+            if (resumable != null) {
+                // The match in progress comes first; PLAY SOLO below starts over.
+                XButton(
+                    stringResource(R.string.title_continue),
+                    onClick = onContinue,
+                    modifier = Modifier.fillMaxWidth().bob(height = 4.dp),
+                    icon = XIcon.Play,
+                    subtitle =
+                        stringResource(
+                            R.string.title_continue_subtitle,
+                            resumable.turnNumber,
+                            stringResource(leaderVisual(resumable.leader).shortName),
+                        ),
+                    minHeight = 74.dp,
+                )
+            }
             XButton(
                 stringResource(R.string.title_play_solo),
                 onClick = onPlay,
-                modifier = Modifier.fillMaxWidth().bob(height = 4.dp),
+                modifier = Modifier.fillMaxWidth().then(if (resumable == null) Modifier.bob(height = 4.dp) else Modifier),
                 style = XButtonStyle.Hot,
                 icon = XIcon.Play,
-                subtitle = stringResource(R.string.title_play_solo_subtitle),
+                subtitle =
+                    stringResource(if (resumable == null) R.string.title_play_solo_subtitle else R.string.title_play_solo_new_subtitle),
                 minHeight = 74.dp,
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
