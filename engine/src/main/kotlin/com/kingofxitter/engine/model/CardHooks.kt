@@ -35,7 +35,12 @@ interface CardEffect {
     /** Effects triggered after the shop and decisions resolve. */
     fun onTurnEnd(context: CardHookContext): List<CardEffectIntent> = emptyList()
 
-    /** Effects triggered when this card owner reaches zero followers. */
+    /**
+     * Effects triggered when any player reaches zero followers. The engine calls this for every
+     * policy holder, not only the eliminated player, with the eliminated player in
+     * [CardHookContext.eliminatedPlayerId]. Compare it with [CardHookContext.ownerId] to act only
+     * on the owner's own elimination.
+     */
     fun onEliminated(context: CardHookContext): List<CardEffectIntent> = emptyList()
 
     /** Optional abilities offered at a rule-defined decision window. */

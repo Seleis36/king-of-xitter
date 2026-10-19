@@ -90,6 +90,8 @@ object ComplexPolicies {
                 override val cardId = CardId("c23_burner_account")
 
                 override fun onEliminated(context: CardHookContext): List<CardEffectIntent> {
+                    // The engine runs this hook for every policy holder when anyone is suspended.
+                    if (context.eliminatedPlayerId != context.ownerId) return emptyList()
                     val owner = context.state.players.firstOrNull { it.id == context.ownerId } ?: return emptyList()
                     return buildList {
                         // Discard all policies
