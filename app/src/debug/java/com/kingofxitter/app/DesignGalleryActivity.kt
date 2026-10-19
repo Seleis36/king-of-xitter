@@ -21,9 +21,11 @@ import com.kingofxitter.app.ui.components.DiceKitSample
 import com.kingofxitter.app.ui.components.IconSetSample
 import com.kingofxitter.app.ui.components.StatsKitSample
 import com.kingofxitter.app.ui.motion.MotionKitSample
+import com.kingofxitter.app.ui.shop.ShopScreen
 import com.kingofxitter.app.ui.theme.ThemeKitSample
 import com.kingofxitter.app.ui.theme.XitterTheme
 import com.kingofxitter.app.ui.theme.nightBackground
+import com.kingofxitter.engine.GameFixtures
 
 private typealias Sample = @Composable (Modifier) -> Unit
 
@@ -64,6 +66,14 @@ class DesignGalleryActivity : ComponentActivity() {
                 put("incoming-fixture") { modifier ->
                     val state = IncomingSamples.fixture
                     IncomingTweetScreen(state, BoardSamples.you, state.pendingDecisions.first(), {}, modifier)
+                }
+                put("shop-design") { modifier ->
+                    val state = GameFixtures.Design.shop
+                    ShopScreen(state, state.currentPlayerId, onAction = {}, onClose = {}, modifier = modifier)
+                }
+                put("shop-browsing") { modifier ->
+                    val state = GameFixtures.Design.board
+                    ShopScreen(state, state.currentPlayerId, onAction = {}, onClose = {}, modifier = modifier)
                 }
                 ComposeSamples.all.forEach { (name, state) ->
                     put("compose-$name") { modifier ->

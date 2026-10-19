@@ -78,4 +78,10 @@ object XColors {
 
     /** Bot panel background while that bot is Main Character. */
     val MainCharacterPanel = Color(0xFF3A2A12)
+
+    /** A shop card you can't afford yet. */
+    val PaperDimmed = Color(0xFFD8CFCF)
+
+    /** The EXECUTIVE ORDER tag on a card. */
+    val OrderTag = Color(0xFFC7401A)
 }

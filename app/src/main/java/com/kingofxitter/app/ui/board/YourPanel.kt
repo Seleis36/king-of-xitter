@@ -25,7 +25,7 @@ import com.kingofxitter.app.ui.components.CertificationBadge
 import com.kingofxitter.app.ui.components.CharactersRing
 import com.kingofxitter.app.ui.components.FollowersBar
 import com.kingofxitter.app.ui.components.MandateProgress
-import com.kingofxitter.app.ui.components.PowerUpCard
+import com.kingofxitter.app.ui.components.PolicyPill
 import com.kingofxitter.app.ui.components.XAvatar
 import com.kingofxitter.app.ui.components.XPanel
 import com.kingofxitter.app.ui.components.XTag
@@ -88,10 +88,10 @@ fun YourPanel(
             if (player.policyIds.isNotEmpty()) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     player.policyIds.forEach { card ->
-                        // An id the catalogue doesn't know still shows, as a tag with its name.
+                        // The design's pills; an id the catalogue doesn't know still shows its name.
                         val definition = CardCatalog.byId[card]
                         if (definition != null) {
-                            PowerUpCard(card = definition, compact = true)
+                            PolicyPill(definition)
                         } else {
                             XTag(policyName(card), textStyle = XType.Tag.copy(fontSize = 10.sp))
                         }
