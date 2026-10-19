@@ -29,7 +29,7 @@ The rules stay exactly the same as King of Tokyo. Only the names change.
 **Turn order:** roll 6 dice, then up to 2 rerolls (3 rolls total), then resolve (numbers → likes → chars → tweets), then enter Xitter if it's empty, then buy power-ups, then end-of-turn effects.
 
 **Xitter rules:**
-- Enter an empty Xitter: +1 mandate.
+- Take control of Xitter: +1 mandate. That is entering it empty, or taking the spot when the Main Character logs off or is suspended by your tweets (King of Tokyo's 1 VP for taking Tokyo).
 - Start your turn on Xitter: +2 mandates.
 - The Main Character's tweets hit everyone else. Everyone else's tweets hit only the Main Character.
 - When hit, the Main Character may log off, and the attacker must take the spot.

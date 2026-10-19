@@ -15,7 +15,7 @@
     <string name="how_to_characters_title">CHARACTERS</string>
     <string name="how_to_characters">+10 chars each. Spend them on power-ups. The 280 cap is a Settings toggle.</string>
     <string name="how_to_main_character_title">BEING THE MAIN CHARACTER</string>
-    <string name="how_to_main_character">Xitter empty? You take it: +1 mandate. Start your turn there: +2 mandates. Tweeted at while on Xitter? You may log off, and the attacker takes your spot.</string>
+    <string name="how_to_main_character">Taking Xitter scores +1 mandate, whether it was empty or you tweeted the Main Character off it. Start your turn there: +2 mandates. Tweeted at while on Xitter? You may log off, and the attacker takes your spot.</string>
     <string name="how_to_win_title">HOW YOU WIN</string>
     <string name="how_to_win">Reach 20 mandates, or be the last account standing. 0 followers means suspended.</string>
     <string name="how_to_check_none">0–5</string>

@@ -598,6 +598,12 @@ class DefaultGameReducer(
                 val newOwner = if (attackerAlive) attackerId else null
                 nextState = nextState.copy(xitterPlayerId = newOwner)
                 events += GameEvent.MainCharacterChanged(mainCharacter, newOwner)
+                // Taking control of Xitter scores its mandate however the spot came free.
+                if (newOwner != null) {
+                    val entry = changeResource(nextState, newOwner, PlayerResource.MANDATES, 1, ResourceChangeReason.XITTER_ENTRY)
+                    nextState = entry.first
+                    events += entry.second
+                }
             } else {
                 val decision =
                     PendingDecision(
@@ -1269,8 +1275,18 @@ class DefaultGameReducer(
             state.players.firstOrNull { it.id == state.currentPlayerId && !it.isSuspended }
                 ?: return reject(state, action.playerId, ActionRejectionReason.INVALID_SELECTION)
         val previousOwner = state.xitterPlayerId
-        var nextState = state.copy(xitterPlayerId = attacker.id)
+        // The attacker takes control of Xitter, which scores its mandate as entering an empty one does.
+        val entry =
+            changeResource(
+                state.copy(xitterPlayerId = attacker.id),
+                attacker.id,
+                PlayerResource.MANDATES,
+                1,
+                ResourceChangeReason.XITTER_ENTRY,
+            )
+        var nextState = entry.first
         val events = mutableListOf<GameEvent>(GameEvent.MainCharacterChanged(previousOwner, attacker.id))
+        events += entry.second
 
         val random = SplitMix64(state.randomState)
         val intents =
