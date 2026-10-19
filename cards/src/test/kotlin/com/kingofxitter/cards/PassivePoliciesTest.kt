@@ -16,7 +16,6 @@ import com.kingofxitter.engine.model.LeaderId
 import com.kingofxitter.engine.model.PlayerId
 import com.kingofxitter.engine.model.PlayerState
 import com.kingofxitter.engine.model.TurnPhase
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -839,13 +838,25 @@ class PassivePoliciesTest {
         assertEquals(9, after.player(TestGame.BOT).followers)
     }
 
-    @Ignore("BUG: Main Character Energy deals 1 unfollow from Xitter even with no tweets; the extra unfollow should only add to a tweet")
     @Test
     fun `Main Character Energy adds nothing when you roll no tweets`() {
         val after =
             resolve(
                 TestGame()
                     .withPolicy(TestGame.HUMAN, CardId("c46_main_character_energy"))
+                    .withXitter(TestGame.HUMAN)
+                    .withDice(ONE, TWO, LIKE, LIKE, CHARACTERS, CHARACTERS),
+            )
+
+        assertEquals(10, after.player(TestGame.BOT).followers)
+    }
+
+    @Test
+    fun `Home Turf adds nothing when you roll no tweets`() {
+        val after =
+            resolve(
+                TestGame()
+                    .withPolicy(TestGame.HUMAN, CardId("c06_home_turf"))
                     .withXitter(TestGame.HUMAN)
                     .withDice(ONE, TWO, LIKE, LIKE, CHARACTERS, CHARACTERS),
             )
