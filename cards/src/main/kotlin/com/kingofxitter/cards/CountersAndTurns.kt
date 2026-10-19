@@ -86,6 +86,8 @@ object CountersAndTurns {
 
                 override fun activatedAbilities(context: CardHookContext): List<AbilityOffer> {
                     if (context.window != CardHookWindow.AFTER_DICE_ROLL) return emptyList()
+                    // An extra reroll only helps the leader who is rolling.
+                    if (context.ownerId != context.state.currentPlayerId) return emptyList()
                     val current =
                         context.state.players
                             .first { it.id == context.ownerId }
