@@ -374,4 +374,37 @@ class ShopReducerTest {
         assertEquals(state, transition.state)
         assertEquals(listOf(GameEvent.ActionRejected(action.playerId, reason)), transition.events)
     }
+
+    @Test
+    fun `Lobbyist takes 10 off the price, held or copied`() {
+        val lobbyist = CardId("c02_lobbyist")
+        val state = TestGame().withPolicy(TestGame.HUMAN, lobbyist).build()
+        val you = state.players.first { it.id == TestGame.HUMAN }
+        val rival = state.players.first { it.id == TestGame.BOT }
+
+        assertEquals(CardCatalog[expensiveCard].cost - 10, ShopLogic.costFor(state, you, CardCatalog[expensiveCard]))
+        assertEquals(10, ShopLogic.costFor(state, you, CardCatalog[cheapCard]))
+        assertEquals(CardCatalog[cheapCard].cost, ShopLogic.costFor(state, rival, CardCatalog[cheapCard]))
+
+        // Copycat Policy copying Lobbyist gets the same discount.
+        val copying = state.copy(players = state.players.map { if (it.id == TestGame.BOT) it.copy(copiedPolicyId = lobbyist) else it })
+        val copier = copying.players.first { it.id == TestGame.BOT }
+        assertEquals(CardCatalog[cheapCard].cost - 10, ShopLogic.costFor(copying, copier, CardCatalog[cheapCard]))
+    }
+
+    @Test
+    fun `a buyer with Lobbyist can buy a card that costs 10 more than they hold`() {
+        val state =
+            TestGame()
+                .withPhase(TurnPhase.SHOP)
+                .withPolicy(TestGame.HUMAN, CardId("c02_lobbyist"))
+                .withCharacters(TestGame.HUMAN, CardCatalog[policyCard].cost - 10)
+                .withShop(listOf(policyCard))
+                .build()
+
+        val bought = reducer.reduce(state, Action.BuyPowerUp(TestGame.HUMAN, policyCard)).state
+
+        assertTrue(policyCard in bought.players.first { it.id == TestGame.HUMAN }.policyIds)
+        assertEquals(0, bought.players.first { it.id == TestGame.HUMAN }.characters)
+    }
 }

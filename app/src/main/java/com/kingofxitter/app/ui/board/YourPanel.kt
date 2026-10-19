@@ -88,7 +88,13 @@ fun YourPanel(
             if (player.policyIds.isNotEmpty()) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     player.policyIds.forEach { card ->
-                        PowerUpCard(card = CardCatalog[card], compact = true)
+                        // An id the catalogue doesn't know still shows, as a tag with its name.
+                        val definition = CardCatalog.byId[card]
+                        if (definition != null) {
+                            PowerUpCard(card = definition, compact = true)
+                        } else {
+                            XTag(policyName(card), textStyle = XType.Tag.copy(fontSize = 10.sp))
+                        }
                     }
                 }
             }

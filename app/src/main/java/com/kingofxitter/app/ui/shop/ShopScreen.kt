@@ -98,16 +98,19 @@ fun ShopScreen(
             }
 
             for (cardId in state.shopCardIds) {
-                val cardDef = CardCatalog[cardId]
+                // A card the catalogue doesn't know (an old save, a test fixture) can't be shown or bought.
+                val cardDef = CardCatalog.byId[cardId] ?: continue
+                // The price you pay, which Lobbyist lowers below the card's printed cost.
+                val price = ShopLogic.costFor(state, player, cardDef)
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     PowerUpCard(card = cardDef, modifier = Modifier.fillMaxWidth())
 
                     if (isShoppingPhase) {
                         XButton(
-                            text = stringResource(R.string.shop_buy, cardDef.cost),
+                            text = stringResource(R.string.shop_buy, price),
                             onClick = { onAction(Action.BuyPowerUp(humanId, cardId)) },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = player.characters >= cardDef.cost,
+                            enabled = player.characters >= price,
                             style = XButtonStyle.Primary,
                         )
                     }
