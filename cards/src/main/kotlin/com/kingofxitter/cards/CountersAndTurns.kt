@@ -36,10 +36,15 @@ object CountersAndTurns {
             object : CardEffect {
                 override val cardId = CardId("c28_super_pac")
 
+                // The engine runs onBuy for every held policy on each purchase; loading is one-time.
                 override fun onBuy(context: CardHookContext): List<CardEffectIntent> =
-                    listOf(
-                        CardEffectIntent.ChangeCounter(context.ownerId, CounterId("super_pac"), 60),
-                    )
+                    if (context.purchasedCardId == cardId) {
+                        listOf(
+                            CardEffectIntent.ChangeCounter(context.ownerId, CounterId("super_pac"), 60),
+                        )
+                    } else {
+                        emptyList()
+                    }
 
                 override fun onTurnStart(context: CardHookContext): List<CardEffectIntent> {
                     val current =
@@ -79,10 +84,15 @@ object CountersAndTurns {
             object : CardEffect {
                 override val cardId = CardId("c41_smoke_and_mirrors")
 
-                override fun onBuy(context: CardHookContext) =
-                    listOf(
-                        CardEffectIntent.ChangeCounter(context.ownerId, CounterId("smoke_cloud"), 3),
-                    )
+                // The engine runs onBuy for every held policy on each purchase; the counters are one-time.
+                override fun onBuy(context: CardHookContext): List<CardEffectIntent> =
+                    if (context.purchasedCardId == cardId) {
+                        listOf(
+                            CardEffectIntent.ChangeCounter(context.ownerId, CounterId("smoke_cloud"), 3),
+                        )
+                    } else {
+                        emptyList()
+                    }
 
                 override fun activatedAbilities(context: CardHookContext): List<AbilityOffer> {
                     if (context.window != CardHookWindow.AFTER_DICE_ROLL) return emptyList()

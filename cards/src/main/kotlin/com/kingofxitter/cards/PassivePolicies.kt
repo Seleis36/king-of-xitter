@@ -112,11 +112,16 @@ object PassivePolicies {
             object : CardEffect {
                 override val cardId = CardId("c12_bot_farm")
 
+                // The engine runs onBuy for every held policy on each purchase; this is one-time.
                 override fun onBuy(context: CardHookContext): List<CardEffectIntent> =
-                    listOf(
-                        CardEffectIntent.ChangeFollowerLimit(context.ownerId, 2),
-                        CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.FOLLOWERS, 2),
-                    )
+                    if (context.purchasedCardId == cardId) {
+                        listOf(
+                            CardEffectIntent.ChangeFollowerLimit(context.ownerId, 2),
+                            CardEffectIntent.ChangeResource(context.ownerId, PlayerResource.FOLLOWERS, 2),
+                        )
+                    } else {
+                        emptyList()
+                    }
             },
             // C13 Extra Head / Second Phone
             object : CardEffect {
