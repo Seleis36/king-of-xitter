@@ -52,4 +52,22 @@ class BoardModeTest {
     fun `a result finishes the board`() {
         assertEquals(BoardMode.Finished, BoardMode.of(GameFixtures.victory, you))
     }
+
+    @Test
+    fun `a suspended human is done even while the bots play on`() {
+        val suspended =
+            GameFixtures.opponentTurn.copy(
+                players =
+                    GameFixtures.opponentTurn.players.map {
+                        if (it.id ==
+                            you
+                        ) {
+                            it.copy(followers = 0)
+                        } else {
+                            it
+                        }
+                    },
+            )
+        assertEquals(BoardMode.Finished, BoardMode.of(suspended, you))
+    }
 }

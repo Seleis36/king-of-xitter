@@ -37,7 +37,7 @@ sealed interface BoardMode {
         val actorId: PlayerId,
     ) : BoardMode
 
-    /** The match is over. */
+    /** The match is over, or your account is suspended while the others play on. */
     data object Finished : BoardMode
 
     companion object {
@@ -50,6 +50,8 @@ sealed interface BoardMode {
             humanId: PlayerId,
         ): BoardMode {
             if (state.result != null || state.phase == TurnPhase.FINISHED) return Finished
+            // Suspended, you have nothing left to do but see how it ended for you.
+            if (state.players.any { it.id == humanId && it.isSuspended }) return Finished
             val decision = state.pendingDecisions.firstOrNull()
             if (decision != null) {
                 return when {

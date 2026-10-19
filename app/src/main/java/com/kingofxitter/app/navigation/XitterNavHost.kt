@@ -31,6 +31,7 @@ import com.kingofxitter.app.ui.board.IncomingTweetRoute
 import com.kingofxitter.app.ui.board.rememberEffectQueue
 import com.kingofxitter.app.ui.components.leaderVisual
 import com.kingofxitter.app.ui.endgame.DefeatScreen
+import com.kingofxitter.app.ui.endgame.EndTweets
 import com.kingofxitter.app.ui.endgame.StandingsScreen
 import com.kingofxitter.app.ui.endgame.VictoryScreen
 import com.kingofxitter.app.ui.front.ContinueOffer
@@ -228,28 +229,49 @@ fun XitterNavHost(
         composable<XitterRoute.Standings> {
             MatchGate(host, options, screen) { live ->
                 val state by live.state.collectAsState()
-                StandingsScreen(state, onBack = { navigate(if (state.result == null) XitterRoute.Board else resultRoute(state, live)) })
+                StandingsScreen(
+                    state,
+                    onBack = { navigate(if (state.result == null) XitterRoute.Board else resultRoute(state, live)) },
+                    modifier = screen,
+                    humanId = live.humanPlayerId,
+                )
             }
         }
         composable<XitterRoute.Victory> {
             MatchGate(host, options, screen) { live ->
                 val state by live.state.collectAsState()
+                val tweets =
+                    voices
+                        ?.entries
+                        ?.collectAsState()
+                        ?.value
+                        .orEmpty()
                 VictoryScreen(
                     state,
                     onPlayAgain = { playAgain(host, options, enterMatch) },
                     onShare = { shareWin(context, state) },
                     onMainMenu = { navigate(XitterRoute.Title) },
+                    modifier = screen,
+                    reaction = EndTweets.reaction(tweets, state),
                 )
             }
         }
         composable<XitterRoute.Defeat> {
             MatchGate(host, options, screen) { live ->
                 val state by live.state.collectAsState()
+                val tweets =
+                    voices
+                        ?.entries
+                        ?.collectAsState()
+                        ?.value
+                        .orEmpty()
                 DefeatScreen(
                     state,
                     live.humanPlayerId,
                     onPlayAgain = { playAgain(host, options, enterMatch) },
                     onMainMenu = { navigate(XitterRoute.Title) },
+                    modifier = screen,
+                    finalTweet = EndTweets.finalTweet(tweets, state, live.humanPlayerId),
                 )
             }
         }

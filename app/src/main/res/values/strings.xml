@@ -212,50 +212,71 @@
     <string name="endgame_victory_subtitle">Gold check. Forever.</string>
     <string name="endgame_defeat_title">ACCOUNT SUSPENDED</string>
     <string name="endgame_defeat_subtitle">Your ratio finally caught up.</string>
-    <string name="endgame_your_account">Your account</string>
-    <string name="endgame_winner">Winner</string>
     <string name="endgame_no_winner">Everyone got suspended. Nobody wins.</string>
-    <string name="endgame_match_stats">MATCH STATS</string>
-    <string name="endgame_tweets_sent">%1$d tweets sent</string>
     <string name="endgame_unfollows_dealt">%1$dM unfollows dealt</string>
-    <string name="endgame_turns_as_main_character">%1$d turns as Main Character</string>
-    <string name="endgame_tweet_count_short">%1$d tweets</string>
-    <string name="endgame_mandates_total">%1$d mandates</string>
-    <string name="endgame_mandates_short">%1$d mandates</string>
-    <string name="endgame_standings_title">STANDINGS</string>
-    <string name="endgame_standings_subtitle">The receipts are permanent.</string>
     <string name="endgame_empty_standings">No standings to show yet.</string>
-    <string name="endgame_rank">#%1$d</string>
     <string name="endgame_suspended">SUSPENDED</string>
     <string name="endgame_winner_badge">WINNER</string>
     <string name="endgame_play_again">PLAY AGAIN</string>
-    <string name="endgame_view_standings">VIEW STANDINGS</string>
     <string name="endgame_back_to_game">BACK TO GAME</string>
     <string name="endgame_survivor_title">LAST ACCOUNT STANDING</string>
     <string name="endgame_score_defeat_title">OUTPOSTED</string>
     <string name="endgame_match_continues">Your account is suspended. The match continues.</string>
-    <string name="endgame_turn_number">Turn %1$d</string>
     <string name="endgame_appeal">APPEAL (PLAY AGAIN)</string>
     <string name="endgame_main_menu">MAIN MENU</string>
     <string name="endgame_share">SHARE YOUR WIN</string>
     <string name="endgame_share_summary">%1$s won King of Xitter with %2$d mandates.</string>
-    <string name="endgame_badge_thresholds">Blue check: 6–14 · Gold check: 15+</string>
-    <string name="endgame_resources">%1$dM followers · %2$d characters</string>
-    <string name="endgame_gold_badge">Gold check</string>
-    <string name="endgame_blue_badge">Blue check</string>
-    <string name="endgame_unverified">Unverified</string>
     <string name="endgame_on_xitter">On Xitter · +2 next turn if you stay</string>
-    <string name="endgame_unknown_leader">Leader</string>
-    <string name="leader_macaron">Emmanuel Macaron</string>
-    <string name="leader_kim">Kim Jong-Fun</string>
-    <string name="leader_poutine">Vladimir Poutine</string>
-    <string name="leader_mileon">Mi-León</string>
-    <string name="leader_xi">Xi</string>
-    <string name="leader_trumpet">Donald J. Trumpet</string>
     <string name="endgame_survivor_subtitle">The last voice on Xitter.</string>
     <string name="endgame_last_tweet">THE TWEET THAT ENDED YOU</string>
+    <string name="endgame_you_name">YOU · %1$s</string>
+    <string name="endgame_suspended_subtitle">You hit 0 followers on turn %1$d. Your drafts have been deleted.</string>
+    <string name="endgame_outposted_subtitle">%1$s reached 20 mandates on turn %2$d.</string>
+    <string name="endgame_stamp_outposted">OUTPOSTED</string>
+    <string name="endgame_winning_tweet">THE TWEET THAT WON IT</string>
+    <string name="endgame_standings_live_title">WHO\'S WINNING</string>
+    <string name="endgame_standings_final_title">FINAL STANDINGS</string>
+    <string name="endgame_standings_rules">Turn %1$d · first to 20 mandates, or last account standing</string>
+    <string name="endgame_certification">CERTIFICATION</string>
+    <string name="endgame_band_unverified">0–5</string>
+    <string name="endgame_band_blue">Blue 6–14</string>
+    <string name="endgame_band_gold">Gold 15+</string>
+    <string name="endgame_followers_short">%1$dM</string>
+    <string name="endgame_suspended_note">Suspended</string>
+    <string name="endgame_winner_note">Winner · 20 mandates</string>
+    <plurals name="endgame_tweets_sent">
+        <item quantity="one">%1$d tweet sent</item>
+        <item quantity="other">%1$d tweets sent</item>
+    </plurals>
+    <plurals name="endgame_turns_as_main_character">
+        <item quantity="one">%1$d turn as Main Character</item>
+        <item quantity="other">%1$d turns as Main Character</item>
+    </plurals>
+    <plurals name="endgame_followers_spoken">
+        <item quantity="one">%1$d million follower</item>
+        <item quantity="other">%1$d million followers</item>
+    </plurals>
+    <plurals name="endgame_characters_spoken">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
+    <plurals name="endgame_danger_note">
+        <item quantity="one">%1$dM follower left: one bad roll from suspension</item>
+        <item quantity="other">%1$dM followers left: one bad roll from suspension</item>
+    </plurals>
+    <plurals name="endgame_gold_note">
+        <item quantity="one">Gold check · %1$d to win</item>
+        <item quantity="other">Gold check · %1$d to win</item>
+    </plurals>
+    <plurals name="endgame_blue_note">
+        <item quantity="one">Blue check · %1$d mandate from gold</item>
+        <item quantity="other">Blue check · %1$d mandates from gold</item>
+    </plurals>
+    <plurals name="endgame_unverified_note">
+        <item quantity="one">%1$d mandate from a blue check</item>
+        <item quantity="other">%1$d mandates from a blue check</item>
+    </plurals>
     <string name="endgame_fixture_last_tweet">The Respected Supreme Leader has personally unfollowed @EmmanuelMacaron on behalf of 25 million grateful citizens. It took 0.3 seconds. A new world record.</string>
-    <string name="endgame_score_number">%1$d</string>
     <plurals name="stat_characters">
         <item quantity="one">%1$d character</item>
         <item quantity="other">%1$d characters</item>
